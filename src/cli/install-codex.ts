@@ -226,11 +226,21 @@ export async function installCodex({
         throw new Error(`Codex revisions changed outside GitRelay: ${revisions}`);
       if (latest) {
         const existing = join(workspace, "runtimes", latest.slice(21));
-        if (
-          (await digest(join(existing, "dist"), signal)) !== latest.slice(21) ||
-          (await contents(join(existing, "package.json"))) !== '{"type":"module"}\n'
-        )
-          throw new Error(`Codex runtime was modified: ${existing}`);
+        try {
+          if (
+            (await digest(join(existing, "dist"), signal)) !== latest.slice(21) ||
+            (await contents(join(existing, "package.json"))) !== '{"type":"module"}\n'
+          )
+            throw new Error(`Codex runtime was modified: ${existing}`);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+          const present = await lstat(existing).catch((failure) => {
+            if (failure.code === "ENOENT") return undefined;
+            throw failure;
+          });
+          if (present)
+            throw new Error(`Codex runtime is incomplete or was modified; preserved: ${existing}`, { cause: error });
+        }
       }
       const source = join(sourceRoot, "dist"),
         id = await digest(source, signal),

@@ -84,6 +84,31 @@ test(
   },
 );
 
+test(
+  "Codex reinstalls a missing owned runtime and upgrades after it is removed",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    await installCodex(f);
+    const state = join(f.workspace, "codex-hooks.json");
+    const runtime = () =>
+      readFile(state, "utf8").then((value) => join(f.workspace, "runtimes", JSON.parse(value).current.slice(21)));
+    const first = await runtime();
+    await rm(first, { recursive: true });
+    await installCodex(f);
+    assert.ok((await stat(join(first, "dist"))).isDirectory());
+    await rm(join(first, "dist"), { recursive: true });
+    await writeFile(join(first, "user-data"), "preserve");
+    await assert.rejects(installCodex(f), /runtime is incomplete or was modified; preserved/);
+    assert.equal(await readFile(join(first, "user-data"), "utf8"), "preserve");
+    await rm(first, { recursive: true });
+    await writeFile(join(f.sourceRoot, "dist", "upgrade-marker.txt"), "upgrade");
+    await installCodex(f);
+    assert.notEqual(await runtime(), first);
+    assert.equal(await readFile(join(await runtime(), "dist", "upgrade-marker.txt"), "utf8"), "upgrade");
+  },
+);
+
 test("Codex preserves an existing incomplete runtime directory", { skip: process.platform === "win32" }, async (t) => {
   const f = await fixture(t);
   await installCodex(f);

@@ -192,11 +192,23 @@ export async function installOpenCode(
         throw new Error(`OpenCode revisions changed outside GitRelay: ${revisions}`);
       if (latest) {
         const existingRuntime = join(root, "runtimes", latest.slice(21));
-        if (
-          (await digest(join(existingRuntime, "dist"), signal)) !== latest.slice(21) ||
-          (await contents(join(existingRuntime, "package.json"))) !== '{"type":"module"}\n'
-        )
-          throw new Error(`OpenCode runtime was modified: ${existingRuntime}`);
+        try {
+          if (
+            (await digest(join(existingRuntime, "dist"), signal)) !== latest.slice(21) ||
+            (await contents(join(existingRuntime, "package.json"))) !== '{"type":"module"}\n'
+          )
+            throw new Error(`OpenCode runtime was modified: ${existingRuntime}`);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+          const present = await lstat(existingRuntime).catch((failure) => {
+            if (failure.code === "ENOENT") return undefined;
+            throw failure;
+          });
+          if (present)
+            throw new Error(`OpenCode runtime is incomplete or was modified; preserved: ${existingRuntime}`, {
+              cause: error,
+            });
+        }
       }
 
       const id = await digest(sourceDist, signal);
