@@ -9,7 +9,15 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { daemonStatus } from "../../src/core/daemon-state.ts";
 import { runDaemon } from "../../src/core/daemon.ts";
 import { eventsIn, registerSession, sendMessage } from "../../src/core/mailbox.ts";
-import { hash, readJson, repository, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import {
+  GC_LOCK_TOKEN,
+  hash,
+  readJson,
+  repository,
+  stateDirectory,
+  withLock,
+  writeJson,
+} from "../../src/core/store.ts";
 import { fixture, git } from "../helpers.ts";
 
 async function waitFor(check: () => Promise<boolean>) {
@@ -320,6 +328,66 @@ test("daemon retries cleanup when a recipient was busy", async (t) => {
   assert.ok(!(await eventsIn(repo)).some((item) => item.id === event.id));
   abort.abort();
   await running;
+});
+
+test("a long busy cleanup leaves time for other operations before retrying", async (t) => {
+  const abort = new AbortController();
+  let running: Promise<void> | undefined;
+  t.after(async () => {
+    abort.abort();
+    await running;
+  });
+  const f = await fixture(t);
+  const receiver = { cwd: f.b, ref: "refs/heads/main", adapter: "test", session: "B", async deliver() {} };
+  await consumeMailbox(receiver);
+  const confirmed = await sendMessage({ cwd: f.a, adapter: "test", session: "A", text: "confirmed" });
+  await consumeMailbox(receiver);
+  const unread = await sendMessage({ cwd: f.a, adapter: "test", session: "A", text: "unread" });
+  const repo = await repository(f.b);
+  let elapsed = performance.now();
+  t.mock.method(performance, "now", () => elapsed);
+  const readdir = fs.promises.readdir;
+  let delayed = false;
+  const mocked = t.mock.method(fs.promises, "readdir", (async (...args: Parameters<typeof readdir>) => {
+    if (!delayed && args[0] === join(repo.directory, "trash")) {
+      const lock = (await readJson(join(repo.directory, "publish.lock"))) as { token?: string } | undefined;
+      if (lock?.token === GC_LOCK_TOKEN) {
+        delayed = true;
+        elapsed += 6000;
+      }
+    }
+    return readdir(...args);
+  }) as typeof readdir);
+  syncBuiltinESMExports();
+  t.after(() => {
+    mocked.mock.restore();
+    syncBuiltinESMExports();
+  });
+  const reports: any[] = [];
+  await withLock(join(repo.directory, "sessions", `${confirmed.recipients[0]}.lock`), async () => {
+    running = runDaemon({
+      signal: abort.signal,
+      intervalMs: 50,
+      retentionDays: 0,
+      onEvent(value: any) {
+        if (value.type === "daemon.cleanup") reports.push(value);
+      },
+    });
+    await waitFor(async () => reports.length > 0);
+    assert.equal(reports[0].removed, 0);
+  });
+  elapsed += 5001;
+  await delay(200);
+  assert.equal(reports.length, 1);
+  await withLock(join(repo.directory, "publish.lock"), async () => {}, {
+    waitMs: 5000,
+    signal: AbortSignal.timeout(5000),
+  });
+  elapsed += 1000;
+  await waitFor(async () => reports.some((report) => report.removed === 1));
+  const events = await eventsIn(repo);
+  assert.ok(events.some((event) => event.id === unread.id));
+  assert.ok(!events.some((event) => event.id === confirmed.id));
 });
 
 test("a repository without metadata does not consume its first maintenance attempt", async (t) => {

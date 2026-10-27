@@ -58,7 +58,7 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
           intervalMs,
           heartbeatAt: new Date().toISOString(),
         });
-      const cleanup = new Map<string, { completed: number; attempted: number }>();
+      const cleanup = new Map<string, { completed: number; nextAttempt: number }>();
       const missing = new Set<string>();
       try {
         await heartbeat();
@@ -71,11 +71,16 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
           for (const id of missing) if (!present.has(id)) missing.delete(id);
           for (const id of ids) {
             if (!isId(id) || options.signal.aborted) continue;
-            const progress = cleanup.get(id) ?? { completed: -Infinity, attempted: -Infinity };
+            const progress = cleanup.get(id) ?? { completed: -Infinity, nextAttempt: -Infinity };
             cleanup.set(id, progress);
             const now = performance.now();
-            const clean =
-              now - progress.completed >= 60 * 60 * 1000 && now - progress.attempted >= Math.max(intervalMs, 5000);
+            const retryDelay = Math.max(intervalMs, 5000);
+            const clean = now - progress.completed >= 60 * 60 * 1000 && now >= progress.nextAttempt;
+            const finishCleanup = (busy: boolean, started: number) => {
+              const finished = performance.now();
+              if (busy) progress.nextAttempt = finished + Math.max(retryDelay, finished - started);
+              else progress.completed = finished;
+            };
             try {
               const directory = join(root, "repos", id);
               await checkStateDirectory(directory);
@@ -118,7 +123,8 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                   });
                 }
                 if (clean && !options.signal.aborted) {
-                  progress.attempted = now;
+                  progress.nextAttempt = now + retryDelay;
+                  const started = performance.now();
                   const report = await collectRepository(
                     {
                       id,
@@ -130,7 +136,10 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                     },
                     { apply: true, retentionDays: days, signal: options.signal },
                   );
-                  if (!report.kept.some((event) => event.reason === "busy")) progress.completed = performance.now();
+                  finishCleanup(
+                    report.kept.some((event) => event.reason === "busy"),
+                    started,
+                  );
                   await emit({
                     type: "daemon.cleanup",
                     repo: id,
@@ -155,7 +164,7 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                 identity: metadata.identity,
                 identitySource,
               };
-              if (clean) progress.attempted = now;
+              if (clean) progress.nextAttempt = now + retryDelay;
               await mkdir(join(directory, "trash"), { recursive: true, mode: 0o700 });
               const errors: object[] = [];
               await withLock(join(directory, "publish.lock"), async () => {
@@ -188,12 +197,16 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
               });
               for (const error of errors) await emit(error);
               if (clean && !options.signal.aborted) {
+                const started = performance.now();
                 const report = await collectRepository(repo, {
                   apply: true,
                   retentionDays: days,
                   signal: options.signal,
                 });
-                if (!report.kept.some((event) => event.reason === "busy")) progress.completed = performance.now();
+                finishCleanup(
+                  report.kept.some((event) => event.reason === "busy"),
+                  started,
+                );
                 await emit({
                   type: "daemon.cleanup",
                   repo: id,
