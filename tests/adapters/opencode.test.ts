@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { syncBuiltinESMExports } from "node:module";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { test, type TestContext } from "node:test";
@@ -8,7 +10,7 @@ import { pathToFileURL } from "node:url";
 import type { Plugin } from "@opencode/plugin";
 import plugin from "../../src/adapters/opencode/index.ts";
 import { listSessions, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { chooseFreshRepository, hash, repository } from "../../src/core/store.ts";
+import { chooseFreshRepository, hash, repository, withLock } from "../../src/core/store.ts";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { fixture, git } from "../helpers.ts";
@@ -1034,7 +1036,7 @@ test("OpenCode opt-out drains delivery, preserves unread events and permits an e
   assert.equal(calls.length, 1);
 });
 
-test("OpenCode retries closing a subscription after a transient session lookup failure", async (t) => {
+test("OpenCode closes the known subscription before a transient session lookup failure", async (t) => {
   const warnings: unknown[] = [];
   t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
   const f = await harness(t, async () => {});
@@ -1044,7 +1046,7 @@ test("OpenCode retries closing a subscription after a transient session lookup f
   });
   await f.enroll(f.id, undefined, "Disable GitRelay");
   assert.match(String(warnings[0]), /transient lookup failure/);
-  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  assert.ok((await listSessions(f.b))[0].closedAt);
   lookup.mock.restore();
   await f.enroll(f.id, undefined, "Disable GitRelay");
   assert.ok((await listSessions(f.b))[0].closedAt);
@@ -1129,6 +1131,253 @@ test("OpenCode preserves an old subscription absent from the current identity", 
   }
   await f.enroll(f.id, undefined, "Disable GitRelay");
   assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("OpenCode opt-out preserves a recreated native session until explicitly retried", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  const oldInstance = (await listSessions(f.b))[0].instance;
+  const started = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  const lookup = t.mock.method(f.session, "get", async () => {
+    started.resolve();
+    await release.promise;
+    return { location: { directory: f.b }, time: { created: 2 } };
+  });
+  const stopping = f.enroll(f.id, undefined, "Disable GitRelay");
+  await started.promise;
+  f.recreateWithoutEvent();
+  const current = {
+    cwd: f.b,
+    ref: "refs/heads/main",
+    adapter: "opencode",
+    session: f.id,
+    instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 2]),
+  };
+  await joinSession(current);
+  await sessionActivation(current, true);
+  release.resolve();
+  await stopping;
+  assert.match(String(warnings[0]), /session changed during opt-out/i);
+  assert.ok((await listSessions(f.b)).find((session) => session.instance === oldInstance)?.closedAt);
+  assert.equal((await listSessions(f.b)).find((session) => session.instance === current.instance)?.closedAt, undefined);
+  assert.equal(await sessionActivation(current), true);
+  lookup.mock.restore();
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b)).find((session) => session.instance === current.instance)?.closedAt);
+  assert.equal(await sessionActivation(current), false);
+});
+
+test("OpenCode closes the known subscription even if the host moved the session", async (t) => {
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  f.locations.set(f.id, { location: { directory: f.a } });
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("OpenCode requires a retry when an unknown session is recreated during opt-out", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {}),
+    started = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  const lookup = t.mock.method(f.session, "get", async () => {
+    started.resolve();
+    await release.promise;
+    return { location: { directory: f.b }, time: { created: 2 } };
+  });
+  const stopping = f.enroll(f.id, undefined, "Disable GitRelay");
+  await started.promise;
+  f.recreateWithoutEvent();
+  const current = {
+    cwd: f.b,
+    ref: "refs/heads/main",
+    adapter: "opencode",
+    session: f.id,
+    instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 2]),
+  };
+  await joinSession(current);
+  await sessionActivation(current, true);
+  release.resolve();
+  await stopping;
+  assert.match(String(warnings[0]), /identity could not be verified.*retry/i);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  assert.equal(await sessionActivation(current), true);
+  lookup.mock.restore();
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("OpenCode retries a failed known opt-out without requiring an extra prompt", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  await withLock(join(f.repo.directory, "sessions", `${f.key}.lock`), async () => {
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+  });
+  assert.match(String(warnings[0]), /busy/i);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("a later OpenCode enable cancels a pending unknown opt-out", async (t) => {
+  const f = await harness(t, async () => {}),
+    started = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  let calls = 0;
+  const lookup = t.mock.method(f.session, "get", async () => {
+    if (++calls === 1) {
+      started.resolve();
+      await release.promise;
+    }
+    return { location: { directory: f.b }, time: { created: 1 } };
+  });
+  const stopping = f.enroll(f.id, undefined, "Disable GitRelay");
+  await started.promise;
+  await f.enroll();
+  release.resolve();
+  await stopping;
+  lookup.mock.restore();
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  const identity = (await listSessions(f.b))[0];
+  assert.equal(
+    await sessionActivation({
+      cwd: f.b,
+      ref: identity.ref,
+      adapter: identity.adapter,
+      session: identity.session,
+      instance: identity.instance,
+    }),
+    true,
+  );
+});
+
+for (const phase of ["activations", "sessions"] as const) {
+  test(`a later OpenCode enable cancels an opt-out before ${phase} commit`, async (t) => {
+    const f = await harness(t, async () => {}),
+      started = Promise.withResolvers<void>(),
+      release = Promise.withResolvers<void>();
+    t.after(() => release.resolve());
+    await f.enroll();
+    const identity = (await listSessions(f.b))[0];
+    const options = {
+      cwd: f.b,
+      ref: identity.ref,
+      adapter: identity.adapter,
+      session: identity.session,
+      instance: identity.instance,
+    };
+    const originalOpen = fs.promises.open;
+    let blocked = false;
+    fs.promises.open = (async (...args: Parameters<typeof originalOpen>) => {
+      const file = await originalOpen(...args);
+      if (String(args[0]).includes(`/${phase}/`) && String(args[0]).endsWith(".tmp")) {
+        const write = file.writeFile.bind(file);
+        file.writeFile = (async (...writeArgs: Parameters<typeof file.writeFile>) => {
+          const content = String(writeArgs[0]);
+          if (!blocked && content.includes(phase === "activations" ? '"enabled":false' : '"closedAt"')) {
+            blocked = true;
+            started.resolve();
+            await release.promise;
+          }
+          return write(...writeArgs);
+        }) as typeof file.writeFile;
+      }
+      return file;
+    }) as typeof originalOpen;
+    syncBuiltinESMExports();
+    try {
+      const disabling = f.enroll(f.id, undefined, "Disable GitRelay");
+      await started.promise;
+      const enabling = f.enroll();
+      if (phase === "activations") await enabling;
+      else await waitFor(async () => sessionActivation(options));
+      release.resolve();
+      await Promise.all([disabling, enabling]);
+    } finally {
+      release.resolve();
+      fs.promises.open = originalOpen;
+      syncBuiltinESMExports();
+    }
+    assert.equal(blocked, true);
+    assert.equal(await sessionActivation(options), true);
+    assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  });
+}
+
+test("an older OpenCode opt-out lookup cannot replace a newer pending instance", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {}),
+    started = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  const current = {
+    cwd: f.b,
+    ref: "refs/heads/main",
+    adapter: "opencode",
+    session: f.id,
+    instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 2]),
+  };
+  await joinSession(current);
+  await sessionActivation(current, true);
+  f.recreateWithoutEvent();
+  let calls = 0;
+  const lookup = t.mock.method(f.session, "get", async () => {
+    if (++calls === 1) {
+      started.resolve();
+      await release.promise;
+      return { location: { directory: f.b }, time: { created: 1 } };
+    }
+    return { location: { directory: f.b }, time: { created: 2 } };
+  });
+  const first = f.enroll(f.id, undefined, "Disable GitRelay");
+  await started.promise;
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  release.resolve();
+  await first;
+  assert.match(String(warnings[0]), /identity could not be verified.*retry/i);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  lookup.mock.restore();
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("an OpenCode deletion cancels a pending opt-out lookup", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {}),
+    started = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  await f.enroll("other");
+  const original = f.session.get;
+  const lookup = t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
+    if (input.sessionID === f.id) {
+      started.resolve();
+      await release.promise;
+    }
+    return original(input);
+  });
+  const stopping = f.enroll(f.id, undefined, "Disable GitRelay");
+  await started.promise;
+  await f.removed(f.id);
+  release.resolve();
+  await stopping;
+  lookup.mock.restore();
+  assert.deepEqual(warnings, []);
+  assert.equal(
+    (await listSessions(f.b)).some((session) => session.session === f.id),
+    false,
+  );
 });
 
 test("OpenCode does not close a parent subscription when a nested repository disappears", async (t) => {

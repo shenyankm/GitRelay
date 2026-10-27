@@ -7,7 +7,7 @@ import { hash } from "../../core/store.ts";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { requestedActivation, sessionActivation } from "../../core/activation.ts";
-import { joinSession, leaveSessionIfRepository } from "../../core/sessions.ts";
+import { joinSession, leaveSessionIfRepository, preflightLeaveSession } from "../../core/sessions.ts";
 
 type SessionID = Parameters<Plugin.Context["session"]["get"]>[0]["sessionID"];
 
@@ -29,6 +29,10 @@ export default {
       { abort: AbortController; instance?: string; rejoin?: boolean; active?: Promise<void> }
     >();
     const optIns = new Set<SessionID>();
+    const optOuts = new Map<
+      SessionID,
+      { instance?: string; known: boolean; disabled: boolean; abort: AbortController }
+    >();
     const draining = new Set<Promise<void>>();
     const lookups = new Map<SessionID, Set<{ cancelled: boolean; abort: AbortController }>>();
     const abort = new AbortController();
@@ -289,6 +293,10 @@ export default {
         return;
       const request = requestedActivation(event.prompt?.text);
       if (request === false) {
+        if (optOuts.size >= 128 && !optOuts.has(event.sessionID)) {
+          warn(new Error("Too many pending opt-outs; retry after another session is resolved."));
+          return;
+        }
         optIns.delete(event.sessionID);
         retries.delete(event.sessionID);
         for (const token of lookups.get(event.sessionID) ?? []) {
@@ -296,47 +304,100 @@ export default {
           token.abort.abort();
         }
         const state = sessions.get(event.sessionID);
+        const previous = optOuts.get(event.sessionID);
+        previous?.abort.abort();
+        const attempt = {
+          instance: state ? state.instance : previous?.instance,
+          known: Boolean(state || previous?.known),
+          disabled: state ? false : (previous?.disabled ?? false),
+          abort: new AbortController(),
+        };
+        optOuts.set(event.sessionID, attempt);
+        const signal = AbortSignal.any([abort.signal, attempt.abort.signal]);
+        const current = () => !abort.signal.aborted && optOuts.get(event.sessionID) === attempt;
         state?.abort.abort();
         sessions.delete(event.sessionID);
         maintainTimer();
         try {
+          let oldClosed = false;
+          const oldOptions = {
+            cwd: ctx.location.directory,
+            ref,
+            adapter: "opencode",
+            session: event.sessionID,
+            instance: attempt.instance,
+            signal,
+          };
           if (state) {
             if (state.active) {
               const active = state.active;
               draining.add(active);
               void active.finally(() => draining.delete(active));
             }
-            await sessionActivation(
-              {
-                cwd: ctx.location.directory,
-                ref,
-                adapter: "opencode",
-                session: event.sessionID,
-                instance: state.instance,
-                signal: abort.signal,
-              },
-              false,
-            );
+            const checked = await preflightLeaveSession(oldOptions);
+            if (!current()) return;
+            await sessionActivation(oldOptions, false);
+            if (!current()) return;
+            attempt.disabled = true;
+            await state.active;
+            if (!current()) return;
+            await leaveSessionIfRepository(oldOptions, checked);
+            if (!current()) return;
+            oldClosed = true;
+          } else if (attempt.known && attempt.disabled) {
+            const checked = await preflightLeaveSession(oldOptions);
+            if (!current()) return;
+            await leaveSessionIfRepository(oldOptions, checked);
+            if (!current()) return;
+            oldClosed = true;
           }
-          await state?.active;
-          const target = await getSession(event.sessionID, abort.signal);
-          if (!belongs(target)) return;
+          const target = await getSession(event.sessionID, signal);
+          if (!current()) return;
+          if (!belongs(target)) {
+            optOuts.delete(event.sessionID);
+            return;
+          }
           const options = {
             cwd: ctx.location.directory,
             ref,
             adapter: "opencode",
             session: event.sessionID,
             instance: instanceOf(target),
-            signal: abort.signal,
+            signal,
           };
+          if (attempt.known && attempt.instance !== options.instance) {
+            attempt.instance = options.instance;
+            attempt.disabled = false;
+            warn(new Error("OpenCode session changed during opt-out; retry for the current session."));
+            return;
+          }
+          if (oldClosed) {
+            optOuts.delete(event.sessionID);
+            return;
+          }
+          const checked = await preflightLeaveSession(options);
+          if (!current()) return;
+          if (!attempt.known && checked.repositoryId) {
+            attempt.known = true;
+            attempt.instance = options.instance;
+            warn(
+              new Error("OpenCode session identity could not be verified for opt-out; retry for the current session."),
+            );
+            return;
+          }
           await sessionActivation(options, false);
-          await leaveSessionIfRepository(options);
+          if (!current()) return;
+          attempt.disabled = true;
+          await leaveSessionIfRepository(options, checked);
+          if (current()) optOuts.delete(event.sessionID);
         } catch (error) {
-          if (!abort.signal.aborted) warn(error);
+          if (current()) warn(error);
         }
         return;
       }
       if (request === true) {
+        optOuts.get(event.sessionID)?.abort.abort();
+        optOuts.delete(event.sessionID);
         if (optIns.size >= 128 && !optIns.has(event.sessionID)) {
           warn(new Error("Too many pending opt-ins; retry after a session is enrolled."));
           return;
@@ -365,6 +426,8 @@ export default {
               backoff = 1000;
               if (event.type !== "session.deleted") continue;
               optIns.delete(event.data.sessionID);
+              optOuts.get(event.data.sessionID)?.abort.abort();
+              optOuts.delete(event.data.sessionID);
               retries.delete(event.data.sessionID);
               for (const token of lookups.get(event.data.sessionID) ?? []) {
                 token.cancelled = true;
@@ -400,6 +463,8 @@ export default {
       if (timer) clearInterval(timer);
       retries.clear();
       optIns.clear();
+      for (const attempt of optOuts.values()) attempt.abort.abort();
+      optOuts.clear();
       for (const state of sessions.values()) state.abort.abort();
       const results = await Promise.allSettled([
         Promise.resolve().then(() => registration.dispose()),

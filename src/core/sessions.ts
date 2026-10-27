@@ -223,7 +223,11 @@ export async function leaveSession(
           if (!session || session.closedAt) return session;
           const now = new Date().toISOString();
           const closed = { ...session, closedAt: now, lastSeen: now };
-          await writeJson(join(repo.directory, "sessions", `${key}.json`), closed);
+          await writeJson(
+            join(repo.directory, "sessions", `${key}.json`),
+            closed,
+            options.signal ? () => options.signal?.throwIfAborted() : undefined,
+          );
           return closed;
         },
         { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN },
@@ -277,6 +281,10 @@ async function hasPriorSubscription(
 
 /** Inspect existing subscriptions before changing activation or repository state. */
 export async function preflightLeaveSession(options: LeaveOptions): Promise<{ root?: string; repositoryId?: string }> {
+  if (options.repositoryId !== undefined) {
+    const repo = await leavingRepository(options);
+    return { repositoryId: repo.id };
+  }
   let root: string;
   try {
     root = await watchRoot(options.cwd, options.signal);

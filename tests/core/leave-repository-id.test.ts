@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test, type TestContext } from "node:test";
 import { sessionKey } from "../../src/core/mailbox.ts";
-import { leaveSession } from "../../src/core/sessions.ts";
+import { leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../../src/core/sessions.ts";
 import { hash } from "../../src/core/store.ts";
 
 async function fixture(t: TestContext) {
@@ -51,6 +51,17 @@ test("explicit state repository resolves ambiguous removed-worktree session with
   assert.ok((await leaveSession({ cwd: f.root, ...f.actor, ref: f.ref, repositoryId: a.id }))?.closedAt);
   const other = JSON.parse(await readFile(join(b.target, "sessions", `${f.key}.json`), "utf8"));
   assert.equal(other.closedAt, undefined);
+});
+
+test("explicit repository preflight rejects existing paths and binds a removed-worktree leave", async (t) => {
+  const f = await fixture(t),
+    a = await f.add("a");
+  const options = { cwd: f.root, ...f.actor, ref: f.ref, repositoryId: a.id };
+  await assert.rejects(preflightLeaveSession({ ...options, cwd: f.directory }), /only for a missing worktree/);
+  const checked = await preflightLeaveSession(options);
+  assert.deepEqual(checked, { repositoryId: a.id });
+  assert.equal(JSON.parse(await readFile(join(a.target, "sessions", `${f.key}.json`), "utf8")).closedAt, undefined);
+  assert.ok((await leaveSessionIfRepository(options, checked))?.closedAt);
 });
 
 test(

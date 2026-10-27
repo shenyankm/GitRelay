@@ -173,6 +173,14 @@ are not retroactively addressed to it. A deletion event cancels pending retry
 work, but missed events, moved sessions and reused session IDs remain subject
 to the identity and event-order limitations below.
 
+For an explicit opt-out, GitRelay closes a known in-memory session without
+changing a recreated instance. If the plugin has no verified in-memory session
+but finds an open subscription, it warns in the OpenCode logs and asks for the
+opt-out prompt again to confirm the current instance. A later enable or session
+deletion cancels that pending opt-out. If closing fails, retry the prompt after
+repairing the reported problem; unread messages remain preserved. At most 128
+opt-outs can be pending; resolve an earlier one before retrying if the limit is reached.
+
 - `ctx.session.hook("prompt", ...)` enables only requested or previously opted-in root sessions and establishes/restores their baselines.
 - Registered sessions are checked every five seconds, with at most one check in flight per session. Delivery uses `ctx.session.prompt({ sessionID, id, text, delivery: "queue", metadata })`. Busy sessions queue; idle sessions start. Each event is submitted separately with a stable message ID derived from the GitRelay repository identity, worktree, native session instance, and event ID. This can create more queued turns and model usage than combining a batch into one prompt. A receipt is written after each individual event is accepted.
 - The [OpenCode plugin documentation](https://opencode.ai/v2/docs/build/plugins/) says retrying an ID already pending or delivered returns the original admission. This lets the adapter retry an uncertain response or failed receipt without creating another admission while the host retains that ID. A local OpenCode 2.1.2 test verified this for a pending queue item, not after model processing. Permanent deduplication and exactly-once agent work are not claimed.
