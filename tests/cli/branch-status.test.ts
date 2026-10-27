@@ -47,6 +47,24 @@ test("status handles unborn branches", async (t) => {
   const status = JSON.parse((await run("status", "--cwd", empty)).stdout);
   assert.equal(status.worktree.commit, null);
   assert.equal(status.local.commit, null);
+  assert.equal(status.local.tracking, null);
+  git(empty, "remote", "add", "origin", f.main);
+  git(empty, "fetch", "origin", "main");
+  git(empty, "config", "branch.main.remote", "origin");
+  git(empty, "config", "branch.main.merge", "refs/heads/main");
+  for (const args of [[], ["--branch", "main"]]) {
+    const tracked = JSON.parse((await run("status", "--cwd", empty, ...args)).stdout);
+    assert.deepEqual(tracked.local.tracking, {
+      ref: "refs/remotes/origin/main",
+      commit: f.initial,
+      ahead: null,
+      behind: null,
+    });
+    assert.match(
+      (await run("status", "--cwd", empty, "--format", "markdown", ...args)).stdout,
+      /refs\/remotes\/origin\/main/,
+    );
+  }
 });
 
 test("status writes an App-readable Markdown snapshot and keeps JSON as the default", async (t) => {

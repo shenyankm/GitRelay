@@ -98,7 +98,23 @@ export async function branchStatus(options: BranchStatusOptions) {
   );
   const row = rows.map((line) => line.split("\0")).find(([name]) => name === ref);
   const commit = row?.[1] ?? null;
-  const upstream = row?.[2] || null;
+  let upstream = row?.[2] || null;
+  if (!row) {
+    try {
+      upstream = gitRefLine(
+        await git(
+          cwd,
+          ["rev-parse", "--symbolic-full-name", "--verify", "--quiet", "--end-of-options", `${branch}@{upstream}`],
+          signal,
+          "paths",
+        ),
+      );
+    } catch (error) {
+      signal?.throwIfAborted();
+      const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
+      if (cause?.code !== 1 || cause.stderr?.toString()) throw error;
+    }
+  }
   let tracking: { ref: string; commit: string | null; ahead: number | null; behind: number | null } | null = null;
   if (upstream) {
     const upstreamRows = gitRefLines(
