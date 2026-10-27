@@ -145,6 +145,8 @@ async function main() {
     return;
   }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
+  if (values["dry-run"] && !["install", "uninstall", "gc"].includes(command))
+    throw new Error("--dry-run requires install, uninstall or gc.");
   if (values.instance !== undefined && !values.session) throw new Error("--instance requires --session.");
   if (values["acknowledge-history-gap"] && (command !== "check" || !values.apply))
     throw new Error(
