@@ -221,7 +221,16 @@ export async function installOpenCode(
           if ((await digest(join(temp, "dist"), signal)) !== id)
             throw new Error("Runtime changed while copying; retry installation.");
           await writeFile(join(temp, "package.json"), '{"type":"module"}\n', { flag: "wx" });
-          await rename(temp, runtime);
+          try {
+            await rename(temp, runtime);
+          } catch (error) {
+            if (!["EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? "")) throw error;
+            if (
+              (await digest(join(runtime, "dist"), signal)) !== id ||
+              (await contents(join(runtime, "package.json"))) !== '{"type":"module"}\n'
+            )
+              throw new Error(`OpenCode runtime was modified: ${runtime}`);
+          }
         } finally {
           await rm(temp, { recursive: true, force: true });
         }
