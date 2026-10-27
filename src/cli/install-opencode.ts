@@ -297,7 +297,12 @@ export async function uninstallOpenCode(
       if (!record.removing && actual !== undefined && actual !== record.content)
         throw new Error(`OpenCode entry was modified; preserved: ${entry}`);
       const anchor = await anchorPath(entry, record.anchor);
-      if ((await contents(anchor)) !== record.content || (actual !== undefined && !(await sameFile(entry, anchor))))
+      const anchorContent = await contents(anchor);
+      if (
+        (anchorContent !== record.content &&
+          !(anchorContent === undefined && actual === undefined && !record.removing)) ||
+        (actual !== undefined && !(await sameFile(entry, anchor)))
+      )
         throw new Error(`OpenCode entry ownership cannot be established; preserved: ${entry}`);
       let archive = record.removing;
       if (!archive && actual !== undefined) {

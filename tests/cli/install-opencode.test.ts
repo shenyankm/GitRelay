@@ -21,6 +21,39 @@ import { promisify } from "node:util";
 import { test } from "node:test";
 import { installOpenCode, uninstallOpenCode } from "../../src/cli/install-opencode.ts";
 
+test("OpenCode recovers a lost anchor after the user preserves and removes the entry", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "git-relay-anchor-recovery-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const root = join(dir, "workspace"),
+    config = join(dir, "config"),
+    source = join(dir, "dist");
+  await mkdir(join(source, "adapters", "opencode"), { recursive: true });
+  await writeFile(
+    join(source, "adapters", "opencode", "index.js"),
+    "export default { id: 'git-relay', setup() {} };\n",
+  );
+  await installOpenCode(root, config, source);
+  const record = JSON.parse(await readFile(join(root, "opencode.json"), "utf8"));
+  const original = await readFile(record.entry, "utf8");
+  await rm(join(config, "opencode", "plugins", record.anchor));
+  await assert.rejects(uninstallOpenCode(root, config), /ownership cannot be established/);
+  await assert.rejects(installOpenCode(root, config, source), /ownership cannot be established/);
+  assert.equal(await readFile(record.entry, "utf8"), original);
+  const backup = join(dir, "saved-entry.js");
+  await rename(record.entry, backup);
+  const archive = join(config, "opencode", "plugins", ".git-relay-removed-abc", "entry");
+  await mkdir(join(config, "opencode", "plugins", ".git-relay-removed-abc"));
+  await writeFile(archive, "preserve pending archive");
+  await writeFile(join(root, "opencode.json"), JSON.stringify({ ...record, removing: archive }));
+  await assert.rejects(uninstallOpenCode(root, config), /ownership cannot be established/);
+  assert.equal(await readFile(archive, "utf8"), "preserve pending archive");
+  await writeFile(join(root, "opencode.json"), JSON.stringify(record));
+  await uninstallOpenCode(root, config);
+  await installOpenCode(root, config, source);
+  assert.equal(await readFile(backup, "utf8"), original);
+  assert.equal(await readFile(record.entry, "utf8"), original);
+});
+
 test("OpenCode preserves an existing incomplete runtime directory", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-runtime-"));
   t.after(() => rm(dir, { recursive: true, force: true }));

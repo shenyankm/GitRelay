@@ -368,8 +368,10 @@ async function uninstallCodexInternal(
         anchor = join(home, record.anchor);
       if (record.removing && actual !== undefined && (await contents(record.removing)) !== undefined)
         throw new Error(`Uninstall interrupted; preserve both ${entry} and ${record.removing} for inspection.`);
+      const anchorContent = await contents(anchor);
       if (
-        (await contents(anchor)) !== record.content ||
+        (anchorContent !== record.content &&
+          !(anchorContent === undefined && actual === undefined && !record.removing)) ||
         (actual !== undefined && (actual !== record.content || !(await sameFile(entry, anchor))))
       )
         throw new Error(`Codex hooks ownership cannot be established; preserved: ${entry}`);
