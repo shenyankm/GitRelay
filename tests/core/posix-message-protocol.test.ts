@@ -16,9 +16,37 @@ import {
 } from "../../src/core/mailbox.ts";
 import { joinSession } from "../../src/core/sessions.ts";
 import { hash, repository, withLock } from "../../src/core/store.ts";
-import { fixture } from "../helpers.ts";
+import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";
+
+test(
+  "capability checks include separate instances and refs of the sender",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    const sender = { cwd: f.b, ref, adapter: "test", session: "shared", instance: hash("one") };
+    const other = { ...sender, instance: hash("two"), async deliver() {} };
+    const otherRef = { ...sender, ref: "refs/heads/other", async deliver() {} };
+    git(f.b, "branch", "other");
+    await joinSession(sender);
+    await joinSession(other);
+    await assert.rejects(
+      sendMessage({ ...sender, text: "message", files: ["\\notes"] }),
+      /all recipients.*compatible POSIX receiver/,
+    );
+    await consumeMailbox(other);
+    const repo = await repository(f.b);
+    const event = await sendMessage({ ...sender, text: "message", files: ["\\notes"] });
+    assert.deepEqual(event.recipients, [sessionKey(repo, other, ref)]);
+    // A second ref remains an independent target, even with the same instance.
+    await joinSession(otherRef);
+    await assert.rejects(
+      sendMessage({ ...sender, text: "message", files: ["\\notes"] }),
+      /all recipients.*compatible POSIX receiver/,
+    );
+  },
+);
 
 test("capability registration uses the captured consumer mode", { skip: process.platform === "win32" }, async (t) => {
   const f = await fixture(t);

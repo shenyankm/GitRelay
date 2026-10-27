@@ -487,12 +487,10 @@ export async function sendMessage(
     join(repo.directory, "publish.lock"),
     async () => {
       await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
-      const sender = await readSession(repo, sessionKey(repo, identity, ref));
+      const senderKey = sessionKey(repo, identity, ref);
+      const sender = await readSession(repo, senderKey);
       if (sender?.closedAt) throw new Error("This session has left; use join before sending messages.");
-      const targets = (await sessionsIn(repo)).filter(
-        (other) =>
-          !other.closedAt && !(other.root === repo.root && other.adapter === adapter && other.session === session),
-      );
+      const targets = (await sessionsIn(repo)).filter((other) => !other.closedAt && other.key !== senderKey);
       if (posixPaths && targets.some((target) => !target.posixPaths))
         throw new Error("POSIX filename messages require all recipients to register with a compatible POSIX receiver.");
       const recipients = targets.map((other) => other.key);
