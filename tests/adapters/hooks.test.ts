@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, chmod, mkdir, writeFile } from "node:fs/promises";
+import { access, chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { hookResponse, runHook } from "../../src/adapters/hooks.ts";
@@ -118,6 +118,27 @@ test("a failed disable can be retried after the session lock is released", async
 test("disabling outside a Git repository is a no-op", async (t) => {
   const f = await fixture(t);
   await runHook({ ...input(f.root), prompt: "Disable GitRelay" }, ref, async (value) => assert.deepEqual(value, {}));
+});
+
+test("disabling reports a broken Git pointer and can be retried after repair", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const repo = await repository(f.b),
+    key = sessionKey(repo, { adapter: "codex", session: "receiver" }, ref);
+  const pointer = join(f.b, ".git"),
+    original = await readFile(pointer);
+  await writeFile(pointer, `gitdir: ${join(f.root, "missing-gitdir")}\n`);
+  try {
+    await assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /not a git repository/i);
+  } finally {
+    await writeFile(pointer, original);
+  }
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  const message = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "before retry" });
+  assert.ok(message.recipients.includes(key));
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
+  assert.ok((await listSessions(f.b))[0].closedAt);
 });
 
 test(

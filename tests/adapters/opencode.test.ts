@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { test, type TestContext } from "node:test";
@@ -1038,6 +1038,25 @@ test("OpenCode retries closing a subscription after a transient session lookup f
   assert.ok((await listSessions(f.b))[0].closedAt);
   const message = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "after disable" });
   assert.ok(!message.recipients.includes(f.key));
+});
+
+test("OpenCode reports a broken Git pointer and retries opt-out after repair", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  const pointer = join(f.b, ".git"),
+    original = await readFile(pointer);
+  await writeFile(pointer, `gitdir: ${join(f.root, "missing-gitdir")}\n`);
+  try {
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+  } finally {
+    await writeFile(pointer, original);
+  }
+  assert.match(String(warnings[0]), /not a git repository/i);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
 });
 
 test("OpenCode disable outside a repository is a no-op", async (t) => {

@@ -213,7 +213,12 @@ export async function leaveSessionIfRepository(options: LeaveOptions): Promise<v
         killed?: boolean;
         stderr?: string;
       };
-      if (result.code === 128 && !result.signal && !result.killed && /not a git repository/i.test(result.stderr ?? ""))
+      if (
+        result.code === 128 &&
+        !result.signal &&
+        !result.killed &&
+        /^fatal: not a git repository \(or any of the parent directories\): \.git\r?\n?$/.test(result.stderr ?? "")
+      )
         return;
     }
     throw error;
