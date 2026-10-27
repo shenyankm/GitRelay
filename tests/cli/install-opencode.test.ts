@@ -20,6 +20,36 @@ import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { installOpenCode, uninstallOpenCode } from "../../src/cli/install-opencode.ts";
+import { installerDigest } from "../../src/cli/installer-digest.ts";
+
+test("OpenCode upgrades legacy digests and rejects a modified runtime", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-legacy-digest-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const root = join(dir, "root"),
+    config = join(dir, "config"),
+    source = join(dir, "dist");
+  await mkdir(join(source, "adapters", "opencode"), { recursive: true });
+  await writeFile(
+    join(source, "adapters", "opencode", "index.js"),
+    "export default { id: 'git-relay', setup() {} };\n",
+  );
+  await writeFile(join(source, "changes.js"), "changes");
+  await writeFile(join(source, "cleanup.js"), "cleanup");
+  await installOpenCode(root, config, source);
+  const state = join(root, "opencode.json"),
+    record = JSON.parse(await readFile(state, "utf8"));
+  const legacy = `${record.current.slice(0, 21)}${await installerDigest(source, undefined, "cs")}`;
+  assert.notEqual(legacy, record.current);
+  await rename(join(root, "runtimes", record.current.slice(21)), join(root, "runtimes", legacy.slice(21)));
+  await rename(join(root, "opencode-revisions", record.current), join(root, "opencode-revisions", legacy));
+  await writeFile(state, JSON.stringify({ ...record, current: legacy }));
+  await writeFile(join(source, "upgrade"), "new source");
+  await writeFile(join(root, "runtimes", legacy.slice(21), "dist", "tampered"), "x");
+  await assert.rejects(installOpenCode(root, config, source), /runtime was modified/);
+  await rm(join(root, "runtimes", legacy.slice(21), "dist", "tampered"));
+  await installOpenCode(root, config, source);
+  assert.notEqual(JSON.parse(await readFile(state, "utf8")).current, legacy);
+});
 
 test("OpenCode reinstalls a missing owned runtime and upgrades after it is removed", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-repair-"));

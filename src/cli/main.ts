@@ -210,7 +210,12 @@ async function main() {
     let branch = values.branch;
     if (branch === undefined && values["auto-sync"]) {
       // --short can return heads/NAME when a tag has the same name.
-      const ref = gitRefLine(await git(cwd, ["symbolic-ref", "HEAD"], abort.signal, "paths"));
+      const ref = await git(cwd, ["symbolic-ref", "--quiet", "HEAD"], abort.signal, "paths")
+        .then(gitRefLine)
+        .catch((error: Error & { cause?: { code?: number } }) => {
+          if (error.cause?.code === 1) return "";
+          throw error;
+        });
       if (!ref.startsWith("refs/heads/"))
         throw new Error("HEAD does not point to a local branch; choose --branch NAME.");
       branch = ref.slice("refs/heads/".length);

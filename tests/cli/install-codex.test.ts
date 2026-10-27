@@ -21,6 +21,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { installCodex, uninstallCodex } from "../../src/cli/install-codex.ts";
+import { installerDigest } from "../../src/cli/installer-digest.ts";
 
 const exec = promisify(execFile);
 
@@ -62,6 +63,33 @@ async function fixture(t: import("node:test").TestContext) {
   const env = { ...process.env, CODEX_HOME: codexHome, PATH: `${bin}:${process.env.PATH ?? ""}` };
   return { workspace, sourceRoot, codexHome, config, cache, codex, env, hook: join(codexHome, "hooks.json") };
 }
+
+test(
+  "Codex upgrades legacy digests and rejects a modified runtime",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    await writeFile(join(f.sourceRoot, "dist", "changes.js"), "changes");
+    await writeFile(join(f.sourceRoot, "dist", "cleanup.js"), "cleanup");
+    await installCodex(f);
+    const state = join(f.workspace, "codex-hooks.json"),
+      record = JSON.parse(await readFile(state, "utf8"));
+    const legacy = `${record.current.slice(0, 21)}${await installerDigest(join(f.sourceRoot, "dist"), undefined, "cs")}`;
+    assert.notEqual(legacy, record.current);
+    await rename(
+      join(f.workspace, "runtimes", record.current.slice(21)),
+      join(f.workspace, "runtimes", legacy.slice(21)),
+    );
+    await rename(join(f.workspace, "codex-revisions", record.current), join(f.workspace, "codex-revisions", legacy));
+    await writeFile(state, JSON.stringify({ ...record, current: legacy }));
+    await writeFile(join(f.sourceRoot, "dist", "upgrade"), "new source");
+    await writeFile(join(f.workspace, "runtimes", legacy.slice(21), "dist", "tampered"), "x");
+    await assert.rejects(installCodex(f), /runtime was modified/);
+    await rm(join(f.workspace, "runtimes", legacy.slice(21), "dist", "tampered"));
+    await installCodex(f);
+    assert.notEqual(JSON.parse(await readFile(state, "utf8")).current, legacy);
+  },
+);
 
 test(
   "Codex preserves a symlinked installation record and its target",

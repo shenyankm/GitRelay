@@ -21,7 +21,7 @@ import { readJson, withLock, writeJson } from "../core/store.ts";
 import { readInstallationRecord } from "./install-record.ts";
 import { checkWorkspace } from "./install-opencode.ts";
 import { commandOutput } from "./command-output.ts";
-import { installerDigest } from "./installer-digest.ts";
+import { installerDigest, matchesLegacyInstallerDigest } from "./installer-digest.ts";
 import { checkInlineHooks } from "./codex-config.ts";
 
 type Options = {
@@ -224,14 +224,21 @@ export async function installCodex({
         (record && (latest ?? null) !== (record.pending ?? record.current) && (latest ?? null) !== record.current)
       )
         throw new Error(`Codex revisions changed outside GitRelay: ${revisions}`);
+      const source = join(sourceRoot, "dist"),
+        id = await digest(source, signal);
       if (latest) {
         const existing = join(workspace, "runtimes", latest.slice(21));
         try {
+          const existingDigest = await digest(join(existing, "dist"), signal);
           if (
-            (await digest(join(existing, "dist"), signal)) !== latest.slice(21) ||
+            (existingDigest !== latest.slice(21) &&
+              existingDigest !== id &&
+              !(await matchesLegacyInstallerDigest(join(existing, "dist"), latest.slice(21), signal))) ||
             (await contents(join(existing, "package.json"))) !== '{"type":"module"}\n'
           )
-            throw new Error(`Codex runtime was modified: ${existing}`);
+            throw new Error(
+              `Codex runtime was modified or its legacy digest cannot be verified; preserved: ${existing}. Retry with the original LC_ALL/LANG if known.`,
+            );
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
           const present = await lstat(existing).catch((failure) => {
@@ -242,9 +249,7 @@ export async function installCodex({
             throw new Error(`Codex runtime is incomplete or was modified; preserved: ${existing}`, { cause: error });
         }
       }
-      const source = join(sourceRoot, "dist"),
-        id = await digest(source, signal),
-        runtimes = join(workspace, "runtimes"),
+      const runtimes = join(workspace, "runtimes"),
         runtime = join(runtimes, id);
       await mkdir(runtimes, { recursive: true });
       try {

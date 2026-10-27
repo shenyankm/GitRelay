@@ -383,7 +383,6 @@ function validateMessage(text: unknown, files: unknown, strict = true): string[]
     throw new Error("Message files must be repository-relative paths (max 1000), without parent traversal.");
   const paths = [...files];
   if (
-    !messagePayloadWithinLimit(text, paths) ||
     paths.length > 1000 ||
     !paths.every(
       (file) =>
@@ -396,6 +395,8 @@ function validateMessage(text: unknown, files: unknown, strict = true): string[]
     )
   )
     throw new Error("Message files must be repository-relative paths (max 1000), without parent traversal.");
+  if (!messagePayloadWithinLimit(text, paths))
+    throw new Error("Serialized message text and files must be at most 64 KiB.");
   // Git emits slash-separated paths; backslashes are literal filename characters on Unix.
   const normalized = paths.map((file: string) =>
     posix.normalize(process.platform === "win32" ? file.replaceAll("\\", "/") : file),
