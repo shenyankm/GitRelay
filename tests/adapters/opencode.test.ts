@@ -495,9 +495,9 @@ test("a deletion verification failure warns and preserves the live session", asy
   const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "still active" });
   await waitFor(async () => {
     f.tick();
-    return calls.some((input) => input.text?.includes(event.id));
+    return (await readReceipt(f.repo, f.key, event.id))?.status === "delivered";
   });
-  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
+  assert.equal(calls.filter((input) => input.text?.includes(event.id)).length, 1);
 });
 
 test("a recreated session in another context stops only the old local polling", async (t) => {
@@ -554,9 +554,9 @@ test("a delayed deletion lookup cannot remove a later recreated session", async 
   const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "new generation" });
   await waitFor(async () => {
     f.tick();
-    return calls.some((input) => input.text?.includes(event.id));
+    return (await readReceipt(f.repo, f.key, event.id))?.status === "delivered";
   });
-  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
+  assert.equal(calls.filter((input) => input.text?.includes(event.id)).length, 1);
 });
 
 test("a slow deletion verification does not block other session IDs", async (t) => {
@@ -659,9 +659,9 @@ test("a stale deletion verification cannot cancel a newly added lookup token", a
   const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "surviving lookup" });
   await waitFor(async () => {
     f.tick();
-    return calls.some((input) => input.text?.includes(event.id));
+    return (await readReceipt(f.repo, f.key, event.id))?.status === "delivered";
   });
-  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
+  assert.equal(calls.filter((input) => input.text?.includes(event.id)).length, 1);
 });
 
 test("OpenCode retries a recreated session when its enable lookup fails", async (t) => {
