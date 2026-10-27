@@ -141,11 +141,7 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                 continue;
               }
               const current = await repositoryIdentity(common, false);
-              if (
-                hash([common, metadata.identity]) !== id ||
-                current?.identity !== metadata.identity ||
-                current.identitySource !== identitySource
-              )
+              if (hash([common, metadata.identity]) !== id || current?.identity !== metadata.identity)
                 throw new Error(`Repository identity mismatch: ${id}; previous state was preserved.`);
               const repo: Repository = {
                 id,
