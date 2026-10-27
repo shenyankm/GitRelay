@@ -178,7 +178,7 @@ changing a recreated instance. If the plugin has no verified in-memory session
 but finds an open subscription, it warns in the OpenCode logs and asks for the
 opt-out prompt again to confirm the current instance. A later enable or a host-confirmed session
 deletion cancels that pending opt-out. If closing fails, retry the prompt after
-repairing the reported problem; unread messages remain preserved. At most 128
+repairing the reported problem; unread messages remain preserved. Pending opt-outs are held in memory; after a plugin restart, an earlier enabled session can resume if the opt-out failed. Retry the opt-out after repairing the reported error. At most 128
 opt-outs can be pending; resolve an earlier one before retrying if the limit is reached.
 An unresponsive host lookup can leave an opt-out pending until a later enable,
 confirmed session deletion, or plugin shutdown cancels it.

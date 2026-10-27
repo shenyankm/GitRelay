@@ -222,6 +222,10 @@ export default {
       }
     }
     async function enroll(id: SessionID, retry = false) {
+      if (optOuts.has(id)) {
+        if (retry) retrying.delete(id);
+        return;
+      }
       const token = { cancelled: false, abort: new AbortController() };
       const sequence = ++lookupSequence;
       let pending: Set<typeof token> | undefined;
@@ -407,7 +411,12 @@ export default {
           await leaveSessionIfRepository(options, checked);
           if (current()) optOuts.delete(event.sessionID);
         } catch (error) {
-          if (current()) warn(error);
+          if (current())
+            warn(
+              new Error(
+                `OpenCode opt-out failed; retry Disable GitRelay: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
         } finally {
           maintainTimer();
         }

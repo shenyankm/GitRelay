@@ -1650,6 +1650,44 @@ test(
   },
 );
 
+test(
+  "a pending OpenCode opt-out does not resume on ordinary prompts until explicitly enabled",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const warnings: unknown[] = [];
+    t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+    const calls: Array<{ text?: string }> = [];
+    const f = await harness(t, async (input) => {
+      calls.push(input);
+    }),
+      bin = join(f.root, "bin"),
+      previousPath = process.env.PATH;
+    await f.enroll();
+    await mkdir(bin);
+    await writeFile(join(bin, "git"), "#!/bin/sh\nprintf 'fatal: injected failure\\n' >&2\nexit 77\n", { mode: 0o755 });
+    process.env.PATH = bin;
+    try {
+      await f.enroll(f.id, undefined, "Disable GitRelay");
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+    }
+    assert.match(String(warnings[0]), /injected failure/i);
+
+    const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "pending opt-out" });
+    await f.enroll(f.id, undefined, "ordinary prompt");
+    f.tick();
+    await delay(100);
+    assert.equal(await readReceipt(f.repo, f.key, event.id), undefined);
+    assert.equal(calls.length, 0);
+
+    await f.enroll(f.id, undefined, "Enable GitRelay");
+    f.tick();
+    await waitFor(async () => (await readReceipt(f.repo, f.key, event.id))?.status === "delivered");
+    assert.ok(calls.some((input) => input.text?.includes(event.id)));
+  },
+);
+
 test("a later OpenCode enable cancels a pending unknown opt-out", async (t) => {
   const f = await harness(t, async () => {}),
     started = Promise.withResolvers<void>(),
