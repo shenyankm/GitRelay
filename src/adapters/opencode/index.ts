@@ -31,7 +31,7 @@ export default {
     const optIns = new Set<SessionID>();
     const optOuts = new Map<
       SessionID,
-      { instance?: string; known: boolean; disabled: boolean; abort: AbortController }
+      { instance?: string; known: boolean; trusted: boolean; disabled: boolean; abort: AbortController }
     >();
     const draining = new Set<Promise<void>>();
     const lookups = new Map<SessionID, Set<{ cancelled: boolean; abort: AbortController }>>();
@@ -309,6 +309,7 @@ export default {
         const attempt = {
           instance: state ? state.instance : previous?.instance,
           known: Boolean(state || previous?.known),
+          trusted: Boolean(state || previous?.trusted),
           disabled: state ? false : (previous?.disabled ?? false),
           abort: new AbortController(),
         };
@@ -344,9 +345,14 @@ export default {
             await leaveSessionIfRepository(oldOptions, checked);
             if (!current()) return;
             oldClosed = true;
-          } else if (attempt.known && attempt.disabled) {
+          } else if (attempt.known && attempt.trusted) {
             const checked = await preflightLeaveSession(oldOptions);
             if (!current()) return;
+            if (!attempt.disabled) {
+              await sessionActivation(oldOptions, false);
+              if (!current()) return;
+              attempt.disabled = true;
+            }
             await leaveSessionIfRepository(oldOptions, checked);
             if (!current()) return;
             oldClosed = true;
@@ -367,6 +373,7 @@ export default {
           };
           if (attempt.known && attempt.instance !== options.instance) {
             attempt.instance = options.instance;
+            attempt.trusted = false;
             attempt.disabled = false;
             warn(new Error("OpenCode session changed during opt-out; retry for the current session."));
             return;
@@ -380,6 +387,7 @@ export default {
           if (!attempt.known && checked.repositoryId) {
             attempt.known = true;
             attempt.instance = options.instance;
+            attempt.trusted = false;
             warn(
               new Error("OpenCode session identity could not be verified for opt-out; retry for the current session."),
             );
@@ -387,6 +395,7 @@ export default {
           }
           await sessionActivation(options, false);
           if (!current()) return;
+          attempt.trusted = true;
           attempt.disabled = true;
           await leaveSessionIfRepository(options, checked);
           if (current()) optOuts.delete(event.sessionID);

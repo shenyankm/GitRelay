@@ -1227,6 +1227,49 @@ test("OpenCode retries a failed known opt-out without requiring an extra prompt"
   assert.ok((await listSessions(f.b))[0].closedAt);
 });
 
+test(
+  "OpenCode retries a trusted old instance after preflight failure and recreation",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const warnings: unknown[] = [];
+    t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+    const f = await harness(t, async () => {}),
+      bin = join(f.root, "bin"),
+      previousPath = process.env.PATH;
+    await f.enroll();
+    const old = (await listSessions(f.b))[0];
+    await mkdir(bin);
+    await writeFile(join(bin, "git"), "#!/bin/sh\nprintf 'fatal: injected failure\\n' >&2\nexit 77\n", { mode: 0o755 });
+    process.env.PATH = bin;
+    try {
+      await f.enroll(f.id, undefined, "Disable GitRelay");
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+    }
+    assert.match(String(warnings[0]), /injected failure/i);
+    f.recreateWithoutEvent();
+    const current = {
+      cwd: f.b,
+      ref: "refs/heads/main",
+      adapter: "opencode",
+      session: f.id,
+      instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 2]),
+    };
+    await joinSession(current);
+    await sessionActivation(current, true);
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+    assert.match(String(warnings[1]), /session changed.*retry/i);
+    assert.ok((await listSessions(f.b)).find((session) => session.instance === old.instance)?.closedAt);
+    assert.equal(
+      (await listSessions(f.b)).find((session) => session.instance === current.instance)?.closedAt,
+      undefined,
+    );
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+    assert.ok((await listSessions(f.b)).find((session) => session.instance === current.instance)?.closedAt);
+  },
+);
+
 test("a later OpenCode enable cancels a pending unknown opt-out", async (t) => {
   const f = await harness(t, async () => {}),
     started = Promise.withResolvers<void>(),
