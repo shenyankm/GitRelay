@@ -157,8 +157,11 @@ test("daemon maintains its heartbeat during a stalled cleanup", async (t) => {
   const readdir = fs.promises.readdir;
   const mocked = t.mock.method(fs.promises, "readdir", (async (...args: Parameters<typeof readdir>) => {
     if (args[0] === join(repo.directory, "trash")) {
-      entered.resolve();
-      await release.promise;
+      const lock = (await readJson(join(repo.directory, "publish.lock"))) as { token?: string } | undefined;
+      if (lock?.token === GC_LOCK_TOKEN) {
+        entered.resolve();
+        await release.promise;
+      }
     }
     return readdir(...args);
   }) as typeof readdir);
