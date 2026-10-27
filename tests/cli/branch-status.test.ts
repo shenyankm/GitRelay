@@ -33,6 +33,16 @@ test("status reports local divergence, dirty worktree, missing upstream and exac
   assert.deepEqual(gone.local.tracking, { ref: "refs/remotes/origin/main", commit: null, ahead: null, behind: null });
   git(f.b, "checkout", "--detach");
   await assert.rejects(run("status", "--cwd", f.b), /Detached HEAD/);
+  await assert.rejects(run("status", "--cwd", f.b, "--auto-sync"), /choose --branch NAME/);
+  await assert.rejects(
+    run("status", "--cwd", f.b, "--auto-sync", "--branch", "main"),
+    (error: Error & { stdout?: string; code?: number }) => {
+      assert.equal(error.code, 1);
+      assert.equal(JSON.parse(error.stdout!).sync.state, "blocked");
+      return true;
+    },
+  );
+  await assert.rejects(run("status", "--cwd", join(f.root, "missing"), "--auto-sync"), /No such file|cannot change/);
   assert.equal(JSON.parse((await run("status", "--cwd", f.b, "--branch", "main")).stdout).worktree.branch, null);
   await assert.rejects(run("status", "--cwd", f.b, "--branch", "../main"));
   await assert.rejects(run("status", "--cwd", f.b, "--repo", "owner/repo"), /requires --github/);
