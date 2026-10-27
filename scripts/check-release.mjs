@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, realpath } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 export function validateRelease(pkg, lock, plugin, changelog, tag) {
@@ -18,7 +18,10 @@ export function validateRelease(pkg, lock, plugin, changelog, tag) {
   }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] &&
+  (await realpath(process.argv[1]).catch(() => undefined)) === (await realpath(fileURLToPath(import.meta.url)))
+) {
   const read = async (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
   const [pkg, lock, plugin, changelog] = await Promise.all([
     read("package.json").then(JSON.parse),
