@@ -65,6 +65,7 @@ test("status handles unborn branches", async (t) => {
       /refs\/remotes\/origin\/main/,
     );
   }
+  assert.equal(JSON.parse((await run("status", "--cwd", empty, "--branch", "@")).stdout).local.tracking, null);
   git(empty, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main");
   git(empty, "config", "branch.main.merge", "refs/heads/HEAD");
   assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
@@ -100,6 +101,20 @@ test("status handles unborn branches", async (t) => {
   assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
     ref: "refs/heads/missing",
     commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "branch.other.merge", "missing");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "missing",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "update-ref", "refs/heads/missing", f.initial);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "refs/heads/missing",
+    commit: f.initial,
     ahead: null,
     behind: null,
   });
