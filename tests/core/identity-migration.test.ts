@@ -255,6 +255,8 @@ test("cross-filesystem publication reports the limit and preserves partial state
     fs.link = original;
     syncBuiltinESMExports();
   }
+  await migrateLegacyState(f.options);
+  assert.ok(await readFile(join(f.newDirectory, "events", `${f.event}.json`)));
 });
 
 test("synthetic interruptions before ready or completion resume the same unconsumed copy", async (t) => {
@@ -275,14 +277,15 @@ test("synthetic interruptions before ready or completion resume the same unconsu
   }
 });
 
-test("an incomplete target without an owner is preserved for manual inspection", async (t) => {
+test("a nonempty incomplete target without an owner is preserved for manual inspection", async (t) => {
   const f = await fixture(t),
     claims = join(f.root, "identity-migration-claims");
   await mkdir(claims);
   await writeJson(join(claims, `${hash(f.common)}.json`), { common: f.common, newId: f.newId });
   await mkdir(f.newDirectory);
+  await writeFile(join(f.newDirectory, "unknown"), "preserve");
   await assert.rejects(migrateLegacyState(f.options), /Unowned incomplete migration target/);
-  assert.deepEqual(await readdir(f.newDirectory), []);
+  assert.equal(await readFile(join(f.newDirectory, "unknown"), "utf8"), "preserve");
   assert.ok(await readFile(join(f.oldDirectory, "events", `${f.event}.json`)));
 });
 

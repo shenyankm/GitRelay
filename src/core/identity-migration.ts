@@ -225,7 +225,7 @@ export async function migrateLegacyState(
       if (!(await exists(newDirectory))) await mkdir(newDirectory, { mode: 0o700 });
       else {
         await directory(newDirectory);
-        if (!(await exists(join(newDirectory, "identity-owner.json"))))
+        if (!(await exists(join(newDirectory, "identity-owner.json"))) && (await readdir(newDirectory)).length > 0)
           throw new Error(`Unowned incomplete migration target; inspect without deleting data: ${newDirectory}`);
       }
       await publish(join(newDirectory, "identity-owner.json"), ownerData);
