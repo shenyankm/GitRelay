@@ -441,6 +441,47 @@ test("a missing nested repository does not initialize an unrelated parent", asyn
 });
 
 test(
+  "filesystem boundary diagnostics skip only directories without prior subscriptions",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      bin = join(f.root, "bin"),
+      ordinary = join(f.root, "ordinary"),
+      previousPath = process.env.PATH,
+      output = async (value: object) => assert.deepEqual(value, {});
+    await mkdir(bin);
+    await mkdir(ordinary);
+    await writeFile(
+      join(bin, "git"),
+      "#!/bin/sh\nprintf 'fatal: not a git repository (or any parent up to mount point /)\\nStopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).\\n' >&2\nexit 128\n",
+      { mode: 0o755 },
+    );
+    process.env.PATH = bin;
+    try {
+      await runHook({ ...input(ordinary), prompt: "Disable GitRelay" }, ref, output);
+      await assert.rejects(access(join(f.root, "state", "repos")), { code: "ENOENT" });
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+    }
+
+    await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+    const pointer = join(f.b, ".git"),
+      original = await readFile(pointer);
+    await rm(pointer);
+    process.env.PATH = bin;
+    try {
+      await assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /filesystem boundary/i);
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+      await writeFile(pointer, original);
+    }
+    assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  },
+);
+
+test(
   "disabling reports Git failures instead of treating every exit 128 as a non-repository",
   { skip: process.platform === "win32" },
   async (t) => {

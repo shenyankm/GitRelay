@@ -348,7 +348,9 @@ export async function leaveSessionIfRepository(
         result.code === 128 &&
         !result.signal &&
         !result.killed &&
-        /^fatal: not a git repository \(or any of the parent directories\): \.git\r?\n?$/.test(result.stderr ?? "") &&
+        /^(?:fatal: not a git repository \(or any of the parent directories\): \.git|fatal: not a git repository \(or any parent up to mount point [^\r\n]*\)\r?\nStopping at filesystem boundary \(GIT_DISCOVERY_ACROSS_FILESYSTEM not set\)\.)\r?\n?$/.test(
+          result.stderr ?? "",
+        ) &&
         !(await hasPriorSubscription(options))
       )
         return;
