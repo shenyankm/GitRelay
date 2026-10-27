@@ -80,7 +80,10 @@ test("OpenCode deletion releases concurrent pending lookups and allows a new loo
       },
       get() {
         const current = calls++;
-        return current < 2 ? ready[current].promise : Promise.reject(new Error("new lookup"));
+        if (current < 2) return ready[current].promise;
+        if (current === 2)
+          return Promise.reject(Object.assign(new Error("Session.NotFoundError"), { _tag: "SessionNotFoundError" }));
+        return Promise.reject(new Error("new lookup"));
       },
       async prompt() {
         assert.fail("an old lookup must not prompt");
@@ -105,11 +108,14 @@ test("OpenCode deletion releases concurrent pending lookups and allows a new loo
   deleted.resolve();
   await deadline(processed.promise);
   await deadline(Promise.all(old));
+  const beforeNewLookup = calls;
   await deadline(hook({ sessionID: "same", prompt: { text: "Enable GitRelay" } }));
+  assert.ok(calls > beforeNewLookup);
+  const afterNewLookup = calls;
   assert.ok(warnings.some((message) => message.includes("new lookup")));
   ready[0].resolve({ location: { directory: f.b } });
   ready[1].reject(new Error("late host error"));
   await new Promise((resolve) => setTimeout(resolve, 20));
-  assert.equal(calls, 3);
+  assert.equal(calls, afterNewLookup);
   await deadline(close());
 });
