@@ -39,6 +39,21 @@ test("installer digest keeps the published runtime format, including large and U
   assert.equal(await installerDigest(join(root, "dist")), expected([["中", large]]));
 });
 
+test("installer digest is independent of the process locale", async (t) => {
+  const root = await fixture(t);
+  const directory = join(root, "src");
+  await writeFile(join(directory, "z.js"), "x");
+  await writeFile(join(directory, "ä.js"), "y");
+  const module = new URL("../../src/cli/installer-digest.ts", import.meta.url).href;
+  const script = `import { installerDigest } from ${JSON.stringify(module)}; console.log(await installerDigest(process.argv[1]));`;
+  const digest = (locale: string) =>
+    execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script, directory], {
+      env: { ...process.env, LC_ALL: locale, LANG: locale },
+      encoding: "utf8",
+    });
+  assert.equal(digest("en_US.UTF-8"), digest("sv_SE.UTF-8"));
+});
+
 test(
   "installer digests retain top-level link compatibility and reject nested links",
   { skip: process.platform === "win32" },

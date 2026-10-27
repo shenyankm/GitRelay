@@ -51,17 +51,34 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
   await withLock(
     join(root, "daemon.lock"),
     async () => {
-      const heartbeat = () =>
-        writeJson(join(root, "daemon.json"), {
+      let pendingHeartbeat: Promise<void> | undefined;
+      let heartbeatFailed = false;
+      let heartbeatError: unknown;
+      const heartbeat = async () => {
+        if (heartbeatFailed) throw heartbeatError;
+        pendingHeartbeat ??= writeJson(join(root, "daemon.json"), {
           pid: process.pid,
           token,
           intervalMs,
           heartbeatAt: new Date().toISOString(),
-        });
-      const cleanup = new Map<string, { completed: number; attempted: number }>();
+        })
+          .catch((error) => {
+            heartbeatFailed = true;
+            heartbeatError = error;
+            throw error;
+          })
+          .finally(() => {
+            pendingHeartbeat = undefined;
+          });
+        await pendingHeartbeat;
+      };
+      let heartbeatTimer: NodeJS.Timeout | undefined;
+      const cleanup = new Map<string, { completed: number; nextAttempt: number }>();
       const missing = new Set<string>();
       try {
         await heartbeat();
+        heartbeatTimer = setInterval(() => void heartbeat().catch(() => {}), Math.min(intervalMs, 5000));
+        heartbeatTimer.unref();
         await emit({ type: "daemon.ready", pid: process.pid, stateDirectory: root, intervalMs, retentionDays: days });
         while (!options.signal.aborted) {
           await heartbeat();
@@ -71,11 +88,16 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
           for (const id of missing) if (!present.has(id)) missing.delete(id);
           for (const id of ids) {
             if (!isId(id) || options.signal.aborted) continue;
-            const progress = cleanup.get(id) ?? { completed: -Infinity, attempted: -Infinity };
+            const progress = cleanup.get(id) ?? { completed: -Infinity, nextAttempt: -Infinity };
             cleanup.set(id, progress);
             const now = performance.now();
-            const clean =
-              now - progress.completed >= 60 * 60 * 1000 && now - progress.attempted >= Math.max(intervalMs, 5000);
+            const retryDelay = Math.max(intervalMs, 5000);
+            const clean = now - progress.completed >= 60 * 60 * 1000 && now >= progress.nextAttempt;
+            const finishCleanup = (busy: boolean, started: number) => {
+              const finished = performance.now();
+              if (busy) progress.nextAttempt = finished + Math.max(retryDelay, finished - started);
+              else progress.completed = finished;
+            };
             try {
               const directory = join(root, "repos", id);
               await checkStateDirectory(directory);
@@ -118,7 +140,8 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                   });
                 }
                 if (clean && !options.signal.aborted) {
-                  progress.attempted = now;
+                  progress.nextAttempt = now + retryDelay;
+                  const started = performance.now();
                   const report = await collectRepository(
                     {
                       id,
@@ -130,7 +153,10 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                     },
                     { apply: true, retentionDays: days, signal: options.signal },
                   );
-                  if (!report.kept.some((event) => event.reason === "busy")) progress.completed = performance.now();
+                  finishCleanup(
+                    report.kept.some((event) => event.reason === "busy"),
+                    started,
+                  );
                   await emit({
                     type: "daemon.cleanup",
                     repo: id,
@@ -141,11 +167,7 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                 continue;
               }
               const current = await repositoryIdentity(common, false);
-              if (
-                hash([common, metadata.identity]) !== id ||
-                current?.identity !== metadata.identity ||
-                current.identitySource !== identitySource
-              )
+              if (hash([common, metadata.identity]) !== id || current?.identity !== metadata.identity)
                 throw new Error(`Repository identity mismatch: ${id}; previous state was preserved.`);
               const repo: Repository = {
                 id,
@@ -155,7 +177,7 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                 identity: metadata.identity,
                 identitySource,
               };
-              if (clean) progress.attempted = now;
+              if (clean) progress.nextAttempt = now + retryDelay;
               await mkdir(join(directory, "trash"), { recursive: true, mode: 0o700 });
               const errors: object[] = [];
               await withLock(join(directory, "publish.lock"), async () => {
@@ -188,12 +210,16 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
               });
               for (const error of errors) await emit(error);
               if (clean && !options.signal.aborted) {
+                const started = performance.now();
                 const report = await collectRepository(repo, {
                   apply: true,
                   retentionDays: days,
                   signal: options.signal,
                 });
-                if (!report.kept.some((event) => event.reason === "busy")) progress.completed = performance.now();
+                finishCleanup(
+                  report.kept.some((event) => event.reason === "busy"),
+                  started,
+                );
                 await emit({
                   type: "daemon.cleanup",
                   repo: id,
@@ -213,8 +239,11 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
           if (!options.signal.aborted) await delay(intervalMs, undefined, { signal: options.signal }).catch(() => {});
         }
       } finally {
+        clearInterval(heartbeatTimer);
+        await pendingHeartbeat?.catch(() => {});
         const state = (await readJson(join(root, "daemon.json"))) as { token?: string } | undefined;
         if (state?.token === token) await rm(join(root, "daemon.json"), { force: true });
+        if (heartbeatFailed) throw heartbeatError;
       }
     },
     { token, signal: options.signal },

@@ -69,8 +69,8 @@ export function sessionKey(repo: Pick<Repository, "root">, identity: Identity, r
   return hash(parts);
 }
 
-export async function listSessions(cwd: string): Promise<Session[]> {
-  return sessionsIn(await repository(cwd));
+export async function listSessions(cwd: string, signal?: AbortSignal): Promise<Session[]> {
+  return sessionsIn(await repository(cwd, signal));
 }
 
 export async function readSession(repo: Repository, key: string): Promise<Session | undefined> {
@@ -383,7 +383,6 @@ function validateMessage(text: unknown, files: unknown, strict = true): string[]
     throw new Error("Message files must be repository-relative paths (max 1000), without parent traversal.");
   const paths = [...files];
   if (
-    !messagePayloadWithinLimit(text, paths) ||
     paths.length > 1000 ||
     !paths.every(
       (file) =>
@@ -396,6 +395,8 @@ function validateMessage(text: unknown, files: unknown, strict = true): string[]
     )
   )
     throw new Error("Message files must be repository-relative paths (max 1000), without parent traversal.");
+  if (!messagePayloadWithinLimit(text, paths))
+    throw new Error("Serialized message text and files must be at most 64 KiB.");
   // Git emits slash-separated paths; backslashes are literal filename characters on Unix.
   const normalized = paths.map((file: string) =>
     posix.normalize(process.platform === "win32" ? file.replaceAll("\\", "/") : file),
@@ -428,13 +429,11 @@ export async function sendMessage(
     join(repo.directory, "publish.lock"),
     async () => {
       await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
-      const sender = await readSession(repo, sessionKey(repo, identity, ref));
+      const senderKey = sessionKey(repo, identity, ref);
+      const sender = await readSession(repo, senderKey);
       if (sender?.closedAt) throw new Error("This session has left; use join before sending messages.");
       const recipients = (await sessionsIn(repo))
-        .filter(
-          (other) =>
-            !other.closedAt && !(other.root === repo.root && other.adapter === adapter && other.session === session),
-        )
+        .filter((other) => !other.closedAt && other.key !== senderKey)
         .map((other) => other.key);
       const event: AgentMessage = {
         id: hash(randomUUID()),

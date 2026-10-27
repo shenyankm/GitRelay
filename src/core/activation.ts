@@ -30,7 +30,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
     )
       continue;
     if (
-      /^(?:(?:请|麻烦|这次|本次|现在)\s*)*(?:不要|别|无需|停止|关闭|停用|禁用)|^(?:please\s+)?(?:disable|deactivate|stop|turn off|do not|don't|never)\b/i.test(
+      /^(?:(?:请|麻烦|这次|本次|现在)\s*)*(?:不要|别|无需|停止|关闭|停用|禁用)|^(?:please\s+)?(?:(?:disable|deactivate|stop|turn off)\b|(?:do not|don't|never)\s+(?:(?:use|enable|activate|turn on|start)\b|(?:develop|implement|code|work)\b.{0,60}\bin parallel\b))/i.test(
         request,
       )
     ) {

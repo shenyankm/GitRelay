@@ -115,6 +115,9 @@ async function harness(t: TestContext, prompt: (input: Prompt, signal?: AbortSig
       onPrompt({ sessionID, metadata, prompt: { text } }),
     tick: () => t.mock.timers.tick(5000),
     close,
+    recreateWithoutEvent() {
+      created++;
+    },
     removed(sessionID = id) {
       created++;
       const done = Promise.withResolvers<void>();
@@ -396,6 +399,61 @@ test("OpenCode rechecks a recreated session even when it reuses a deleted ID", a
   f.tick();
   await waitFor(async () => calls.some((input) => input.text?.includes(event.id)));
   assert.equal(calls.filter((input) => input.text?.includes(event.id)).length, 1);
+});
+
+test("OpenCode enables a recreated session on the first prompt without a deletion event", async (t) => {
+  const calls: Prompt[] = [];
+  const f = await harness(t, async (input) => {
+    calls.push(input);
+  });
+  await f.enroll();
+  const oldKey = f.key;
+  f.recreateWithoutEvent();
+  await f.enroll();
+  assert.notEqual(f.key, oldKey);
+  assert.ok((await listSessions(f.b)).some((session) => session.key === f.key));
+  const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "new instance" });
+  f.tick();
+  await waitFor(async () => (await readReceipt(f.repo, f.key, event.id))?.status === "delivered");
+  assert.equal(calls.length, 1);
+});
+
+test("OpenCode retries a recreated session when its enable lookup fails", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  f.recreateWithoutEvent();
+  const lookup = t.mock.method(f.session, "get", async () => {
+    throw new Error("transient lookup failure");
+  });
+  await f.enroll();
+  assert.match(String(warnings[0]), /transient lookup failure/);
+  lookup.mock.restore();
+  f.tick();
+  await waitFor(async () => (await listSessions(f.b)).some((session) => session.key === f.key));
+});
+
+test("a disable during enable's delivery drain does not re-enable the session", async (t) => {
+  const started = Promise.withResolvers<void>(),
+    aborted = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  const f = await harness(t, async (_input, signal) => {
+    signal?.addEventListener("abort", () => aborted.resolve(), { once: true });
+    started.resolve();
+    await release.promise;
+  });
+  await f.enroll();
+  await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "in flight" });
+  f.tick();
+  await started.promise;
+  const enabling = f.enroll();
+  await aborted.promise;
+  const disabling = f.enroll(f.id, undefined, "Disable GitRelay");
+  release.resolve();
+  await Promise.all([enabling, disabling]);
+  assert.ok((await listSessions(f.b))[0].closedAt);
 });
 
 test("OpenCode must not deliver an old inbox to a recreated session with the same ID", async (t) => {

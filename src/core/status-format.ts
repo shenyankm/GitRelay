@@ -6,6 +6,7 @@ const cell = (value: string) =>
   value
     .replace(/[\x00-\x1f\x7f]/g, " ")
     .replace(/[\\`*_[\]|]/g, "\\$&")
+    .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 

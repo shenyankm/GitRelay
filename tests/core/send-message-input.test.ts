@@ -99,7 +99,7 @@ test("aborting the captured signal still cancels the pending send", async (t) =>
   await assert.rejects(lstat(join(f.common, ".git-relay-id")), { code: "ENOENT" });
 });
 
-test("the original closed sender cannot be bypassed by changing ref or identity", async (t) => {
+test("send snapshots the closed sender key before options change", async (t) => {
   const f = await fixture(t),
     marker = "b".repeat(64),
     id = hash([f.common, marker]),
@@ -132,4 +132,14 @@ test("the original closed sender cannot be bypassed by changing ref or identity"
   options.session = "other";
   await assert.rejects(pending, /This session has left/);
   assert.deepEqual(await import("node:fs/promises").then((fs) => fs.readdir(join(directory, "events"))), []);
+  for (const change of [
+    { ref: "refs/heads/other" },
+    { adapter: "cli" },
+    { instance: "c".repeat(64) },
+    { session: "other" },
+  ]) {
+    const sent = await sendMessage({ cwd: f.root, ...identity, ref, text: "message", ...change });
+    assert.equal(sent.text, "message");
+  }
+  await assert.rejects(sendMessage({ cwd: f.root, ...identity, ref, text: "message" }), /This session has left/);
 });
