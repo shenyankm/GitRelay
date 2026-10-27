@@ -32,6 +32,41 @@ async function gh(cwd: string, args: string[], signal?: AbortSignal): Promise<un
   }
 }
 
+async function missingUpstream(cwd: string, branch: string, signal?: AbortSignal): Promise<string | null> {
+  const config = async (key: string) => {
+    try {
+      const output = await git(cwd, ["config", "--null", "--get-all", key], signal, "paths");
+      if (!output.endsWith("\0")) throw new Error("Git returned unterminated configuration data.");
+      return output.slice(0, -1).split("\0");
+    } catch (error) {
+      signal?.throwIfAborted();
+      const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
+      if (cause?.code === 1 && !cause.stderr?.toString()) return [];
+      throw error;
+    }
+  };
+  const remote = (await config(`branch.${branch}.remote`)).at(-1);
+  const merge = (await config(`branch.${branch}.merge`))[0];
+  if (!remote || !merge) return null;
+  if (remote === ".") return merge;
+  for (const spec of await config(`remote.${remote}.fetch`)) {
+    if (spec.startsWith("^")) continue;
+    const [source, destination] = spec.replace(/^\+/, "").split(":");
+    if (!destination) continue;
+    const star = source.indexOf("*");
+    if (star < 0) {
+      if (source === merge) return destination;
+    } else {
+      const prefix = source.slice(0, star),
+        suffix = source.slice(star + 1);
+      if (merge.startsWith(prefix) && merge.endsWith(suffix) && merge.length >= prefix.length + suffix.length) {
+        return destination.replace("*", merge.slice(prefix.length, merge.length - suffix.length));
+      }
+    }
+  }
+  return null;
+}
+
 export async function branchStatus(options: BranchStatusOptions) {
   const { cwd, signal } = options;
   const status = (
@@ -113,6 +148,8 @@ export async function branchStatus(options: BranchStatusOptions) {
       signal?.throwIfAborted();
       const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
       if (cause?.code !== 1 || cause.stderr?.toString()) throw error;
+      upstream = await missingUpstream(cwd, branch, signal);
+      if (upstream) await git(cwd, ["check-ref-format", upstream], signal);
     }
   }
   let tracking: { ref: string; commit: string | null; ahead: number | null; behind: number | null } | null = null;

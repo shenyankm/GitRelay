@@ -65,6 +65,36 @@ test("status handles unborn branches", async (t) => {
       /refs\/remotes\/origin\/main/,
     );
   }
+  git(empty, "update-ref", "-d", "refs/remotes/origin/main");
+  for (const args of [[], ["--branch", "main"]]) {
+    assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, ...args)).stdout).local.tracking, {
+      ref: "refs/remotes/origin/main",
+      commit: null,
+      ahead: null,
+      behind: null,
+    });
+  }
+  git(empty, "config", "--replace-all", "remote.origin.fetch", "+refs/heads/m*:refs/custom/z*");
+  git(empty, "config", "--add", "remote.origin.fetch", "+refs/heads/*:refs/other/*");
+  git(empty, "config", "--add", "remote.origin.fetch", "^refs/heads/main");
+  git(empty, "config", "--add", "branch.main.merge", "refs/heads/other");
+  assert.match(git(empty, "status", "--porcelain=v2", "--branch"), /# branch\.upstream custom\/zain/);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/custom/zain",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "branch.other.remote", ".");
+  git(empty, "config", "branch.other.merge", "refs/heads/missing");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "refs/heads/missing",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "--replace-all", "remote.origin.fetch", "+refs/heads/other:refs/custom/other");
+  assert.equal(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, null);
 });
 
 test("status writes an App-readable Markdown snapshot and keeps JSON as the default", async (t) => {
