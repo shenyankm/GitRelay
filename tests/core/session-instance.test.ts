@@ -29,3 +29,28 @@ test("native instances keep separate inboxes, resumes and leave state", async (t
   assert.equal(sessionKey(repo, { adapter: "test", session: "legacy" }, ref), hash([repo.root, ref, "test", "legacy"]));
   await assert.rejects(consumeMailbox({ ...second, instance: "invalid" }), /session instance/);
 });
+
+test("a sender excludes only its own ref and instance inbox", async (t) => {
+  const f = await fixture(t);
+  const base = { cwd: f.b, ref: "refs/heads/main", adapter: "opencode", session: "same" };
+  const sender = { ...base, instance: hash("first") };
+  const instance = { ...base, instance: hash("second") };
+  const otherRef = { ...sender, ref: "refs/heads/feature/a" };
+  const legacy = base;
+  for (const options of [sender, instance, otherRef, legacy]) await joinSession(options);
+  const repo = await repository(f.b);
+  const message = await sendMessage({ ...sender, text: "other inboxes" });
+  assert.deepEqual(
+    new Set(message.recipients),
+    new Set([
+      sessionKey(repo, instance, instance.ref),
+      sessionKey(repo, otherRef, otherRef.ref),
+      sessionKey(repo, legacy, legacy.ref),
+    ]),
+  );
+  for (const options of [instance, otherRef, legacy]) {
+    const received = await consumeMailbox({ ...options, async deliver() {} });
+    assert.ok(received.some((item) => item.event.id === message.id));
+  }
+  assert.equal(await readReceipt(repo, sessionKey(repo, sender, sender.ref), message.id), undefined);
+});

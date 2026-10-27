@@ -428,13 +428,11 @@ export async function sendMessage(
     join(repo.directory, "publish.lock"),
     async () => {
       await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
-      const sender = await readSession(repo, sessionKey(repo, identity, ref));
+      const senderKey = sessionKey(repo, identity, ref);
+      const sender = await readSession(repo, senderKey);
       if (sender?.closedAt) throw new Error("This session has left; use join before sending messages.");
       const recipients = (await sessionsIn(repo))
-        .filter(
-          (other) =>
-            !other.closedAt && !(other.root === repo.root && other.adapter === adapter && other.session === session),
-        )
+        .filter((other) => !other.closedAt && other.key !== senderKey)
         .map((other) => other.key);
       const event: AgentMessage = {
         id: hash(randomUUID()),
