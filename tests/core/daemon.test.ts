@@ -203,6 +203,51 @@ test("daemon monitors a marker identity selected by an equal external mapping", 
   assert.ok((await eventsIn(repo)).some((event) => event.kind === "upstream"));
 });
 
+test("daemon accepts the original marker and rejects a changed identity", async (t) => {
+  let abort = new AbortController();
+  let running: Promise<void> | undefined;
+  const previous = process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+  t.after(async () => {
+    abort.abort();
+    await running;
+    if (previous === undefined) delete process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+    else process.env.WORKTREE_SYNC_REPOSITORY_IDS = previous;
+  });
+  const f = await fixture(t);
+  const repo = await repository(f.b);
+  process.env.WORKTREE_SYNC_REPOSITORY_IDS = JSON.stringify({ [repo.common]: repo.identity });
+  await consumeMailbox({ cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "B", async deliver() {} });
+  delete process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+  await f.commit(f.main, "shared.txt", "upstream\n");
+  const errors: string[] = [];
+  running = runDaemon({
+    signal: abort.signal,
+    intervalMs: 50,
+    onEvent(event: any) {
+      if (event.type === "daemon.error") errors.push(event.message);
+    },
+  });
+  await waitFor(async () => errors.length > 0 || (await eventsIn(repo)).length > 0);
+  assert.equal(errors.length, 0);
+  const events = await eventsIn(repo);
+  assert.ok(events.some((event) => event.kind === "upstream"));
+  abort.abort();
+  await running;
+  process.env.WORKTREE_SYNC_REPOSITORY_IDS = JSON.stringify({ [repo.common]: hash("different identity") });
+  await f.commit(f.main, "shared.txt", "must remain unpublished\n");
+  abort = new AbortController();
+  running = runDaemon({
+    signal: abort.signal,
+    intervalMs: 50,
+    onEvent(event: any) {
+      if (event.type === "daemon.error") errors.push(event.message);
+    },
+  });
+  await waitFor(async () => errors.length > 0);
+  assert.match(errors[0], /Repository identity mismatch/);
+  assert.deepEqual(await eventsIn(repo), events);
+});
+
 test("daemon cleans newly confirmed events again at the hourly maintenance interval", async (t) => {
   const abort = new AbortController();
   let running: Promise<void> | undefined;
