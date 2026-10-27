@@ -97,7 +97,7 @@ ID and can deliver the same text twice. The current CLI and SDK do not expose
 an idempotency key or an automatic result-recovery operation; preserve the
 event and receipt state and inspect it before deciding whether to resend.
 
-Text must be nonempty and at most 64 KiB; text plus the file list also has a 64 KiB limit. Files must be repository-relative file paths: no absolute paths, directories, or `..` traversal. Existing directories are rejected even without a trailing slash. Deleted or renamed paths and files present only in other worktrees are allowed; a regular file at a sender-side prefix does not invalidate an otherwise valid target.
+Text must be nonempty and at most 64 KiB in UTF-8. The JSON serialization of `{ text, files }` must also be at most 64 KiB, including JSON syntax and escaping, so the maximum text size depends on its contents and file list. Files must be repository-relative file paths: no absolute paths, directories, or `..` traversal. Existing directories are rejected even without a trailing slash. Deleted or renamed paths and files present only in other worktrees are allowed; a regular file at a sender-side prefix does not invalidate an otherwise valid target.
 
 Each serialized JSON state file is limited to 2 MiB. A sufficiently large recipient snapshot can exceed this limit even when the message itself is valid. Publication then fails before replacing or creating the event; recipients are never silently truncated, and an upstream ref cursor does not advance. Inspect subscriptions and preserve unread state before any explicit maintenance.
 

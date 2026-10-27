@@ -133,6 +133,46 @@ test("daemon preserves state when the repository ownership marker is missing", a
   assert.deepEqual(await readJson(refPath), initialRef);
 });
 
+test("daemon maintains its heartbeat during a stalled cleanup", async (t) => {
+  const abort = new AbortController();
+  const entered = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  let running: Promise<void> | undefined;
+  t.after(async () => {
+    abort.abort();
+    release.resolve();
+    await running;
+  });
+  const f = await fixture(t);
+  await consumeMailbox({ cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "B", async deliver() {} });
+  const repo = await repository(f.b);
+  const readdir = fs.promises.readdir;
+  const mocked = t.mock.method(fs.promises, "readdir", (async (...args: Parameters<typeof readdir>) => {
+    if (args[0] === join(repo.directory, "trash")) {
+      entered.resolve();
+      await release.promise;
+    }
+    return readdir(...args);
+  }) as typeof readdir);
+  syncBuiltinESMExports();
+  t.after(() => {
+    mocked.mock.restore();
+    syncBuiltinESMExports();
+  });
+  running = runDaemon({ signal: abort.signal, intervalMs: 50 });
+  running.catch(entered.reject);
+  await entered.promise;
+  const statePath = join(stateDirectory(), "daemon.json");
+  const state = (await readJson(statePath)) as object;
+  await writeJson(statePath, { ...state, heartbeatAt: "2000-01-01T00:00:00.000Z" });
+  await waitFor(async () => (await daemonStatus()).running);
+  await assert.rejects(runDaemon({ signal: new AbortController().signal, intervalMs: 50 }), /busy/i);
+  abort.abort();
+  release.resolve();
+  await running;
+  assert.equal(await readJson(statePath), undefined);
+});
+
 test("daemon monitors a marker identity selected by an equal external mapping", async (t) => {
   const abort = new AbortController();
   let running: Promise<void> | undefined;
