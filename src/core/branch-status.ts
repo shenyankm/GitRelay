@@ -48,25 +48,6 @@ async function missingUpstream(cwd: string, branch: string, signal?: AbortSignal
   const remote = (await config(`branch.${branch}.remote`)).at(-1);
   const merge = (await config(`branch.${branch}.merge`))[0];
   if (!remote || !merge) return null;
-  if (remote === ".") {
-    if (merge.startsWith("refs/") || merge.startsWith("-")) return merge;
-    try {
-      if (merge !== "@") await git(cwd, ["check-ref-format", "--allow-onelevel", merge], signal);
-      return gitRefLine(
-        await git(
-          cwd,
-          ["rev-parse", "--symbolic-full-name", "--verify", "--quiet", "--end-of-options", merge],
-          signal,
-          "paths",
-        ),
-      );
-    } catch (error) {
-      signal?.throwIfAborted();
-      const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
-      if (cause?.code === 1 && !cause.stderr?.toString()) return merge;
-      throw error;
-    }
-  }
   for (const spec of await config(`remote.${remote}.fetch`)) {
     if (spec.startsWith("^")) continue;
     const [source, destination] = spec.replace(/^\+/, "").split(":");
@@ -78,8 +59,26 @@ async function missingUpstream(cwd: string, branch: string, signal?: AbortSignal
       const prefix = source.slice(0, star),
         suffix = source.slice(star + 1);
       if (merge.startsWith(prefix) && merge.endsWith(suffix) && merge.length >= prefix.length + suffix.length) {
-        return destination.replace("*", merge.slice(prefix.length, merge.length - suffix.length));
+        return destination.replace("*", () => merge.slice(prefix.length, merge.length - suffix.length));
       }
+    }
+  }
+  if (remote === ".") {
+    if (merge.startsWith("refs/") || merge.startsWith("-")) return merge;
+    try {
+      if (merge !== "@") await git(cwd, ["check-ref-format", "--allow-onelevel", merge], signal);
+      const resolved = await git(
+        cwd,
+        ["rev-parse", "--symbolic-full-name", "--verify", "--quiet", "--end-of-options", merge],
+        signal,
+        "paths",
+      );
+      return resolved ? gitRefLine(resolved) : merge;
+    } catch (error) {
+      signal?.throwIfAborted();
+      const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
+      if (cause?.code === 1 && !cause.stderr?.toString()) return merge;
+      throw error;
     }
   }
   return null;

@@ -118,6 +118,36 @@ test("status handles unborn branches", async (t) => {
     ahead: null,
     behind: null,
   });
+  git(empty, "update-ref", "refs/heads/shared", f.initial);
+  git(empty, "update-ref", "refs/tags/shared", f.initial);
+  git(empty, "config", "branch.other.merge", "shared");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "shared",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "branch.other.merge", "refs/heads/missing");
+  git(empty, "config", "remote...fetch", "+refs/heads/*:refs/remotes/local/*");
+  git(empty, "symbolic-ref", "HEAD", "refs/heads/other");
+  assert.match(git(empty, "status", "--porcelain=v2", "--branch"), /# branch\.upstream local\/missing/);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/remotes/local/missing",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "symbolic-ref", "HEAD", "refs/heads/main");
+  git(empty, "config", "--unset-all", "remote...fetch");
+  git(empty, "config", "--replace-all", "branch.main.merge", "refs/heads/price$&");
+  git(empty, "config", "--replace-all", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*");
+  git(empty, "update-ref", "refs/remotes/origin/price$&", f.initial);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/remotes/origin/price$&",
+    commit: f.initial,
+    ahead: null,
+    behind: null,
+  });
   git(empty, "config", "--replace-all", "remote.origin.fetch", "+refs/heads/other:refs/custom/other");
   assert.equal(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, null);
 });
