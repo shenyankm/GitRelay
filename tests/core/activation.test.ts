@@ -104,6 +104,41 @@ test("legacy subdirectory activation never overrides a newer worktree choice", a
   assert.equal(await sessionActivation(options), true);
 });
 
+test("explicit Git worktrees outside cwd retain their activation", async (t) => {
+  const f = await fixture(t),
+    options = { cwd: f.root, ref: "refs/heads/main", adapter: "codex", session: "receiver" },
+    oldGitDir = process.env.GIT_DIR,
+    oldWorkTree = process.env.GIT_WORK_TREE;
+  process.env.GIT_DIR = join(f.main, ".git");
+  process.env.GIT_WORK_TREE = f.main;
+  t.after(() => {
+    if (oldGitDir === undefined) delete process.env.GIT_DIR;
+    else process.env.GIT_DIR = oldGitDir;
+    if (oldWorkTree === undefined) delete process.env.GIT_WORK_TREE;
+    else process.env.GIT_WORK_TREE = oldWorkTree;
+  });
+  await sessionActivation(options, true);
+  assert.equal(await sessionActivation(options), true);
+  assert.equal(await sessionActivation({ ...options, session: "other" }), false);
+  const bin = join(f.root, "bin"),
+    previousPath = process.env.PATH;
+  await mkdir(bin);
+  await writeFile(join(bin, "git"), "#!/bin/sh\nexit 128\n");
+  await chmod(join(bin, "git"), 0o755);
+  if (process.platform !== "win32") {
+    process.env.PATH = bin;
+    try {
+      await assert.rejects(sessionActivation(options, false));
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+    }
+    assert.equal(await sessionActivation(options), true);
+  }
+  await sessionActivation(options, false);
+  assert.equal(await sessionActivation(options), false);
+});
+
 test(
   "failed worktree discovery cannot silently disable the wrong path",
   { skip: process.platform === "win32" },

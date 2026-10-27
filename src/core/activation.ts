@@ -67,23 +67,39 @@ export async function sessionActivation(options: ActivationOptions, enabled?: bo
     if (error.code === "ENOENT") return resolve(options.cwd);
     throw error;
   });
-  const worktreeRoot = () =>
-    watchRoot(cwd, options.signal).catch(async (error: Error & { cause?: { code?: number } }) => {
-      options.signal?.throwIfAborted();
-      // shortcut: Git exit 128 also covers damaged repositories; distinguish discovery failures when Git can do so reliably.
-      if (!(error instanceof GitPathOutputError) && error.cause?.code === 128) {
-        let parent = dirname(cwd);
-        while (parent !== cwd) {
-          if ((await read(parent)).current?.enabled === true) throw error;
-          const next = dirname(parent);
-          if (next === parent) break;
-          parent = next;
+  const selected = process.env.GIT_WORK_TREE
+    ? await realpath(resolve(cwd, process.env.GIT_WORK_TREE)).catch((error: NodeJS.ErrnoException) => {
+        if (error.code === "ENOENT") return undefined;
+        throw error;
+      })
+    : undefined;
+  const worktreeRoot = async () =>
+    watchRoot(cwd, options.signal)
+      .then((root) => realpath(resolve(root)))
+      .catch(async (error: Error & { cause?: { code?: number } }) => {
+        options.signal?.throwIfAborted();
+        // shortcut: Git exit 128 also covers damaged repositories; distinguish discovery failures when Git can do so reliably.
+        if (!(error instanceof GitPathOutputError) && error.cause?.code === 128) {
+          if (selected && selected !== cwd && (await read(selected)).current?.enabled === true) throw error;
+          let parent = dirname(cwd);
+          while (parent !== cwd) {
+            if ((await read(parent)).current?.enabled === true) throw error;
+            const next = dirname(parent);
+            if (next === parent) break;
+            parent = next;
+          }
+          return cwd;
         }
-        return cwd;
-      }
-      throw error;
-    });
+        throw error;
+      });
   if (enabled === undefined) {
+    if (process.env.GIT_WORK_TREE) {
+      if (selected && (await read(selected)).current?.enabled === true) {
+        const root = await worktreeRoot();
+        return root === selected && (await read(root)).current?.enabled === true;
+      }
+      if (!(await read(cwd)).current?.enabled) return false;
+    }
     let candidate = cwd;
     while (true) {
       options.signal?.throwIfAborted();
