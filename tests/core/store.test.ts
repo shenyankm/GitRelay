@@ -70,6 +70,8 @@ test("GC busy marker only skips a fresh live matching lock", { skip: process.pla
     waitMs: 1000,
     busyToken: GC_LOCK_TOKEN,
   });
+  // The lock can reject before the later assertion attaches.
+  void waiting.catch(() => {});
   await new Promise((resolve) => setTimeout(resolve, 40));
   await writeFile(path, JSON.stringify({ pid: process.pid, token: GC_LOCK_TOKEN }));
   await assert.rejects(waiting, BusyError);
