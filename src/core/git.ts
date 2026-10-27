@@ -138,19 +138,7 @@ export async function addWorktree(
         ? `refs/heads/${startPoint}`
         : startPoint;
     const commit = (await git(cwd, ["rev-parse", "--verify", "--end-of-options", `${selected}^{commit}`])).trim();
-    const shadow = await git(cwd, [
-      "-c",
-      "core.warnAmbiguousRefs=false",
-      "rev-parse",
-      "--symbolic-full-name",
-      "--verify",
-      "--quiet",
-      "--end-of-options",
-      commit,
-    ]);
-    if (shadow) throw new Error("The resolved commit is ambiguous with a ref; remove the conflicting ref and retry.");
-    // shortcut: Concurrent ref creation can still redirect this commit; require atomic binding to support it.
-    await git(cwd, ["worktree", "add", "-b", branch, "--", target, commit]);
+    await git(cwd, ["worktree", "add", "-b", branch, "--", target, `${commit}^{commit}`]);
   } else {
     // A fully qualified ref prevents a tag or revision expression from becoming a detached checkout.
     await git(cwd, ["show-ref", "--verify", "--", `refs/heads/${branch}`]);

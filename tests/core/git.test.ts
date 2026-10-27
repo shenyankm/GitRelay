@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { access, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -145,16 +145,58 @@ test("a branch start point wins over a direct ref with the same name", async (t)
   assert.equal(git(fromBranch, "rev-parse", "HEAD").trim(), newer);
 });
 
-test("new worktrees reject hash-shaped ref collisions", async (t) => {
+test("new worktrees pin commits despite hash-shaped ref collisions", async (t) => {
   const { repo, root } = await fixture(t);
   const initial = git(repo, "rev-parse", "HEAD").trim();
   git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "--allow-empty", "-m", "new");
   const newer = git(repo, "rev-parse", "HEAD").trim();
   git(repo, "update-ref", `refs/heads/${newer}`, initial);
-  const path = join(root, "hash");
-  await assert.rejects(addWorktree(repo, path, "feature/hash", true, "main"), /commit.*ambiguous.*ref/i);
   git(repo, "update-ref", `refs/tags/${newer}`, initial);
-  await assert.rejects(addWorktree(repo, path, "feature/hash", true, "main"), /commit.*ambiguous.*ref/i);
-  await assert.rejects(access(path));
-  assert.throws(() => git(repo, "show-ref", "--verify", "refs/heads/feature/hash"));
+  const path = await addWorktree(repo, join(root, "hash"), "feature/hash", true, "main");
+  assert.equal(git(path, "rev-parse", "HEAD").trim(), newer);
 });
+
+test(
+  "new worktrees pin commits when a hash-shaped ref appears before creation",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const { repo, root } = await fixture(t);
+    const initial = git(repo, "rev-parse", "HEAD").trim();
+    git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "--allow-empty", "-m", "new");
+    const newer = git(repo, "rev-parse", "HEAD").trim();
+    const actualGit = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+    const bin = join(root, "bin");
+    await mkdir(bin);
+    await writeFile(
+      join(bin, "git"),
+      `#!/bin/sh
+if [ "$3" = worktree ] && [ "$4" = add ]; then
+  "$ISSUE40_GIT" -C "$2" update-ref "refs/heads/$ISSUE40_NEWER" "$ISSUE40_INITIAL" || exit 1
+fi
+exec "$ISSUE40_GIT" "$@"
+`,
+      { mode: 0o755 },
+    );
+    const previous = {
+      PATH: process.env.PATH,
+      ISSUE40_GIT: process.env.ISSUE40_GIT,
+      ISSUE40_NEWER: process.env.ISSUE40_NEWER,
+      ISSUE40_INITIAL: process.env.ISSUE40_INITIAL,
+    };
+    Object.assign(process.env, {
+      PATH: `${bin}:${previous.PATH}`,
+      ISSUE40_GIT: actualGit,
+      ISSUE40_NEWER: newer,
+      ISSUE40_INITIAL: initial,
+    });
+    t.after(() => {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    });
+    const path = await addWorktree(repo, join(root, "injected"), "feature/injected", true, "main");
+    assert.equal(git(path, "rev-parse", "HEAD").trim(), newer);
+    assert.equal(git(repo, "rev-parse", `refs/heads/${newer}`).trim(), initial);
+  },
+);
