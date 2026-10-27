@@ -1,8 +1,17 @@
 import { execFile } from "node:child_process";
-import { lstat, readdir, stat } from "node:fs/promises";
-import { dirname, join, parse, resolve } from "node:path";
+import { lstat, readdir, realpath, stat } from "node:fs/promises";
+import { dirname, isAbsolute, join, parse, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
-import { readSession, registerSession, sessionKey, validateIdentity, type Identity, type Session } from "./mailbox.ts";
+import { watchRoot } from "./changes.ts";
+import {
+  readSession,
+  registerSession,
+  sessionKey,
+  validateIdentity,
+  validateSession,
+  type Identity,
+  type Session,
+} from "./mailbox.ts";
 import { synchronizeRef } from "./publisher.ts";
 import {
   assertMigrationReady,
@@ -64,7 +73,7 @@ async function unavailableWorktree(path: string): Promise<boolean> {
   }
 }
 
-async function leavingRepository(options: LeaveOptions): Promise<Repository> {
+async function leavingRepository(options: LeaveOptions, protectPrior = false): Promise<Repository> {
   if (options.repositoryId !== undefined && !isId(options.repositoryId))
     throw new Error("Invalid repository state ID.");
   const root = resolve(options.cwd);
@@ -76,6 +85,10 @@ async function leavingRepository(options: LeaveOptions): Promise<Repository> {
   let error: unknown = new Error("Worktree is unavailable.");
   if (options.repositoryId === undefined) {
     try {
+      if (protectPrior && (await hasPriorSubscription(options, await watchRoot(options.cwd, options.signal))))
+        throw new Error(
+          "Another GitRelay subscription exists at this worktree path; restore its repository and retry.",
+        );
       return await repository(options.cwd, options.signal);
     } catch (cause) {
       error = cause;
@@ -160,7 +173,7 @@ function snapshotIdentity(options: Identity): Identity {
 }
 
 /** Explicit opt-out; do not acknowledge or delete unread messages. */
-export async function leaveSession(options: LeaveOptions): Promise<Session | undefined> {
+export async function leaveSession(options: LeaveOptions, protectPrior = false): Promise<Session | undefined> {
   const identity = snapshotIdentity(options);
   const repositoryId = options.repositoryId;
   if (repositoryId !== undefined && !isId(repositoryId)) throw new Error("Invalid repository state ID.");
@@ -169,7 +182,9 @@ export async function leaveSession(options: LeaveOptions): Promise<Session | und
   const signal = options.signal;
   const ref = options.ref;
   options = { ...identity, repositoryId, cwd, signal, ref };
-  const repo = await leavingRepository(options);
+  const repo = await leavingRepository(options, protectPrior);
+  if (protectPrior && (await hasPriorSubscription(options, repo.root)))
+    throw new Error("Another GitRelay subscription exists at this worktree path; restore its repository and retry.");
   const key = sessionKey(repo, options, options.ref);
   return withLock(
     join(repo.directory, "sessions", `${key}.lock`),
@@ -190,10 +205,60 @@ export async function leaveSession(options: LeaveOptions): Promise<Session | und
   );
 }
 
-/** Native opt-out remains a no-op outside a repository. */
+async function hasPriorSubscription(options: LeaveOptions, currentRoot?: string, onlyRoot = false): Promise<boolean> {
+  await checkManagedRoot();
+  const keys = new Map<string, string>();
+  const physical = await realpath(options.cwd).catch((error) => {
+    if (error.code === "ENOENT") return resolve(options.cwd);
+    throw error;
+  });
+  for (const start of [resolve(options.cwd), physical]) {
+    for (let root = start; ; root = dirname(root)) {
+      const child = currentRoot ? relative(currentRoot, root) : "";
+      if (!currentRoot || (!isAbsolute(child) && child !== ".." && !child.startsWith(`..${sep}`)))
+        keys.set(sessionKey({ root }, options, options.ref), root);
+      if (dirname(root) === root) break;
+    }
+  }
+  const repos = join(stateDirectory(), "repos");
+  for (const id of await readdir(repos).catch((error) => {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  })) {
+    options.signal?.throwIfAborted();
+    if (!isId(id)) continue;
+    const directory = join(repos, id),
+      sessions = join(directory, "sessions");
+    await checkStateDirectory(directory);
+    await checkStateDirectory(sessions, true);
+    for (const [key, root] of keys) {
+      if (currentRoot && (onlyRoot ? currentRoot !== root : currentRoot === root)) continue;
+      const value = await readJson(join(sessions, `${key}.json`), true);
+      options.signal?.throwIfAborted();
+      if (value !== undefined && !validateSession(value, key).closedAt) return true;
+    }
+  }
+  options.signal?.throwIfAborted();
+  return false;
+}
+
+/** Native opt-out remains a no-op outside a repository without prior state. */
 export async function leaveSessionIfRepository(options: LeaveOptions): Promise<void> {
   try {
-    await leaveSession(options);
+    let root: string | undefined;
+    try {
+      root = await watchRoot(options.cwd, options.signal);
+    } catch {
+      options.signal?.throwIfAborted();
+    }
+    if (root) {
+      if (await hasPriorSubscription(options, root))
+        throw new Error(
+          "Another GitRelay subscription exists at this worktree path; restore its repository and retry.",
+        );
+      if (!(await hasPriorSubscription(options, root, true))) return;
+    }
+    await leaveSession(options, true);
   } catch (error) {
     options.signal?.throwIfAborted();
     const failure = (error as Error)?.cause as
@@ -217,7 +282,8 @@ export async function leaveSessionIfRepository(options: LeaveOptions): Promise<v
         result.code === 128 &&
         !result.signal &&
         !result.killed &&
-        /^fatal: not a git repository \(or any of the parent directories\): \.git\r?\n?$/.test(result.stderr ?? "")
+        /^fatal: not a git repository \(or any of the parent directories\): \.git\r?\n?$/.test(result.stderr ?? "") &&
+        !(await hasPriorSubscription(options))
       )
         return;
     }

@@ -1,14 +1,15 @@
 import assert from "node:assert/strict";
-import { access, chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { access, chmod, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { hookResponse, runHook } from "../../src/adapters/hooks.ts";
 import { sessionActivation } from "../../src/core/activation.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
-import { listSessions, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { repository, withLock } from "../../src/core/store.ts";
+import { listSessions, readReceipt, readSession, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
+import { chooseFreshRepository, repository, withLock } from "../../src/core/store.ts";
 import { setTimeout as delay } from "node:timers/promises";
-import { fixture } from "../helpers.ts";
+import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";
 const input = (cwd: string, session = "receiver") => ({
@@ -120,6 +121,42 @@ test("disabling outside a Git repository is a no-op", async (t) => {
   await runHook({ ...input(f.root), prompt: "Disable GitRelay" }, ref, async (value) => assert.deepEqual(value, {}));
 });
 
+test("disabling a never-enabled Git worktree does not initialize repository state", async (t) => {
+  const f = await fixture(t);
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, async (value) => assert.deepEqual(value, {}));
+  await assert.rejects(access(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+  await assert.rejects(access(join(f.root, "state", "repos")), { code: "ENOENT" });
+});
+
+test("cancellation during a no-op opt-out is not reported as success", async (t) => {
+  const f = await fixture(t),
+    module = new URL("../../src/core/sessions.ts", import.meta.url).href;
+  const script = `
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+const controller = new AbortController();
+const original = fs.promises.readdir;
+fs.promises.readdir = async function(path, ...args) {
+  if (String(path).endsWith('/repos')) controller.abort();
+  return original.call(this, path, ...args);
+};
+syncBuiltinESMExports();
+const { leaveSessionIfRepository } = await import(${JSON.stringify(module)});
+try {
+  await leaveSessionIfRepository({ cwd: process.cwd(), ref: 'refs/heads/main', adapter: 'codex', session: 's', signal: controller.signal });
+  process.exitCode = 1;
+} catch (error) {
+  if (!controller.signal.aborted || error.name !== 'AbortError') process.exitCode = 1;
+}
+`;
+  const result = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script], {
+    cwd: f.b,
+    env: process.env,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
 test("disabling reports a broken Git pointer and can be retried after repair", async (t) => {
   const f = await fixture(t),
     output = async (_value: object) => {};
@@ -128,20 +165,153 @@ test("disabling reports a broken Git pointer and can be retried after repair", a
     key = sessionKey(repo, { adapter: "codex", session: "receiver" }, ref);
   const pointer = join(f.b, ".git"),
     original = await readFile(pointer);
-  await writeFile(pointer, `gitdir: ${join(f.root, "missing-gitdir")}\n`);
-  try {
-    await assert.rejects(
-      runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output),
-      /not a git repository|gitfile does not point to a valid repository/i,
-    );
-  } finally {
-    await writeFile(pointer, original);
+  for (const missing of [false, true]) {
+    if (missing) await rm(pointer);
+    else await writeFile(pointer, `gitdir: ${join(f.root, "missing-gitdir")}\n`);
+    try {
+      await assert.rejects(
+        runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output),
+        /not a git repository|gitfile does not point to a valid repository/i,
+      );
+    } finally {
+      await writeFile(pointer, original);
+    }
   }
   assert.equal((await listSessions(f.b))[0].closedAt, undefined);
   const message = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "before retry" });
   assert.ok(message.recipients.includes(key));
   await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
   assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("a missing Git pointer is detected when the disable comes from a worktree subdirectory", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {},
+    nested = join(f.b, "nested");
+  await mkdir(nested);
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const pointer = join(f.b, ".git"),
+    original = await readFile(pointer);
+  await rm(pointer);
+  try {
+    await assert.rejects(
+      runHook({ ...input(nested), prompt: "Disable GitRelay" }, ref, output),
+      /not a git repository/i,
+    );
+  } finally {
+    await writeFile(pointer, original);
+  }
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("a closed subscription does not block a repeated disable outside Git", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
+  const pointer = join(f.b, ".git"),
+    original = await readFile(pointer);
+  await rm(pointer);
+  try {
+    await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, async (value) => assert.deepEqual(value, {}));
+  } finally {
+    await writeFile(pointer, original);
+  }
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("a damaged prior session prevents silently ignoring an unavailable repository", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const repo = await repository(f.b),
+    key = sessionKey(repo, { adapter: "codex", session: "receiver" }, ref);
+  const session = join(repo.directory, "sessions", `${key}.json`),
+    originalSession = await readFile(session);
+  const pointer = join(f.b, ".git"),
+    originalPointer = await readFile(pointer);
+  await writeFile(session, "{}");
+  await rm(pointer);
+  try {
+    await assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /Invalid session/);
+  } finally {
+    await writeFile(session, originalSession);
+    await writeFile(pointer, originalPointer);
+  }
+});
+
+test("a missing nested repository cannot close its parent's subscription", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {},
+    nested = join(f.b, "nested");
+  await mkdir(nested);
+  git(nested, "init", "-b", "main");
+  git(nested, "commit", "--allow-empty", "-m", "initial");
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  await runHook({ ...input(nested), prompt: "Enable GitRelay" }, ref, output);
+  await rename(join(nested, ".git"), join(nested, ".git-hidden"));
+  try {
+    await assert.rejects(
+      runHook({ ...input(nested), prompt: "Disable GitRelay" }, ref, output),
+      /another GitRelay subscription/i,
+    );
+  } finally {
+    await rename(join(nested, ".git-hidden"), join(nested, ".git"));
+  }
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  assert.equal((await listSessions(nested))[0].closedAt, undefined);
+  await runHook({ ...input(nested), prompt: "Disable GitRelay" }, ref, output);
+  assert.ok((await listSessions(nested))[0].closedAt);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  await rename(join(nested, ".git"), join(nested, ".git-hidden"));
+  try {
+    await runHook({ ...input(nested), prompt: "Disable GitRelay" }, ref, output);
+  } finally {
+    await rename(join(nested, ".git-hidden"), join(nested, ".git"));
+  }
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("a fresh repository identity at the same path can close its own subscription", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const oldRepo = await repository(f.b),
+    oldKey = sessionKey(oldRepo, { adapter: "codex", session: "receiver" }, ref);
+  await rename(join(f.b, ".git"), join(f.b, ".git-old"));
+  git(f.b, "init", "-b", "main");
+  git(f.b, "commit", "--allow-empty", "-m", "initial");
+  await chooseFreshRepository(f.b);
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
+  assert.ok((await listSessions(f.b))[0].closedAt);
+  assert.equal((await readSession(oldRepo, oldKey))?.closedAt, undefined);
+});
+
+test("a missing nested repository does not initialize an unrelated parent", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {},
+    nested = join(f.b, "nested");
+  await mkdir(nested);
+  git(nested, "init", "-b", "main");
+  git(nested, "commit", "--allow-empty", "-m", "initial");
+  await runHook({ ...input(nested), prompt: "Enable GitRelay" }, ref, output);
+  const repos = join(f.root, "state", "repos"),
+    before = await readdir(repos);
+  const marker = join(f.main, ".git", ".git-relay-id");
+  await assert.rejects(access(marker), { code: "ENOENT" });
+  await rename(join(nested, ".git"), join(nested, ".git-hidden"));
+  try {
+    await assert.rejects(
+      runHook({ ...input(nested), prompt: "Disable GitRelay" }, ref, output),
+      /another GitRelay subscription/i,
+    );
+    await assert.rejects(access(marker), { code: "ENOENT" });
+    assert.deepEqual(await readdir(repos), before);
+  } finally {
+    await rename(join(nested, ".git-hidden"), join(nested, ".git"));
+  }
 });
 
 test(
@@ -253,7 +423,7 @@ test("a later disable wins while an earlier hook is still joining", async (t) =>
       assert.ok(Date.now() < deadline, "the joining hook did not acquire its session lock");
       await delay(10);
     }
-    leaving = assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /busy/);
+    leaving = runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output).then(() => {});
     await waitForChoice(false);
     await leaving;
   } finally {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { test, type TestContext } from "node:test";
@@ -11,9 +11,9 @@ import { listSessions, readReceipt, sendMessage, sessionKey } from "../../src/co
 import { hash, repository } from "../../src/core/store.ts";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
-import { fixture } from "../helpers.ts";
+import { fixture, git } from "../helpers.ts";
 import { sessionActivation } from "../../src/core/activation.ts";
-import { leaveSession } from "../../src/core/sessions.ts";
+import { joinSession, leaveSession } from "../../src/core/sessions.ts";
 
 type Prompt = Parameters<Plugin.Context["session"]["prompt"]>[0];
 async function waitFor(check: () => Promise<boolean>) {
@@ -24,10 +24,21 @@ async function waitFor(check: () => Promise<boolean>) {
   }
 }
 
-async function harness(t: TestContext, prompt: (input: Prompt, signal?: AbortSignal) => Promise<void>, nonGit = false) {
+async function harness(
+  t: TestContext,
+  prompt: (input: Prompt, signal?: AbortSignal) => Promise<void>,
+  nonGit = false,
+  nested = false,
+) {
   let finish = async () => {};
   t.after(() => finish());
   const f = await fixture(t);
+  const target = nested ? join(f.b, "nested") : f.b;
+  if (nested) {
+    await mkdir(target);
+    git(target, "init", "-b", "main");
+    git(target, "commit", "--allow-empty", "-m", "initial");
+  }
   t.mock.timers.enable({ apis: ["setInterval"] });
   let onPrompt!: (event: {
     sessionID: string;
@@ -40,10 +51,10 @@ async function harness(t: TestContext, prompt: (input: Prompt, signal?: AbortSig
   let created = 1;
   const locations = new Map<string, { location: { directory: string }; parentID?: string }>();
   const context = {
-    location: { directory: nonGit ? f.root : f.b },
+    location: { directory: nonGit ? f.root : target },
     session: {
       async get({ sessionID }: { sessionID: string }) {
-        return { time: { created }, ...(locations.get(sessionID) ?? { location: { directory: f.b } }) };
+        return { time: { created }, ...(locations.get(sessionID) ?? { location: { directory: target } }) };
       },
       async hook(name: string, handler: typeof onPrompt) {
         assert.equal(name, "prompt");
@@ -90,7 +101,7 @@ async function harness(t: TestContext, prompt: (input: Prompt, signal?: AbortSig
   };
   finish = close;
   const id = "ses_receiver";
-  const repo = await repository(f.b);
+  const repo = await repository(target);
   const keyFor = (session = id) =>
     sessionKey(
       repo,
@@ -99,6 +110,7 @@ async function harness(t: TestContext, prompt: (input: Prompt, signal?: AbortSig
     );
   return {
     ...f,
+    target,
     id,
     repo,
     get key() {
@@ -1047,16 +1059,67 @@ test("OpenCode reports a broken Git pointer and retries opt-out after repair", a
   await f.enroll();
   const pointer = join(f.b, ".git"),
     original = await readFile(pointer);
-  await writeFile(pointer, `gitdir: ${join(f.root, "missing-gitdir")}\n`);
-  try {
-    await f.enroll(f.id, undefined, "Disable GitRelay");
-  } finally {
-    await writeFile(pointer, original);
+  for (const missing of [false, true]) {
+    if (missing) await rm(pointer);
+    else await writeFile(pointer, `gitdir: ${join(f.root, "missing-gitdir")}\n`);
+    try {
+      await f.enroll(f.id, undefined, "Disable GitRelay");
+    } finally {
+      await writeFile(pointer, original);
+    }
+    assert.match(String(warnings.at(-1)), /not a git repository|gitfile does not point to a valid repository/i);
+    assert.equal(warnings.length, missing ? 2 : 1);
   }
-  assert.match(String(warnings[0]), /not a git repository|gitfile does not point to a valid repository/i);
   assert.equal((await listSessions(f.b))[0].closedAt, undefined);
   await f.enroll(f.id, undefined, "Disable GitRelay");
   assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("OpenCode does not close a parent subscription when a nested repository disappears", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {}, false, true);
+  await f.enroll();
+  const identity = (await listSessions(f.target))[0];
+  await joinSession({
+    cwd: f.b,
+    ref: identity.ref,
+    adapter: identity.adapter,
+    session: identity.session,
+    instance: identity.instance,
+  });
+  await rename(join(f.target, ".git"), join(f.target, ".git-hidden"));
+  try {
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+  } finally {
+    await rename(join(f.target, ".git-hidden"), join(f.target, ".git"));
+  }
+  assert.match(String(warnings[0]), /another GitRelay subscription/i);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  assert.equal((await listSessions(f.target))[0].closedAt, undefined);
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.target))[0].closedAt);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+});
+
+test("OpenCode does not initialize an unrelated parent when its nested repository disappears", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {}, false, true);
+  await f.enroll();
+  const repos = join(f.root, "state", "repos"),
+    before = await readdir(repos);
+  const marker = join(f.main, ".git", ".git-relay-id");
+  await assert.rejects(access(marker), { code: "ENOENT" });
+  await rename(join(f.target, ".git"), join(f.target, ".git-hidden"));
+  try {
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+    assert.match(String(warnings[0]), /another GitRelay subscription/i);
+    await assert.rejects(access(marker), { code: "ENOENT" });
+    assert.deepEqual(await readdir(repos), before);
+  } finally {
+    await rename(join(f.target, ".git-hidden"), join(f.target, ".git"));
+  }
 });
 
 test("OpenCode disable outside a repository is a no-op", async (t) => {
@@ -1067,6 +1130,29 @@ test("OpenCode disable outside a repository is a no-op", async (t) => {
   await f.enroll(f.id, undefined, "Disable GitRelay");
   assert.deepEqual(warnings, []);
   assert.deepEqual(await listSessions(f.b), []);
+});
+
+test("OpenCode disable before opt-in does not initialize repository state", async (t) => {
+  const f = await fixture(t);
+  let onPrompt!: (event: { sessionID: string; prompt: { text: string } }) => Promise<void>;
+  const context = {
+    location: { directory: f.b },
+    session: {
+      get: async () => ({ location: { directory: f.b }, time: { created: 1 } }),
+      hook: async (_name: string, handler: typeof onPrompt) => {
+        onPrompt = handler;
+        return { dispose: async () => {} };
+      },
+    },
+  };
+  const close = await plugin.setup(context as unknown as Plugin.Context);
+  try {
+    await onPrompt({ sessionID: "never-enabled", prompt: { text: "Disable GitRelay" } });
+    await assert.rejects(access(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+    await assert.rejects(access(join(f.root, "state", "repos")), { code: "ENOENT" });
+  } finally {
+    await close();
+  }
 });
 
 test("OpenCode can re-enable after a CLI leave before its next polling tick", async (t) => {
