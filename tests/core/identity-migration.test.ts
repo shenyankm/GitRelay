@@ -96,6 +96,29 @@ test("explicit migration preserves old unread events, receipts and metadata", as
   assert.deepEqual(await readFile(join(f.newDirectory, "events", `${f.event}.json`)), oldEvent);
 });
 
+test("missing legacy metadata reports an actionable error and leaves fresh state available", async (t) => {
+  const f = await gitFixture(t);
+  const repo = await withRepositoryIdentity(f.b, undefined, async (value) => value);
+  const oldDirectory = join(stateDirectory(), "repos", hash(repo.common));
+  await mkdir(oldDirectory, { recursive: true });
+  for (const folder of ["sessions", "events", "receipts", "refs", "trash"]) await mkdir(join(oldDirectory, folder));
+  await assert.rejects(
+    withRepositoryIdentity(f.b, undefined, (current) =>
+      migrateLegacyState({
+        common: current.common,
+        oldDirectory,
+        newDirectory: current.directory,
+        newId: current.id,
+        identity: current.identity,
+        identitySource: current.identitySource,
+      }),
+    ),
+    /Legacy repository metadata is missing.*identity-fresh/,
+  );
+  assert.equal((await chooseFreshRepository(f.b)).id, repo.id);
+  assert.deepEqual((await readdir(oldDirectory)).sort(), ["events", "receipts", "refs", "sessions", "trash"]);
+});
+
 test("migration refuses an active old consumer and leaves source and target intact", async (t) => {
   const f = await fixture(t);
   await withLock(join(f.oldDirectory, "sessions", `${f.key}.lock`), async () => {
