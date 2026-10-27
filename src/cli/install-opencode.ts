@@ -16,7 +16,8 @@ import {
 } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { readJson, withLock, writeJson } from "../core/store.ts";
+import { withLock, writeJson } from "../core/store.ts";
+import { readInstallationRecord } from "./install-record.ts";
 import { commandOutput } from "./command-output.ts";
 import { installerDigest } from "./installer-digest.ts";
 
@@ -73,18 +74,6 @@ async function contents(path: string): Promise<string | undefined> {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
     throw error;
   }
-}
-
-async function readRecord(path: string): Promise<Record | undefined> {
-  try {
-    if (!(await lstat(path)).isFile()) throw new Error(`Invalid OpenCode installation record: ${path}`);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
-    throw error;
-  }
-  const record = await readJson(path);
-  if (record === undefined) throw new Error(`Invalid OpenCode installation record: ${path}`);
-  return record as Record;
 }
 
 const digest = (dir: string, signal?: AbortSignal) => installerDigest(dir, signal);
@@ -150,8 +139,8 @@ export async function installOpenCode(
     async () => {
       const state = join(root, "opencode.json");
       const entry = join(config, "opencode", "plugins", "git-relay.js");
-      const record = await readRecord(state);
-      if (record && !validRecord(record, entry, root))
+      const record = (await readInstallationRecord(state, "OpenCode")) as Record | undefined;
+      if (record !== undefined && !validRecord(record, entry, root))
         throw new Error(`Invalid OpenCode installation record: ${state}`);
       if (record?.removing) throw new Error("An uninstall is incomplete; rerun uninstall before installing.");
       if (!record && (await contents(entry)) !== undefined)
@@ -286,8 +275,8 @@ export async function uninstallOpenCode(
     join(root, "install.lock"),
     async () => {
       const state = join(root, "opencode.json");
-      const record = await readRecord(state);
-      if (!record) return;
+      const record = (await readInstallationRecord(state, "OpenCode")) as Record | undefined;
+      if (record === undefined) return;
       const entry = join(config, "opencode", "plugins", "git-relay.js");
       if (!validRecord(record, entry, root)) throw new Error(`Invalid OpenCode installation record: ${state}`);
       if (record.removed) return record.archive;

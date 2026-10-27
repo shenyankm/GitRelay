@@ -174,7 +174,7 @@ export async function installCodex({
       if ((await readJson(join(workspace, "codex-install.json"))) !== undefined)
         throw new Error("A previous Codex plugin installation record exists; inspect it before installing hooks.");
       const record = (await readInstallationRecord(state, "Codex")) as Record | undefined;
-      if (record && !validCodexRecord(record, entry, workspace))
+      if (record !== undefined && !validCodexRecord(record, entry, workspace))
         throw new Error(`Invalid Codex installation record: ${state}`);
       if (record?.removing) throw new Error("An uninstall is incomplete; rerun uninstall before installing.");
       const nodePath = record && !record.removed ? record.nodePath : process.execPath;
@@ -351,7 +351,7 @@ async function uninstallCodexInternal(
       const state = join(workspace, "codex-hooks.json"),
         entry = join(home, "hooks.json");
       const record = (await readInstallationRecord(state, "Codex")) as Record | undefined;
-      if (!record) {
+      if (record === undefined) {
         if (expectedGeneration !== undefined)
           throw new Error("Codex installation record is missing; hooks preserved for inspection.");
         return;

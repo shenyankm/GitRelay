@@ -258,6 +258,23 @@ test(
     const env = { ...process.env, PATH: bin, XDG_DATA_HOME: join(dir, "data"), XDG_CONFIG_HOME: join(dir, "config") };
     const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
     const run = promisify(execFile);
+    const unowned = join(env.XDG_DATA_HOME, "git-relay");
+    await mkdir(unowned, { recursive: true });
+    for (const extra of [[], ["--dry-run"]]) {
+      const error = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", "opencode", ...extra],
+        { env },
+      ).then(
+        () => null,
+        (failure) => failure,
+      );
+      assert.match(
+        JSON.parse(error.stdout).results.find((item: { platform: string }) => item.platform === "opencode").reason,
+        /Not an owned GitRelay workspace/,
+      );
+    }
+    await rm(unowned, { recursive: true });
     const result = JSON.parse(
       (await run(process.execPath, ["--experimental-strip-types", cli, "install", "--platform", "opencode"], { env }))
         .stdout,
@@ -288,6 +305,8 @@ test(
     const savedOpenCode = await readFile(openCodeState, "utf8");
     await writeFile(openCodeState, JSON.stringify({ ...JSON.parse(savedOpenCode), removed: "false" }));
     for (const args of [
+      ["install", "--platform", "opencode"],
+      ["install", "--platform", "opencode", "--dry-run"],
       ["uninstall", "--platform", "opencode"],
       ["uninstall", "--platform", "opencode", "--dry-run"],
     ]) {
@@ -303,11 +322,34 @@ test(
       );
       await readFile(entry);
     }
+    await writeFile(
+      openCodeState,
+      JSON.stringify({
+        ...JSON.parse(savedOpenCode),
+        removing: join(JSON.parse(savedOpenCode).entry, "..", ".git-relay-removed-abc", "entry"),
+      }),
+    );
+    for (const extra of [[], ["--dry-run"]]) {
+      const error = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", "opencode", ...extra],
+        { env },
+      ).then(
+        () => null,
+        (failure) => failure,
+      );
+      assert.match(
+        JSON.parse(error.stdout).results.find((item: { platform: string }) => item.platform === "opencode").reason,
+        /uninstall is incomplete/,
+      );
+    }
     await writeFile(openCodeState, savedOpenCode);
     const savedRecordPath = join(result.workspace, "opencode.saved.json");
     await rename(openCodeState, savedRecordPath);
-    await symlink("missing-record", openCodeState);
+    await symlink("opencode.saved.json", openCodeState);
     for (const args of [
+      ["install", "--platform", "opencode"],
+      ["install", "--platform", "opencode", "--dry-run"],
       ["uninstall", "--platform", "opencode"],
       ["uninstall", "--platform", "opencode", "--dry-run"],
     ]) {
@@ -319,9 +361,9 @@ test(
       assert.equal(output.failed, true);
       assert.match(
         output.results.find((item: { platform: string }) => item.platform === "opencode").reason,
-        /State path exists but cannot be read/,
+        /Invalid OpenCode installation record/,
       );
-      assert.equal(await readlink(openCodeState), "missing-record");
+      assert.equal(await readlink(openCodeState), "opencode.saved.json");
       assert.equal(await readFile(savedRecordPath, "utf8"), savedOpenCode);
       assert.match(await readFile(entry, "utf8"), /file:/);
     }
@@ -447,6 +489,8 @@ test(
       saved = await readFile(state, "utf8");
     await writeFile(state, JSON.stringify({ ...JSON.parse(saved), removed: "false" }));
     for (const args of [
+      ["install", "--platform", "codex"],
+      ["install", "--platform", "codex", "--dry-run"],
       ["uninstall", "--platform", "codex"],
       ["uninstall", "--platform", "codex", "--dry-run"],
     ]) {
@@ -463,6 +507,23 @@ test(
       await readFile(hooks);
     }
     await writeFile(state, saved);
+    const legacy = join(result.workspace, "codex-install.json");
+    await writeFile(legacy, "{}");
+    for (const extra of [[], ["--dry-run"]]) {
+      const error = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", "codex", ...extra],
+        { env },
+      ).then(
+        () => null,
+        (failure) => failure,
+      );
+      assert.match(
+        JSON.parse(error.stdout).results.find((item: { platform: string }) => item.platform === "codex").reason,
+        /previous Codex plugin installation record/,
+      );
+    }
+    await rm(legacy);
     const target = join(result.workspace, "codex.saved.json"),
       savedHooks = await readFile(hooks, "utf8");
     await rename(state, target);
