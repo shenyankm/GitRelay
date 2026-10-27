@@ -49,6 +49,7 @@ async function harness(
   }) => Promise<void>;
   let disposeHook = async () => {};
   let wake = Promise.withResolvers<void>();
+  let activeStreams = 0;
   const events: { type: "session.deleted"; data: { sessionID: string }; handled(): void }[] = [];
   let created = 1;
   const locations = new Map<string, { location: { directory: string }; parentID?: string }>();
@@ -74,21 +75,26 @@ async function harness(
     },
     event: {
       async *subscribe({ signal }: { signal: AbortSignal }) {
-        while (!signal.aborted) {
-          while (events.length) {
-            const event = events.shift()!;
-            yield event;
-            event.handled();
+        activeStreams++;
+        try {
+          while (!signal.aborted) {
+            while (events.length) {
+              const event = events.shift()!;
+              yield event;
+              event.handled();
+            }
+            const current = wake;
+            const stop = () => current.resolve();
+            signal.addEventListener("abort", stop, { once: true });
+            try {
+              if (!signal.aborted) await current.promise;
+            } finally {
+              signal.removeEventListener("abort", stop);
+              if (wake === current) wake = Promise.withResolvers<void>();
+            }
           }
-          const current = wake;
-          const stop = () => current.resolve();
-          signal.addEventListener("abort", stop, { once: true });
-          try {
-            if (!signal.aborted) await current.promise;
-          } finally {
-            signal.removeEventListener("abort", stop);
-            if (wake === current) wake = Promise.withResolvers<void>();
-          }
+        } finally {
+          activeStreams--;
         }
       },
     },
@@ -121,6 +127,7 @@ async function harness(
     keyFor,
     locations,
     session: context.session,
+    activeStreams: () => activeStreams,
     hookRegistered: () => Boolean(onPrompt),
     setDispose: (dispose: () => Promise<void>) => {
       disposeHook = dispose;
@@ -1227,6 +1234,80 @@ test("OpenCode retries a failed known opt-out without requiring an extra prompt"
   assert.ok((await listSessions(f.b))[0].closedAt);
 });
 
+test("OpenCode keeps deletion events subscribed after a failed opt-out", async (t) => {
+  const warnings: unknown[] = [];
+  const f = await harness(t, async () => {});
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  await f.enroll();
+  const old = (await listSessions(f.b))[0];
+  await withLock(join(f.repo.directory, "sessions", `${f.key}.lock`), async () => {
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+  });
+  await Promise.race([
+    f.removed(),
+    delay(3000).then(() => {
+      throw new Error("deletion event was not consumed");
+    }),
+  ]);
+  await waitFor(async () => f.activeStreams() === 0);
+  const replacement = {
+    cwd: f.b,
+    ref: "refs/heads/main",
+    adapter: "opencode",
+    session: f.id,
+    instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 2]),
+  };
+  await joinSession(replacement);
+  await sessionActivation(replacement, true);
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.match(String(warnings.at(-1)), /identity could not be verified.*retry/i);
+  assert.equal((await listSessions(f.b)).find((session) => session.instance === old.instance)?.closedAt, undefined);
+  assert.equal(
+    (await listSessions(f.b)).find((session) => session.instance === replacement.instance)?.closedAt,
+    undefined,
+  );
+});
+
+test("OpenCode subscribes to deletion events for an unverified pending opt-out", async (t) => {
+  const f = await harness(t, async () => {});
+  t.mock.method(console, "warn", () => {});
+  const options = {
+    cwd: f.b,
+    ref: "refs/heads/main",
+    adapter: "opencode",
+    session: f.id,
+    instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 1]),
+  };
+  await joinSession(options);
+  await sessionActivation(options, true);
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  await Promise.race([
+    f.removed(),
+    delay(3000).then(() => {
+      throw new Error("deletion event was not consumed");
+    }),
+  ]);
+  await waitFor(async () => f.activeStreams() === 0);
+});
+
+test("OpenCode cleanup cancels a pending opt-out and its deletion listener", async (t) => {
+  const f = await harness(t, async () => {}),
+    started = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  t.mock.method(f.session, "get", async () => {
+    started.resolve();
+    await release.promise;
+    return { location: { directory: f.b }, time: { created: 1 } };
+  });
+  const stopping = f.enroll(f.id, undefined, "Disable GitRelay");
+  await started.promise;
+  await waitFor(async () => f.activeStreams() === 1);
+  await f.close();
+  await stopping;
+  assert.equal(f.activeStreams(), 0);
+});
+
 test(
   "OpenCode retries a trusted old instance after preflight failure and recreation",
   { skip: process.platform === "win32" },
@@ -1490,6 +1571,12 @@ test("OpenCode disable before opt-in does not initialize repository state", asyn
       hook: async (_name: string, handler: typeof onPrompt) => {
         onPrompt = handler;
         return { dispose: async () => {} };
+      },
+    },
+    event: {
+      async *subscribe({ signal }: { signal: AbortSignal }) {
+        if (!signal.aborted)
+          await new Promise<void>((resolve) => signal.addEventListener("abort", () => resolve(), { once: true }));
       },
     },
   };

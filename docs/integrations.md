@@ -180,6 +180,8 @@ opt-out prompt again to confirm the current instance. A later enable or session
 deletion cancels that pending opt-out. If closing fails, retry the prompt after
 repairing the reported problem; unread messages remain preserved. At most 128
 opt-outs can be pending; resolve an earlier one before retrying if the limit is reached.
+An unresponsive host lookup can leave an opt-out pending until a later enable,
+session deletion, or plugin shutdown cancels it.
 
 - `ctx.session.hook("prompt", ...)` enables only requested or previously opted-in root sessions and establishes/restores their baselines.
 - Registered sessions are checked every five seconds, with at most one check in flight per session. Delivery uses `ctx.session.prompt({ sessionID, id, text, delivery: "queue", metadata })`. Busy sessions queue; idle sessions start. Each event is submitted separately with a stable message ID derived from the GitRelay repository identity, worktree, native session instance, and event ID. This can create more queued turns and model usage than combining a batch into one prompt. A receipt is written after each individual event is accepted.

@@ -199,7 +199,7 @@ export default {
     let lookupSequence = 0;
     const retrying = new Set<SessionID>();
     function maintainTimer() {
-      if (!sessions.size && !retries.size && !optIns.size) eventAbort?.abort();
+      if (!sessions.size && !retries.size && !optIns.size && !optOuts.size) eventAbort?.abort();
       if ((sessions.size || retries.size) && !timer && !abort.signal.aborted) {
         timer = setInterval(() => {
           for (const id of sessions.keys()) void scan(id);
@@ -314,6 +314,7 @@ export default {
           abort: new AbortController(),
         };
         optOuts.set(event.sessionID, attempt);
+        watchEvents();
         const signal = AbortSignal.any([abort.signal, attempt.abort.signal]);
         const current = () => !abort.signal.aborted && optOuts.get(event.sessionID) === attempt;
         state?.abort.abort();
@@ -401,6 +402,8 @@ export default {
           if (current()) optOuts.delete(event.sessionID);
         } catch (error) {
           if (current()) warn(error);
+        } finally {
+          maintainTimer();
         }
         return;
       }
@@ -408,6 +411,7 @@ export default {
         optOuts.get(event.sessionID)?.abort.abort();
         optOuts.delete(event.sessionID);
         if (optIns.size >= 128 && !optIns.has(event.sessionID)) {
+          maintainTimer();
           warn(new Error("Too many pending opt-ins; retry after a session is enrolled."));
           return;
         }
