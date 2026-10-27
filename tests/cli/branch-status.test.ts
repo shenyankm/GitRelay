@@ -81,22 +81,24 @@ test(
     await mkdir(bin);
     const response = join(f.root, "response.json");
     const log = join(f.root, "gh.log");
+    const hosts = join(f.root, "hosts.log");
     await writeFile(
       join(bin, "gh"),
       `#!/usr/bin/env node
 const fs = require('node:fs');
 const args = process.argv.slice(2);
 fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + '\\n');
+fs.appendFileSync(${JSON.stringify(hosts)}, (process.env.GH_HOST || '') + '\\n');
 const fixture = JSON.parse(fs.readFileSync(${JSON.stringify(response)}, 'utf8'));
 if (fixture.fail) { process.stderr.write('HTTP 403: denied'); process.exit(1); }
-if (args[0] === 'repo') console.log(JSON.stringify({ nameWithOwner: 'owner/repo', url: 'https://github.example.com/owner/repo' }));
+if (args[0] === 'repo') console.log(JSON.stringify({ nameWithOwner: 'owner/repo', url: fixture.url || 'https://github.example.com/owner/repo' }));
 else console.log(JSON.stringify(fixture.pages));
 `,
       { mode: 0o755 },
     );
-    const invoke = () =>
-      exec(process.execPath, [cli, "status", "--cwd", f.b, "--github", "--repo", "github.example.com/owner/repo"], {
-        env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
+    const invoke = (repo: string | null = "github.example.com/owner/repo") =>
+      exec(process.execPath, [cli, "status", "--cwd", f.b, "--github", ...(repo ? ["--repo", repo] : [])], {
+        env: { ...process.env, GH_HOST: "unrelated.invalid:9999", PATH: `${bin}:${process.env.PATH}` },
       });
     const ref = (name: string, sha = f.initial) => ({ ref: `refs/heads/${name}`, object: { type: "commit", sha } });
     await writeFile(response, JSON.stringify({ pages: [[ref("feature/b-other")], [ref("feature/b")]] }));
@@ -133,6 +135,30 @@ else console.log(JSON.stringify(fixture.pages));
     }
     await writeFile(response, JSON.stringify({ pages: [[ref("feature/b")]] }));
     assert.equal(JSON.parse((await invoke()).stdout).github.matchesLocal, true);
+    await writeFile(
+      response,
+      JSON.stringify({ url: "https://github.example.com:8443/owner/repo", pages: [[ref("feature/b")]] }),
+    );
+    for (const repo of ["github.example.com:8443/owner/repo", null]) {
+      assert.equal(JSON.parse((await invoke(repo)).stdout).github.matchesLocal, true);
+      const entries = (await readFile(log, "utf8"))
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line));
+      assert.equal(entries.at(-1)[0], "api");
+      assert.ok(!entries.at(-1).includes("--hostname"));
+      assert.equal((await readFile(hosts, "utf8")).trim().split("\n").at(-1), "github.example.com:8443");
+    }
+    for (const repo of [
+      "github.example.com:bad/owner/repo",
+      "github.example.com:65536/owner/repo",
+      "github.example.com:/owner/repo",
+    ]) {
+      await assert.rejects(invoke(repo), (error: Error & { stdout?: string }) => {
+        assert.match(JSON.parse(error.stdout!).github.error, /--repo must be/);
+        return true;
+      });
+    }
   },
 );
 
