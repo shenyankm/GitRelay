@@ -1658,8 +1658,8 @@ test(
     t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
     const calls: Array<{ text?: string }> = [];
     const f = await harness(t, async (input) => {
-      calls.push(input);
-    }),
+        calls.push(input);
+      }),
       bin = join(f.root, "bin"),
       previousPath = process.env.PATH;
     await f.enroll();
