@@ -1,5 +1,5 @@
 import { consumeMailbox } from "../core/consumer.ts";
-import { HistoryUnavailableError, watchRoot } from "../core/changes.ts";
+import { watchRoot } from "../core/changes.ts";
 import { formatNotifications } from "../core/mailbox.ts";
 import { branchStatus } from "../core/branch-status.ts";
 import { formatBranchStatus } from "../core/status-format.ts";
@@ -22,7 +22,7 @@ export async function runHook(
   output: (value: object) => Promise<void>,
   signal?: AbortSignal,
   showBranchStatus = false,
-): Promise<string | void> {
+): Promise<{ delivered: true; diagnostic?: string } | void> {
   const event = input.hook_event_name;
   const events = ["SessionStart", "UserPromptSubmit", "PostToolUse", "Stop"];
   if (typeof event !== "string" || !events.includes(event)) {
@@ -115,10 +115,10 @@ export async function runHook(
       sent = true;
     },
   }).catch((error: unknown) => {
-    if (sent && error instanceof HistoryUnavailableError) return error.message;
+    if (sent) return error instanceof Error ? error.message : String(error);
     throw error;
   });
-  if (typeof result === "string") return result;
+  if (sent) return { delivered: true, ...(typeof result === "string" ? { diagnostic: result } : {}) };
   if (!sent)
     await visibleOutput(
       summary
