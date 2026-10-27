@@ -52,11 +52,14 @@ async function harness(
   let activeStreams = 0;
   const events: { type: "session.deleted"; data: { sessionID: string }; handled(): void }[] = [];
   let created = 1;
+  const deletedSessions = new Set<string>();
   const locations = new Map<string, { location: { directory: string }; parentID?: string }>();
   const context = {
     location: { directory: nonGit ? f.root : target },
     session: {
       async get({ sessionID }: { sessionID: string }) {
+        if (deletedSessions.has(sessionID))
+          throw Object.assign(new Error("Session.NotFoundError"), { _tag: "SessionNotFoundError" });
         return { time: { created }, ...(locations.get(sessionID) ?? { location: { directory: target } }) };
       },
       async hook(name: string, handler: typeof onPrompt) {
@@ -132,15 +135,26 @@ async function harness(
     setDispose: (dispose: () => Promise<void>) => {
       disposeHook = dispose;
     },
-    enroll: (sessionID = id, metadata?: Prompt["metadata"], text = "Enable GitRelay") =>
-      onPrompt({ sessionID, metadata, prompt: { text } }),
+    enroll: (sessionID = id, metadata?: Prompt["metadata"], text = "Enable GitRelay") => {
+      deletedSessions.delete(sessionID);
+      return onPrompt({ sessionID, metadata, prompt: { text } });
+    },
+    promptRaw: (sessionID = id, text = "ordinary prompt") => onPrompt({ sessionID, prompt: { text } }),
     tick: () => t.mock.timers.tick(5000),
     close,
     recreateWithoutEvent() {
       created++;
     },
+    emitDeleted(sessionID = id) {
+      const done = Promise.withResolvers<void>();
+      events.push({ type: "session.deleted", data: { sessionID }, handled: done.resolve });
+      wake.resolve();
+      wake = Promise.withResolvers<void>();
+      return done.promise;
+    },
     removed(sessionID = id) {
       created++;
+      deletedSessions.add(sessionID);
       const done = Promise.withResolvers<void>();
       events.push({ type: "session.deleted", data: { sessionID }, handled: done.resolve });
       wake.resolve();
@@ -386,8 +400,10 @@ test("OpenCode v2 deletion during lookup cannot enroll or poll a ghost session",
   const release = Promise.withResolvers<void>();
   const originalGet = f.session.get;
   let nativeDeleted = false;
+  let calls = 0;
   const lookup = t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
     if (nativeDeleted) throw new Error("Session.NotFoundError");
+    if (++calls === 2) return originalGet(input); // The deletion verification sees the missing host session.
     entered.resolve();
     await release.promise;
     return originalGet(input);
@@ -401,7 +417,7 @@ test("OpenCode v2 deletion during lookup cannot enroll or poll a ghost session",
   await f.enroll(); // A late prompt rechecks the host, which reports the deleted ID missing.
   f.tick();
   f.tick();
-  assert.equal(lookup.mock.callCount(), 3);
+  assert.equal(lookup.mock.callCount(), 4);
   await delay(0);
   assert.equal((await listSessions(f.b)).length, 0);
   assert.equal(warnings.length, 1);
@@ -437,6 +453,215 @@ test("OpenCode enables a recreated session on the first prompt without a deletio
   f.tick();
   await waitFor(async () => (await readReceipt(f.repo, f.key, event.id))?.status === "delivered");
   assert.equal(calls.length, 1);
+});
+
+test("a delayed deletion for an old instance preserves the recreated session's delivery", async (t) => {
+  const calls: Prompt[] = [];
+  const f = await harness(t, async (input) => {
+    calls.push(input);
+  });
+  await f.enroll();
+  f.recreateWithoutEvent();
+  await f.enroll();
+  await f.emitDeleted();
+  const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "recreated inbox" });
+  await waitFor(async () => {
+    f.tick();
+    return calls.some((input) => input.text?.includes(event.id));
+  });
+  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
+});
+
+test("a deletion verification failure warns and preserves the live session", async (t) => {
+  const warnings: unknown[] = [],
+    calls: Prompt[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async (input) => {
+    calls.push(input);
+  });
+  await f.enroll();
+  const original = f.session.get;
+  let failed = false;
+  const lookup = t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
+    if (!failed) {
+      failed = true;
+      throw new Error("injected deletion lookup failure");
+    }
+    return original(input);
+  });
+  await f.emitDeleted();
+  await waitFor(async () => warnings.some((message) => String(message).includes("injected deletion lookup failure")));
+  lookup.mock.restore();
+  const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "still active" });
+  await waitFor(async () => {
+    f.tick();
+    return calls.some((input) => input.text?.includes(event.id));
+  });
+  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
+});
+
+test("a recreated session in another context stops only the old local polling", async (t) => {
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  const oldKey = f.key;
+  f.recreateWithoutEvent();
+  const next = {
+    cwd: f.a,
+    ref: "refs/heads/main",
+    adapter: "opencode",
+    session: f.id,
+    instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 2]),
+  };
+  await joinSession(next);
+  await sessionActivation(next, true);
+  const nextKey = sessionKey(await repository(f.a), next, next.ref);
+  f.locations.set(f.id, { location: { directory: f.a } });
+  await f.emitDeleted();
+  await waitFor(async () => f.activeStreams() === 0);
+  const sessions = await listSessions(f.b);
+  assert.equal(sessions.find((session) => session.key === oldKey)?.closedAt, undefined);
+  assert.equal(sessions.find((session) => session.key === nextKey)?.closedAt, undefined);
+  assert.equal(await sessionActivation(next), true);
+});
+
+test("a delayed deletion lookup cannot remove a later recreated session", async (t) => {
+  const calls: Prompt[] = [];
+  const f = await harness(t, async (input) => {
+    calls.push(input);
+  });
+  await f.enroll();
+  const entered = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  const original = f.session.get;
+  let first = true;
+  const lookup = t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
+    if (first) {
+      first = false;
+      entered.resolve();
+      await release.promise;
+      return { location: { directory: f.b }, time: { created: 1 } };
+    }
+    return original(input);
+  });
+  await f.emitDeleted();
+  await entered.promise;
+  f.recreateWithoutEvent();
+  await f.enroll();
+  release.resolve();
+  await delay(0);
+  lookup.mock.restore();
+  const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "new generation" });
+  await waitFor(async () => {
+    f.tick();
+    return calls.some((input) => input.text?.includes(event.id));
+  });
+  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
+});
+
+test("a slow deletion verification does not block other session IDs", async (t) => {
+  const f = await harness(t, async () => {});
+  await f.enroll("first");
+  await f.enroll("second");
+  const first = Promise.withResolvers<void>(),
+    second = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  const original = f.session.get;
+  t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
+    if (input.sessionID === "first") {
+      first.resolve();
+      await release.promise;
+    } else if (input.sessionID === "second") second.resolve();
+    return original(input);
+  });
+  await f.emitDeleted("first");
+  await first.promise;
+  await f.emitDeleted("second");
+  await Promise.race([
+    second.promise,
+    delay(2000).then(() => {
+      throw new Error("second deletion lookup was blocked");
+    }),
+  ]);
+  release.resolve();
+});
+
+test("a late ordinary prompt cannot cancel confirmed deletion verification", async (t) => {
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  const entered = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  t.after(() => release.resolve());
+  const original = f.session.get;
+  let checks = 0;
+  t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
+    if (++checks === 1) {
+      entered.resolve();
+      await release.promise;
+    }
+    return original(input);
+  });
+  await f.removed();
+  await entered.promise;
+  await f.promptRaw();
+  await waitFor(async () => f.activeStreams() === 0);
+  release.resolve();
+  const before = checks;
+  f.tick();
+  await delay(20);
+  assert.equal(checks, before, "deleted session must not continue polling");
+});
+
+test("a stale deletion verification cannot cancel a newly added lookup token", async (t) => {
+  const calls: Prompt[] = [];
+  const f = await harness(t, async (input) => {
+    calls.push(input);
+  });
+  const started = Array.from({ length: 4 }, () => Promise.withResolvers<void>());
+  const gates = Array.from({ length: 4 }, () => Promise.withResolvers<void>());
+  t.after(() => gates.forEach((gate) => gate.resolve()));
+  const original = f.session.get;
+  let lookup = 0;
+  t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
+    const index = lookup++;
+    if (index < gates.length) {
+      started[index].resolve();
+      await gates[index].promise;
+      if (index === 1 || index === 2)
+        throw Object.assign(new Error("Session.NotFoundError"), { _tag: "SessionNotFoundError" });
+      return { location: { directory: f.b }, time: { created: index === 0 ? 1 : 2 } };
+    }
+    return original(input);
+  });
+  const oldPrompt = f.enroll();
+  await started[0].promise;
+  await f.emitDeleted();
+  await started[1].promise;
+  f.recreateWithoutEvent();
+  const current = {
+    cwd: f.b,
+    ref: "refs/heads/main",
+    adapter: "opencode",
+    session: f.id,
+    instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 2]),
+  };
+  await joinSession(current);
+  await sessionActivation(current, true);
+  const nextPrompt = f.promptRaw();
+  await Promise.all([started[2].promise, started[3].promise]);
+  gates[2].resolve(); // A delayed NotFound must not cancel the later lookup for the recreated session.
+  await delay(30);
+  gates[3].resolve();
+  gates[1].resolve();
+  gates[0].resolve();
+  await Promise.all([oldPrompt, nextPrompt]);
+  const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "surviving lookup" });
+  await waitFor(async () => {
+    f.tick();
+    return calls.some((input) => input.text?.includes(event.id));
+  });
+  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
 });
 
 test("OpenCode retries a recreated session when its enable lookup fails", async (t) => {
@@ -584,7 +809,7 @@ test("OpenCode simultaneous first prompts cannot leave a deleted session registe
     if (call <= 2) {
       if (call === 2) bothInitial.resolve();
       await releaseInitial.promise;
-    } else {
+    } else if (call === 3) {
       scanning.resolve();
       options?.signal?.addEventListener("abort", () => aborted.resolve(), { once: true });
       await releaseScan.promise;
@@ -600,7 +825,7 @@ test("OpenCode simultaneous first prompts cannot leave a deleted session registe
   releaseScan.resolve();
   await Promise.all([...prompts, removed]);
   f.tick();
-  assert.equal(calls, 3);
+  assert.equal(calls, 4);
   assert.equal((await listSessions(f.b)).length, 0);
 });
 
@@ -1290,6 +1515,80 @@ test("OpenCode subscribes to deletion events for an unverified pending opt-out",
   await waitFor(async () => f.activeStreams() === 0);
 });
 
+test("an aborted OpenCode event stream cannot cancel a newer opt-out", async (t) => {
+  const f = await fixture(t),
+    started = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  const streams: {
+    signal: AbortSignal;
+    next: ReturnType<
+      typeof Promise.withResolvers<{ type: "session.deleted"; data: { sessionID: string } } | undefined>
+    >;
+    returned: ReturnType<typeof Promise.withResolvers<void>>;
+  }[] = [];
+  let onPrompt!: (event: { sessionID: string; prompt: { text: string } }) => Promise<void>;
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const context = {
+    location: { directory: f.b },
+    session: {
+      async get({ sessionID }: { sessionID: string }) {
+        if (sessionID === "receiver") {
+          started.resolve();
+          await release.promise;
+        }
+        return { location: { directory: f.b }, time: { created: 1 } };
+      },
+      async hook(_name: string, handler: typeof onPrompt) {
+        onPrompt = handler;
+        return { dispose: async () => {} };
+      },
+    },
+    event: {
+      async *subscribe({ signal }: { signal: AbortSignal }) {
+        const next = Promise.withResolvers<{ type: "session.deleted"; data: { sessionID: string } } | undefined>();
+        const returned = Promise.withResolvers<void>();
+        streams.push({ signal, next, returned });
+        try {
+          const event = await next.promise;
+          if (event) yield event;
+        } finally {
+          returned.resolve();
+        }
+      },
+    },
+  };
+  const close = await plugin.setup(context as unknown as Plugin.Context);
+  try {
+    await onPrompt({ sessionID: "other", prompt: { text: "Disable GitRelay" } });
+    await waitFor(async () => streams.length === 1);
+    assert.equal(streams[0].signal.aborted, true);
+    const options = {
+      cwd: f.b,
+      ref: "refs/heads/main",
+      adapter: "opencode",
+      session: "receiver",
+      instance: hash([resolve(process.env.XDG_DATA_HOME || homedir()), 1]),
+    };
+    await joinSession(options);
+    await sessionActivation(options, true);
+    const stopping = onPrompt({ sessionID: "receiver", prompt: { text: "Disable GitRelay" } });
+    await started.promise;
+    await waitFor(async () => streams.length === 2);
+    streams[0].next.resolve({ type: "session.deleted", data: { sessionID: "receiver" } });
+    await streams[0].returned.promise;
+    assert.equal(streams[1].signal.aborted, false);
+    release.resolve();
+    await stopping;
+    assert.match(String(warnings[0]), /identity could not be verified.*retry/i);
+    assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  } finally {
+    release.resolve();
+    for (const stream of streams) stream.next.resolve(undefined);
+    await close();
+  }
+});
+
 test("OpenCode cleanup cancels a pending opt-out and its deletion listener", async (t) => {
   const f = await harness(t, async () => {}),
     started = Promise.withResolvers<void>(),
@@ -1484,16 +1783,25 @@ test("an OpenCode deletion cancels a pending opt-out lookup", async (t) => {
   t.after(() => release.resolve());
   await f.enroll("other");
   const original = f.session.get;
-  const lookup = t.mock.method(f.session, "get", async (input: { sessionID: string }) => {
-    if (input.sessionID === f.id) {
-      started.resolve();
-      await release.promise;
-    }
-    return original(input);
-  });
+  let first = true;
+  let originalSignal: AbortSignal | undefined;
+  const lookup = t.mock.method(
+    f.session,
+    "get",
+    async (input: { sessionID: string }, options?: { signal?: AbortSignal }) => {
+      if (input.sessionID === f.id && first) {
+        first = false;
+        originalSignal = options?.signal;
+        started.resolve();
+        await release.promise;
+      }
+      return original(input);
+    },
+  );
   const stopping = f.enroll(f.id, undefined, "Disable GitRelay");
   await started.promise;
   await f.removed(f.id);
+  await waitFor(async () => originalSignal?.aborted === true);
   release.resolve();
   await stopping;
   lookup.mock.restore();

@@ -35,6 +35,7 @@ export default {
     >();
     const draining = new Set<Promise<void>>();
     const lookups = new Map<SessionID, Set<{ cancelled: boolean; abort: AbortController }>>();
+    const deletionChecks = new Map<SessionID, { abort: AbortController; repeat: boolean }>();
     const abort = new AbortController();
     let eventAbort: AbortController | undefined;
     let rootProbe: Promise<string | undefined> | undefined;
@@ -292,6 +293,11 @@ export default {
       if (abort.signal.aborted || event.metadata?.source === "git-relay" || event.metadata?.source === "worktree-relay")
         return;
       const request = requestedActivation(event.prompt?.text);
+      const pendingDeletion = deletionChecks.get(event.sessionID);
+      pendingDeletion?.abort.abort();
+      deletionChecks.delete(event.sessionID);
+      if (request === undefined && pendingDeletion && eventAbort && !eventAbort.signal.aborted)
+        verifyDeletion(event.sessionID, AbortSignal.any([abort.signal, eventAbort.signal]));
       if (request === false) {
         if (optOuts.size >= 128 && !optOuts.has(event.sessionID)) {
           warn(new Error("Too many pending opt-outs; retry after another session is resolved."));
@@ -427,6 +433,93 @@ export default {
       }
       await enroll(event.sessionID);
     });
+    function verifyDeletion(id: SessionID, signal: AbortSignal) {
+      const state = sessions.get(id);
+      const attempt = optOuts.get(id);
+      const pending = lookups.get(id);
+      const tokens = [...(pending ?? [])];
+      const retry = retries.get(id);
+      if (!state && !attempt && !pending && retry === undefined && !optIns.has(id)) return;
+      const existing = deletionChecks.get(id);
+      if (existing) {
+        existing.repeat = true;
+        return;
+      }
+      if (deletionChecks.size >= 128) {
+        warn(new Error("Too many pending OpenCode deletion checks; session state preserved."));
+        return;
+      }
+      const check = { abort: new AbortController(), repeat: false };
+      deletionChecks.set(id, check);
+      const checkSignal = AbortSignal.any([signal, check.abort.signal]);
+      const discard = () => {
+        if (deletionChecks.get(id) === check) deletionChecks.delete(id);
+      };
+      checkSignal.addEventListener("abort", discard, { once: true });
+      void (async () => {
+        try {
+          const native = await getSession(id, checkSignal);
+          if (!checkSignal.aborted && !belongs(native) && state && sessions.get(id) === state) {
+            state.abort.abort();
+            sessions.delete(id);
+            if (state.active) {
+              const active = state.active;
+              draining.add(active);
+              void active.finally(() => draining.delete(active));
+            }
+            maintainTimer();
+          }
+          // A current host session can be a newer instance of the deleted ID.
+          return;
+        } catch (error) {
+          if (checkSignal.aborted) return;
+          if (!(
+            typeof error === "object" &&
+            error !== null &&
+            "_tag" in error &&
+            error._tag === "SessionNotFoundError"
+          )) {
+            warn(new Error(`OpenCode deletion could not be verified; session state preserved: ${String(error)}`));
+            return;
+          }
+          if (
+            deletionChecks.get(id) !== check ||
+            sessions.get(id) !== state ||
+            optOuts.get(id) !== attempt ||
+            lookups.get(id) !== pending ||
+            (pending && (pending.size !== tokens.length || tokens.some((token) => !pending.has(token)))) ||
+            retries.get(id) !== retry
+          ) {
+            check.repeat = true;
+            return;
+          }
+          optIns.delete(id);
+          attempt?.abort.abort();
+          optOuts.delete(id);
+          retries.delete(id);
+          for (const token of tokens) {
+            token.cancelled = true;
+            token.abort.abort();
+          }
+          if (state) {
+            state.abort.abort();
+            sessions.delete(id);
+            if (state.active) {
+              const active = state.active;
+              draining.add(active);
+              void active.finally(() => draining.delete(active));
+            }
+          }
+          maintainTimer();
+        } finally {
+          checkSignal.removeEventListener("abort", discard);
+          if (deletionChecks.get(id) === check) {
+            deletionChecks.delete(id);
+            if (check.repeat && !signal.aborted) verifyDeletion(id, signal);
+          }
+        }
+      })();
+    }
     function watchEvents() {
       if (eventAbort && !eventAbort.signal.aborted) return;
       eventAbort = new AbortController();
@@ -436,27 +529,10 @@ export default {
         while (!signal.aborted) {
           try {
             for await (const event of ctx.event.subscribe({ signal })) {
+              if (signal.aborted) break;
               backoff = 1000;
               if (event.type !== "session.deleted") continue;
-              optIns.delete(event.data.sessionID);
-              optOuts.get(event.data.sessionID)?.abort.abort();
-              optOuts.delete(event.data.sessionID);
-              retries.delete(event.data.sessionID);
-              for (const token of lookups.get(event.data.sessionID) ?? []) {
-                token.cancelled = true;
-                token.abort.abort();
-              }
-              maintainTimer();
-              const state = sessions.get(event.data.sessionID);
-              if (!state) continue;
-              state.abort.abort();
-              sessions.delete(event.data.sessionID);
-              if (state.active) {
-                const active = state.active;
-                draining.add(active);
-                void active.finally(() => draining.delete(active));
-              }
-              maintainTimer();
+              verifyDeletion(event.data.sessionID, signal);
             }
           } catch (error) {
             if (!signal.aborted) warn(error);
