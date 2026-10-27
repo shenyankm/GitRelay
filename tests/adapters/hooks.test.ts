@@ -6,8 +6,9 @@ import { test } from "node:test";
 import { hookResponse, runHook } from "../../src/adapters/hooks.ts";
 import { sessionActivation } from "../../src/core/activation.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
+import { leaveSessionIfRepository, preflightLeaveSession } from "../../src/core/sessions.ts";
 import { listSessions, readReceipt, readSession, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { chooseFreshRepository, repository, withLock } from "../../src/core/store.ts";
+import { chooseFreshRepository, hash, repository, withLock } from "../../src/core/store.ts";
 import { setTimeout as delay } from "node:timers/promises";
 import { fixture, git } from "../helpers.ts";
 
@@ -127,6 +128,36 @@ test("disabling a never-enabled Git worktree does not initialize repository stat
   await assert.rejects(access(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
   await assert.rejects(access(join(f.root, "state", "repos")), { code: "ENOENT" });
 });
+
+test(
+  "disable closes a session when Git reports an equivalent root spelling",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      bin = join(f.root, "bin"),
+      previousPath = process.env.PATH;
+    const realGit = spawnSync("/bin/sh", ["-c", "command -v git"], { encoding: "utf8" }).stdout.trim();
+    await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, async () => {});
+    await mkdir(bin);
+    await writeFile(
+      join(bin, "git"),
+      '#!/bin/sh\nif [ "$3" = rev-parse ] && [ "$4" = --show-toplevel ]; then printf "%s/\\n" "$TEST_WORKTREE"; exit 0; fi\nexec "$TEST_REAL_GIT" "$@"\n',
+    );
+    await chmod(join(bin, "git"), 0o755);
+    process.env.PATH = `${bin}:${previousPath ?? ""}`;
+    process.env.TEST_WORKTREE = f.b;
+    process.env.TEST_REAL_GIT = realGit;
+    try {
+      await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, async () => {});
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+      delete process.env.TEST_WORKTREE;
+      delete process.env.TEST_REAL_GIT;
+    }
+    assert.ok((await listSessions(f.b))[0].closedAt);
+  },
+);
 
 test("cancellation during a no-op opt-out is not reported as success", async (t) => {
   const f = await fixture(t),
@@ -287,6 +318,101 @@ test("a fresh repository identity at the same path can close its own subscriptio
   await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
   assert.ok((await listSessions(f.b))[0].closedAt);
   assert.equal((await readSession(oldRepo, oldKey))?.closedAt, undefined);
+});
+
+test("a missing repository identity is preserved until the user restores it", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const repo = await repository(f.b),
+    key = sessionKey(repo, { adapter: "codex", session: "receiver" }, ref);
+  const sessionPath = join(repo.directory, "sessions", `${key}.json`),
+    before = await readFile(sessionPath);
+  const event = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "preserve unread" });
+  const marker = join(repo.common, ".git-relay-id"),
+    history = join(f.root, "state", "identity-history", hash(repo.common));
+  for (const missingHistory of [false, true]) {
+    await rename(marker, `${marker}.saved`);
+    if (missingHistory) await rename(history, `${history}.saved`);
+    try {
+      await assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /identity is missing/i);
+      await assert.rejects(access(marker), { code: "ENOENT" });
+      assert.deepEqual(await readFile(sessionPath), before);
+      assert.equal(await readReceipt(repo, key, event.id), undefined);
+    } finally {
+      if (missingHistory) await rename(`${history}.saved`, history);
+      await rename(`${marker}.saved`, marker);
+    }
+  }
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
+  assert.ok((await listSessions(f.b))[0].closedAt);
+  assert.equal(await readReceipt(repo, key, event.id), undefined);
+});
+
+test("an old subscription is preserved when the current identity lacks that session", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const oldRepo = await repository(f.b),
+    oldKey = sessionKey(oldRepo, { adapter: "codex", session: "receiver" }, ref);
+  const marker = join(oldRepo.common, ".git-relay-id");
+  await rename(marker, `${marker}.old`);
+  try {
+    await chooseFreshRepository(f.b);
+    await runHook({ ...input(f.b, "other"), prompt: "Enable GitRelay" }, ref, output);
+    await assert.rejects(
+      runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output),
+      /different repository identity/i,
+    );
+    assert.equal((await readSession(oldRepo, oldKey))?.closedAt, undefined);
+    assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  } finally {
+    await rm(marker, { force: true });
+    await rename(`${marker}.old`, marker);
+  }
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
+  assert.ok((await readSession(oldRepo, oldKey))?.closedAt);
+});
+
+test("an opt-out preflight cannot close the same session under a replacement identity", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  const options = { cwd: f.b, ref, adapter: "codex", session: "receiver" };
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const oldRepo = await repository(f.b),
+    oldKey = sessionKey(oldRepo, options, ref);
+  const checked = await preflightLeaveSession(options);
+  const marker = join(oldRepo.common, ".git-relay-id");
+  await rename(marker, `${marker}.old`);
+  try {
+    await chooseFreshRepository(f.b);
+    await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+    await assert.rejects(leaveSessionIfRepository(options, checked), /identity changed during opt-out/i);
+    assert.equal((await readSession(oldRepo, oldKey))?.closedAt, undefined);
+    assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  } finally {
+    await rm(marker, { force: true });
+    await rename(`${marker}.old`, marker);
+  }
+});
+
+test("an opt-out preflight does not close a subscription created afterward", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {};
+  const options = { cwd: f.b, ref, adapter: "codex", session: "receiver" };
+  const checked = await preflightLeaveSession(options);
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  await assert.rejects(leaveSessionIfRepository(options, checked), /subscription changed during opt-out/i);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+});
+
+test("an opt-out preflight does not use a newly created repository", async (t) => {
+  const f = await fixture(t),
+    options = { cwd: f.root, ref, adapter: "codex", session: "receiver" };
+  const checked = await preflightLeaveSession(options);
+  git(f.root, "init", "-b", "main");
+  await assert.rejects(leaveSessionIfRepository(options, checked), /worktree root changed during opt-out/i);
+  await assert.rejects(access(join(f.root, ".git", ".git-relay-id")), { code: "ENOENT" });
 });
 
 test("a missing nested repository does not initialize an unrelated parent", async (t) => {

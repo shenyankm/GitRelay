@@ -154,6 +154,7 @@ export async function withRepositoryIdentity<T>(
   cwd: string,
   signal: AbortSignal | undefined,
   run: (repo: Repository) => Promise<T>,
+  initialize = true,
 ): Promise<T> {
   await checkManagedRoot();
   const root = await watchRoot(cwd, signal);
@@ -165,7 +166,9 @@ export async function withRepositoryIdentity<T>(
   return withLock(
     join(locks, `${hash(common)}.lock`),
     async () => {
-      const identity = (await repositoryIdentity(common, true))!;
+      const identity = await repositoryIdentity(common, initialize);
+      if (!identity)
+        throw new Error(`GitRelay repository identity is missing in ${common}; restore it before retrying.`);
       const id = hash([common, identity.identity]);
       return run({ root, common, id, directory: join(stateDirectory(), "repos", id), ...identity });
     },
@@ -316,66 +319,73 @@ export async function chooseFreshRepository(
   });
 }
 
-export async function repository(cwd: string, signal?: AbortSignal): Promise<Repository> {
-  return withRepositoryIdentity(cwd, signal, async (repo) => {
-    await assertMigrationReady(repo);
-    const existing = await lstat(repo.directory).catch((error) => {
-      if (error.code === "ENOENT") return undefined;
-      throw error;
-    });
-    if (existing) {
-      if (!existing.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
-      const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
-      const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
-      if (ready?.id !== repo.id || owner?.id !== repo.id)
-        throw new Error(
-          `Incomplete GitRelay state initialization: ${repo.directory}; inspect and preserve it before recovery.`,
-        );
-      await checkRepositoryDirectories(repo.directory);
-    } else {
-      const prior = await priorRepositories(repo);
-      const choice = (await readJson(join(stateDirectory(), "identity-choices", `${repo.id}.json`))) as
-        { id?: string } | undefined;
-      if (prior.length && choice?.id !== repo.id)
-        throw new Error(
-          `Earlier GitRelay state exists for ${repo.common}; run git-relay identity-fresh --apply or identity-migrate --apply after inspecting it. Prior state is preserved.`,
-        );
-      await recordRepositoryIdentity(repo);
-      await mkdir(join(stateDirectory(), "repos"), { recursive: true, mode: 0o700 });
-      const temporary = join(stateDirectory(), "repos", `.git-relay-owner-${randomUUID()}.tmp`);
-      await writeExclusiveTemporary(temporary, JSON.stringify({ id: repo.id }));
-      try {
-        await mkdir(repo.directory, { mode: 0o700 });
+export async function repository(cwd: string, signal?: AbortSignal, initialize = true): Promise<Repository> {
+  return withRepositoryIdentity(
+    cwd,
+    signal,
+    async (repo) => {
+      await assertMigrationReady(repo);
+      const existing = await lstat(repo.directory).catch((error) => {
+        if (error.code === "ENOENT") return undefined;
+        throw error;
+      });
+      if (existing) {
+        if (!existing.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
+        const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
+        const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
+        if (ready?.id !== repo.id || owner?.id !== repo.id)
+          throw new Error(
+            `Incomplete GitRelay state initialization: ${repo.directory}; inspect and preserve it before recovery.`,
+          );
+        await checkRepositoryDirectories(repo.directory);
+      } else {
+        if (!initialize)
+          throw new Error(`GitRelay repository state is missing: ${repo.directory}; preserve it for inspection.`);
+        const prior = await priorRepositories(repo);
+        const choice = (await readJson(join(stateDirectory(), "identity-choices", `${repo.id}.json`))) as
+          { id?: string } | undefined;
+        if (prior.length && choice?.id !== repo.id)
+          throw new Error(
+            `Earlier GitRelay state exists for ${repo.common}; run git-relay identity-fresh --apply or identity-migrate --apply after inspecting it. Prior state is preserved.`,
+          );
+        await recordRepositoryIdentity(repo);
+        await mkdir(join(stateDirectory(), "repos"), { recursive: true, mode: 0o700 });
+        const temporary = join(stateDirectory(), "repos", `.git-relay-owner-${randomUUID()}.tmp`);
+        await writeExclusiveTemporary(temporary, JSON.stringify({ id: repo.id }));
         try {
-          await link(temporary, join(repo.directory, "identity-owner.json"));
-        } catch (error) {
-          const code = (error as NodeJS.ErrnoException).code;
-          if (
-            code === "EPERM" ||
-            code === "EACCES" ||
-            code === "EOPNOTSUPP" ||
-            code === "ENOTSUP" ||
-            code === "EXDEV"
-          ) {
-            throw Object.assign(
-              new Error(
-                `Cannot publish GitRelay state ownership using a hard link; inspect and preserve the incomplete directory: ${repo.directory}`,
-                { cause: error },
-              ),
-              { code },
-            );
+          await mkdir(repo.directory, { mode: 0o700 });
+          try {
+            await link(temporary, join(repo.directory, "identity-owner.json"));
+          } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (
+              code === "EPERM" ||
+              code === "EACCES" ||
+              code === "EOPNOTSUPP" ||
+              code === "ENOTSUP" ||
+              code === "EXDEV"
+            ) {
+              throw Object.assign(
+                new Error(
+                  `Cannot publish GitRelay state ownership using a hard link; inspect and preserve the incomplete directory: ${repo.directory}`,
+                  { cause: error },
+                ),
+                { code },
+              );
+            }
+            throw error;
           }
-          throw error;
+        } finally {
+          await rm(temporary, { force: true });
         }
-      } finally {
-        await rm(temporary, { force: true });
+        for (const name of ["sessions", "events", "receipts", "refs", "trash"])
+          await mkdir(join(repo.directory, name), { mode: 0o700 });
+        await writeJson(join(repo.directory, "identity-ready.json"), { id: repo.id });
       }
-      for (const name of ["sessions", "events", "receipts", "refs", "trash"])
-        await mkdir(join(repo.directory, name), { mode: 0o700 });
-      await writeJson(join(repo.directory, "identity-ready.json"), { id: repo.id });
-    }
-    return repo;
-  });
+      return repo;
+    },
+    initialize,
+  );
 }
 
 export async function readJson(path: string, noFollow = false): Promise<unknown | undefined> {

@@ -8,7 +8,7 @@ import { pathToFileURL } from "node:url";
 import type { Plugin } from "@opencode/plugin";
 import plugin from "../../src/adapters/opencode/index.ts";
 import { listSessions, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { hash, repository } from "../../src/core/store.ts";
+import { chooseFreshRepository, hash, repository } from "../../src/core/store.ts";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { fixture, git } from "../helpers.ts";
@@ -1071,6 +1071,62 @@ test("OpenCode reports a broken Git pointer and retries opt-out after repair", a
     assert.equal(warnings.length, missing ? 2 : 1);
   }
   assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
+});
+
+test("OpenCode preserves a missing repository identity until it is restored", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  const sessionPath = join(f.repo.directory, "sessions", `${f.key}.json`),
+    before = await readFile(sessionPath);
+  const event = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "preserve unread" });
+  const marker = join(f.repo.common, ".git-relay-id"),
+    history = join(f.root, "state", "identity-history", hash(f.repo.common));
+  for (const missingHistory of [false, true]) {
+    await rename(marker, `${marker}.saved`);
+    if (missingHistory) await rename(history, `${history}.saved`);
+    try {
+      await f.enroll(f.id, undefined, "Disable GitRelay");
+      assert.match(String(warnings.at(-1)), /identity is missing/i);
+      await assert.rejects(access(marker), { code: "ENOENT" });
+      assert.deepEqual(await readFile(sessionPath), before);
+      assert.equal(await readReceipt(f.repo, f.key, event.id), undefined);
+    } finally {
+      if (missingHistory) await rename(`${history}.saved`, history);
+      await rename(`${marker}.saved`, marker);
+    }
+  }
+  assert.equal(warnings.length, 2);
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
+  assert.equal(await readReceipt(f.repo, f.key, event.id), undefined);
+});
+
+test("OpenCode preserves an old subscription absent from the current identity", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  const marker = join(f.repo.common, ".git-relay-id"),
+    oldSession = join(f.repo.directory, "sessions", `${f.key}.json`);
+  const before = await readFile(oldSession);
+  await rename(marker, `${marker}.old`);
+  try {
+    await chooseFreshRepository(f.b);
+    const current = await repository(f.b);
+    await joinSession({ cwd: f.b, ref: "refs/heads/main", adapter: "opencode", session: "other" });
+    await f.enroll(f.id, undefined, "Disable GitRelay");
+    assert.match(String(warnings.at(-1)), /different repository identity/i);
+    assert.deepEqual(await readFile(oldSession), before);
+    assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+    assert.notEqual(current.id, f.repo.id);
+  } finally {
+    await rm(marker, { force: true });
+    await rename(`${marker}.old`, marker);
+  }
   await f.enroll(f.id, undefined, "Disable GitRelay");
   assert.ok((await listSessions(f.b))[0].closedAt);
 });
