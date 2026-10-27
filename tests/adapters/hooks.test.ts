@@ -130,7 +130,10 @@ test("disabling reports a broken Git pointer and can be retried after repair", a
     original = await readFile(pointer);
   await writeFile(pointer, `gitdir: ${join(f.root, "missing-gitdir")}\n`);
   try {
-    await assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /not a git repository/i);
+    await assert.rejects(
+      runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output),
+      /not a git repository|gitfile does not point to a valid repository/i,
+    );
   } finally {
     await writeFile(pointer, original);
   }

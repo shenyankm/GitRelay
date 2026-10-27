@@ -1053,7 +1053,7 @@ test("OpenCode reports a broken Git pointer and retries opt-out after repair", a
   } finally {
     await writeFile(pointer, original);
   }
-  assert.match(String(warnings[0]), /not a git repository/i);
+  assert.match(String(warnings[0]), /not a git repository|gitfile does not point to a valid repository/i);
   assert.equal((await listSessions(f.b))[0].closedAt, undefined);
   await f.enroll(f.id, undefined, "Disable GitRelay");
   assert.ok((await listSessions(f.b))[0].closedAt);
