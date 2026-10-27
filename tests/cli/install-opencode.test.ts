@@ -84,6 +84,36 @@ test("OpenCode recovers a lost anchor after the user preserves and removes the e
   assert.equal(await readFile(record.entry, "utf8"), original);
 });
 
+test("OpenCode reinstalls a missing owned runtime and upgrades after it is removed", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-repair-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const root = join(dir, "workspace"),
+    config = join(dir, "config"),
+    source = join(dir, "dist");
+  await mkdir(join(source, "adapters", "opencode"), { recursive: true });
+  await writeFile(
+    join(source, "adapters", "opencode", "index.js"),
+    "export default { id: 'git-relay', setup() {} };\n",
+  );
+  const state = join(root, "opencode.json");
+  const runtime = () =>
+    readFile(state, "utf8").then((value) => join(root, "runtimes", JSON.parse(value).current.slice(21)));
+  await installOpenCode(root, config, source);
+  const first = await runtime();
+  await rm(first, { recursive: true });
+  await installOpenCode(root, config, source);
+  assert.ok((await lstat(join(first, "dist"))).isDirectory());
+  await rm(join(first, "dist"), { recursive: true });
+  await writeFile(join(first, "user-data"), "preserve");
+  await assert.rejects(installOpenCode(root, config, source), /runtime is incomplete or was modified; preserved/);
+  assert.equal(await readFile(join(first, "user-data"), "utf8"), "preserve");
+  await rm(first, { recursive: true });
+  await writeFile(join(source, "upgrade-marker.txt"), "upgrade");
+  await installOpenCode(root, config, source);
+  assert.notEqual(await runtime(), first);
+  assert.equal(await readFile(join(await runtime(), "dist", "upgrade-marker.txt"), "utf8"), "upgrade");
+});
+
 test("OpenCode preserves an existing incomplete runtime directory", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-runtime-"));
   t.after(() => rm(dir, { recursive: true, force: true }));

@@ -530,6 +530,25 @@ export async function withLock<T>(
         ? ((await readJson(path).catch(() => undefined)) as { pid?: number; token?: string } | undefined)
         : undefined;
       options.signal?.throwIfAborted();
+      if (!info) continue;
+      if (!options.waitMs && (!owner || !Number.isInteger(owner.pid) || owner.pid! <= 0)) {
+        await delay(50, undefined, { signal: options.signal });
+        const latest = await lstat(path).catch((failure) => {
+          if (failure.code === "ENOENT") return undefined;
+          throw failure;
+        });
+        options.signal?.throwIfAborted();
+        if (
+          latest &&
+          latest.dev === info.dev &&
+          latest.ino === info.ino &&
+          latest.size === info.size &&
+          latest.mtimeMs === info.mtimeMs &&
+          latest.ctimeMs === info.ctimeMs
+        )
+          throw new Error(`Cannot read git-relay lock owner: ${path}. Retry later; do not remove a live lock.`);
+        continue;
+      }
       if (owner && Number.isInteger(owner.pid) && owner.pid! > 0) {
         let alive = false;
         try {

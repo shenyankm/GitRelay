@@ -182,16 +182,28 @@ export async function installOpenCode(
       const id = await digest(sourceDist, signal);
       if (latest) {
         const existingRuntime = join(root, "runtimes", latest.slice(21));
-        const existingDigest = await digest(join(existingRuntime, "dist"), signal);
-        if (
-          (existingDigest !== latest.slice(21) &&
-            existingDigest !== id &&
-            !(await matchesLegacyInstallerDigest(join(existingRuntime, "dist"), latest.slice(21), signal))) ||
-          (await contents(join(existingRuntime, "package.json"))) !== '{"type":"module"}\n'
-        )
-          throw new Error(
-            `OpenCode runtime was modified or its legacy digest cannot be verified; preserved: ${existingRuntime}. Retry with the original LC_ALL/LANG if known.`,
-          );
+        try {
+          const existingDigest = await digest(join(existingRuntime, "dist"), signal);
+          if (
+            (existingDigest !== latest.slice(21) &&
+              existingDigest !== id &&
+              !(await matchesLegacyInstallerDigest(join(existingRuntime, "dist"), latest.slice(21), signal))) ||
+            (await contents(join(existingRuntime, "package.json"))) !== '{"type":"module"}\n'
+          )
+            throw new Error(
+              `OpenCode runtime was modified or its legacy digest cannot be verified; preserved: ${existingRuntime}. Retry with the original LC_ALL/LANG if known.`,
+            );
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+          const present = await lstat(existingRuntime).catch((failure) => {
+            if (failure.code === "ENOENT") return undefined;
+            throw failure;
+          });
+          if (present)
+            throw new Error(`OpenCode runtime is incomplete or was modified; preserved: ${existingRuntime}`, {
+              cause: error,
+            });
+        }
       }
 
       const runtimes = join(root, "runtimes");

@@ -133,8 +133,12 @@ export async function addWorktree(
       throw new Error(
         "The starting point matches both a branch and a tag; use a full ref under refs/heads/ or refs/tags/.",
       );
-    const commit = (await git(cwd, ["rev-parse", "--verify", "--end-of-options", `${startPoint}^{commit}`])).trim();
-    await git(cwd, ["worktree", "add", "-b", branch, "--", target, commit]);
+    const selected =
+      !startPoint.startsWith("refs/") && startPoint !== "HEAD" && refs.includes(`refs/heads/${startPoint}`)
+        ? `refs/heads/${startPoint}`
+        : startPoint;
+    const commit = (await git(cwd, ["rev-parse", "--verify", "--end-of-options", `${selected}^{commit}`])).trim();
+    await git(cwd, ["worktree", "add", "-b", branch, "--", target, `${commit}^{commit}`]);
   } else {
     // A fully qualified ref prevents a tag or revision expression from becoming a detached checkout.
     await git(cwd, ["show-ref", "--verify", "--", `refs/heads/${branch}`]);

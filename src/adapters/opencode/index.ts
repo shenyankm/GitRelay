@@ -338,29 +338,18 @@ export default {
         return;
       }
       if (request === true) {
-        const state = sessions.get(event.sessionID);
-        if (
-          state &&
-          !(await sessionActivation({
-            cwd: ctx.location.directory,
-            ref,
-            adapter: "opencode",
-            session: event.sessionID,
-            instance: state.instance,
-            signal: abort.signal,
-          }))
-        ) {
-          state.abort.abort();
-          sessions.delete(event.sessionID);
-          await state.active;
-        }
-      }
-      if (request === true && !sessions.has(event.sessionID)) {
         if (optIns.size >= 128 && !optIns.has(event.sessionID)) {
           warn(new Error("Too many pending opt-ins; retry after a session is enrolled."));
           return;
         }
         optIns.add(event.sessionID);
+        const state = sessions.get(event.sessionID);
+        if (state) {
+          state.abort.abort();
+          await state.active;
+          if (sessions.get(event.sessionID) === state) sessions.delete(event.sessionID);
+        }
+        if (!optIns.has(event.sessionID)) return;
         watchEvents();
       }
       await enroll(event.sessionID);

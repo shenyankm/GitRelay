@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import fs from "node:fs";
 import { syncBuiltinESMExports } from "node:module";
 import { join } from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { collectGarbage } from "../../src/core/cleanup.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
-import { sendMessage, sessionKey } from "../../src/core/mailbox.ts";
+import { eventsIn, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
 import { BusyError, GC_LOCK_TOKEN, repository, withLock } from "../../src/core/store.ts";
 import { fixture } from "../helpers.ts";
 
@@ -46,6 +50,45 @@ test("session and GC publication lock contention still skip the polling round", 
     async () => assert.deepEqual(await consumeMailbox(receiver), []),
     { token: GC_LOCK_TOKEN },
   );
+});
+
+test("ownerless session locks are reported without acknowledging unread messages", async (t) => {
+  const f = await fixture(t);
+  const receiver = { cwd: f.b, adapter: "test", session: "b", ref: "refs/heads/main", async deliver() {} };
+  await consumeMailbox(receiver);
+  const event = await sendMessage({ cwd: f.a, adapter: "test", session: "a", text: "pending" });
+  const repo = await repository(f.b),
+    key = sessionKey(repo, receiver, receiver.ref),
+    lock = join(repo.directory, "sessions", `${key}.lock`);
+  for (const contents of ["", "{", JSON.stringify({ pid: 0 })]) {
+    await fs.promises.writeFile(lock, contents);
+    await assert.rejects(consumeMailbox(receiver), (error: Error) => error.message.includes(lock));
+    await assert.rejects(
+      promisify(execFile)(process.execPath, [
+        "--experimental-strip-types",
+        fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url)),
+        "check",
+        "--cwd",
+        f.b,
+        "--agent",
+        "test",
+        "--session",
+        "b",
+      ]),
+      (error: Error & { stderr?: string }) => error.stderr?.includes(lock) === true,
+    );
+    assert.equal(await fs.promises.readFile(lock, "utf8"), contents);
+    assert.equal(await readReceipt(repo, key, event.id), undefined);
+    if (contents === "") {
+      await assert.rejects(collectGarbage(f.b, { apply: true, retentionDays: 0 }), (error: Error) =>
+        error.message.includes(lock),
+      );
+      assert.ok((await eventsIn(repo)).some((item) => item.id === event.id));
+      await assert.rejects(fs.promises.stat(join(repo.directory, "publish.lock")), { code: "ENOENT" });
+    }
+    await fs.promises.rm(lock);
+  }
+  assert.equal((await consumeMailbox(receiver)).length, 1);
 });
 
 test("BusyError inside an acquired publication lock is propagated", async (t) => {

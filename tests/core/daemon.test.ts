@@ -173,6 +173,36 @@ test("daemon maintains its heartbeat during a stalled cleanup", async (t) => {
   assert.equal(await readJson(statePath), undefined);
 });
 
+test("daemon monitors a marker identity selected by an equal external mapping", async (t) => {
+  const abort = new AbortController();
+  let running: Promise<void> | undefined;
+  const previous = process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+  t.after(async () => {
+    abort.abort();
+    await running;
+    if (previous === undefined) delete process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+    else process.env.WORKTREE_SYNC_REPOSITORY_IDS = previous;
+  });
+  const f = await fixture(t);
+  await consumeMailbox({ cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "B", async deliver() {} });
+  const repo = await repository(f.b);
+  process.env.WORKTREE_SYNC_REPOSITORY_IDS = JSON.stringify({ [repo.common]: repo.identity });
+  await f.commit(f.main, "shared.txt", "upstream\n");
+  const errors: string[] = [];
+  const reports: string[] = [];
+  running = runDaemon({
+    signal: abort.signal,
+    intervalMs: 50,
+    onEvent(event: any) {
+      if (event.type === "daemon.error") errors.push(event.message);
+      if (event.type === "daemon.cleanup") reports.push(event.repo);
+    },
+  });
+  await waitFor(async () => errors.length > 0 || (reports.includes(repo.id) && (await eventsIn(repo)).length > 0));
+  assert.deepEqual(errors, []);
+  assert.ok((await eventsIn(repo)).some((event) => event.kind === "upstream"));
+});
+
 test("daemon cleans newly confirmed events again at the hourly maintenance interval", async (t) => {
   const abort = new AbortController();
   let running: Promise<void> | undefined;

@@ -87,7 +87,7 @@ git-relay send --cwd /project/worktree-A \
 
 Without `--file`, messages target other registered sessions in the repository. With files, matching happens **at receive time**, against committed, staged, unstaged, untracked, and ignored worktree changes relative to the live monitored ref. Matching includes file/directory prefix overlap and follows Git `core.ignorecase`. The sending session does not receive its own message; other sessions in the same worktree can.
 
-`send` only publishes; it does not create or refresh the sender's receiving subscription. One-time senders do not become future broadcast recipients. Use a receiver, `check`, or `join` to subscribe. A previously closed sender must explicitly `join` before sending.
+`send` only publishes; it does not create or refresh the sender's receiving subscription. One-time senders do not become future broadcast recipients. Use a receiver, `check`, or `join` to subscribe. A sender whose exact session key was closed must explicitly `join` that key before sending. The key includes worktree root, ref, adapter, native session ID, and optional instance: changing any of them selects a separate sender key, which can send without registering if it has never been closed. Sending under another key does not reopen the closed subscription.
 
 The response is `{ "eventId": "...", "recipients": 2 }`. The count is the publication-time candidate count, not confirmed delivery. Filtering, offline sessions, and host capabilities can delay or prevent delivery. `recipients: 0` means no other sessions were registered then; later subscribers do not receive that message.
 
