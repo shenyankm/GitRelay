@@ -21,6 +21,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { installCodex, uninstallCodex } from "../../src/cli/install-codex.ts";
+import { installerDigest } from "../../src/cli/installer-digest.ts";
 
 const exec = promisify(execFile);
 
@@ -64,6 +65,33 @@ async function fixture(t: import("node:test").TestContext) {
 }
 
 test(
+  "Codex upgrades legacy digests and rejects a modified runtime",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    await writeFile(join(f.sourceRoot, "dist", "changes.js"), "changes");
+    await writeFile(join(f.sourceRoot, "dist", "cleanup.js"), "cleanup");
+    await installCodex(f);
+    const state = join(f.workspace, "codex-hooks.json"),
+      record = JSON.parse(await readFile(state, "utf8"));
+    const legacy = `${record.current.slice(0, 21)}${await installerDigest(join(f.sourceRoot, "dist"), undefined, "cs")}`;
+    assert.notEqual(legacy, record.current);
+    await rename(
+      join(f.workspace, "runtimes", record.current.slice(21)),
+      join(f.workspace, "runtimes", legacy.slice(21)),
+    );
+    await rename(join(f.workspace, "codex-revisions", record.current), join(f.workspace, "codex-revisions", legacy));
+    await writeFile(state, JSON.stringify({ ...record, current: legacy }));
+    await writeFile(join(f.sourceRoot, "dist", "upgrade"), "new source");
+    await writeFile(join(f.workspace, "runtimes", legacy.slice(21), "dist", "tampered"), "x");
+    await assert.rejects(installCodex(f), /runtime was modified/);
+    await rm(join(f.workspace, "runtimes", legacy.slice(21), "dist", "tampered"));
+    await installCodex(f);
+    assert.notEqual(JSON.parse(await readFile(state, "utf8")).current, legacy);
+  },
+);
+
+test(
   "Codex preserves a symlinked installation record and its target",
   { skip: process.platform === "win32" },
   async (t) => {
@@ -81,6 +109,59 @@ test(
     assert.equal(await readFile(target, "utf8"), saved);
     assert.equal(await readFile(f.hook, "utf8"), hooks);
     assert.equal(await readFile(f.config, "utf8"), "model = 'user-model'\n");
+  },
+);
+
+test(
+  "Codex recovers a lost anchor after the user preserves and removes the entry",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    await installCodex(f);
+    const record = JSON.parse(await readFile(join(f.workspace, "codex-hooks.json"), "utf8"));
+    const original = await readFile(f.hook, "utf8");
+    await rm(join(f.codexHome, record.anchor));
+    await assert.rejects(uninstallCodex(f), /ownership cannot be established/);
+    await assert.rejects(installCodex(f), /ownership cannot be established/);
+    assert.equal(await readFile(f.hook, "utf8"), original);
+    const backup = join(f.codexHome, "saved-hooks.json");
+    await rename(f.hook, backup);
+    const archive = join(record.entry, "..", ".git-relay-codex-removed-abc", "hooks.json");
+    await mkdir(join(f.codexHome, ".git-relay-codex-removed-abc"));
+    await writeFile(archive, "preserve pending archive");
+    await writeFile(join(f.workspace, "codex-hooks.json"), JSON.stringify({ ...record, removing: archive }));
+    await assert.rejects(uninstallCodex(f), /ownership cannot be established/);
+    assert.equal(await readFile(archive, "utf8"), "preserve pending archive");
+    await writeFile(join(f.workspace, "codex-hooks.json"), JSON.stringify(record));
+    await uninstallCodex(f);
+    await installCodex(f);
+    assert.equal(await readFile(backup, "utf8"), original);
+    assert.equal(await readFile(f.hook, "utf8"), original);
+  },
+);
+
+test(
+  "Codex reinstalls a missing owned runtime and upgrades after it is removed",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    await installCodex(f);
+    const state = join(f.workspace, "codex-hooks.json");
+    const runtime = () =>
+      readFile(state, "utf8").then((value) => join(f.workspace, "runtimes", JSON.parse(value).current.slice(21)));
+    const first = await runtime();
+    await rm(first, { recursive: true });
+    await installCodex(f);
+    assert.ok((await stat(join(first, "dist"))).isDirectory());
+    await rm(join(first, "dist"), { recursive: true });
+    await writeFile(join(first, "user-data"), "preserve");
+    await assert.rejects(installCodex(f), /runtime is incomplete or was modified; preserved/);
+    assert.equal(await readFile(join(first, "user-data"), "utf8"), "preserve");
+    await rm(first, { recursive: true });
+    await writeFile(join(f.sourceRoot, "dist", "upgrade-marker.txt"), "upgrade");
+    await installCodex(f);
+    assert.notEqual(await runtime(), first);
+    assert.equal(await readFile(join(await runtime(), "dist", "upgrade-marker.txt"), "utf8"), "upgrade");
   },
 );
 

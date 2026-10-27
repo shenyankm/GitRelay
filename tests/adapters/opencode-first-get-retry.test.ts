@@ -25,7 +25,11 @@ async function deadline<T>(operation: Promise<T>): Promise<T> {
   }
 }
 
-async function fixture(t: TestContext, get: (input: { sessionID: string }) => Promise<Session>) {
+async function fixture(
+  t: TestContext,
+  get: (input: { sessionID: string }) => Promise<Session>,
+  verifyDeleted?: (input: { sessionID: string }) => Promise<Session>,
+) {
   const dir = await mkdtemp(join(tmpdir(), "gitrelay-oc-get-retry-"));
   const home = join(dir, "home"),
     template = join(dir, "template"),
@@ -84,6 +88,7 @@ async function fixture(t: TestContext, get: (input: { sessionID: string }) => Pr
   let tick: (() => void) | undefined, hook!: (event: { sessionID: string; prompt?: { text: string } }) => Promise<void>;
   let wake: (() => void) | undefined;
   const queue: PendingEvent[] = [];
+  const deletedSessions = new Set<string>();
   t.mock.method(globalThis, "setInterval", ((fn: () => void) => {
     tick = fn;
     return { unref() {} } as unknown as NodeJS.Timeout;
@@ -102,7 +107,13 @@ async function fixture(t: TestContext, get: (input: { sessionID: string }) => Pr
         hook = fn;
         return { async dispose() {} };
       },
-      get: async (input: { sessionID: string }) => ({ ...(await get(input)), time: { created: 1 } }),
+      get: async (input: { sessionID: string }) => {
+        if (deletedSessions.has(input.sessionID) && verifyDeleted)
+          return { ...(await verifyDeleted(input)), time: { created: 1 } };
+        if (deletedSessions.has(input.sessionID))
+          throw Object.assign(new Error("Session.NotFoundError"), { _tag: "SessionNotFoundError" });
+        return { ...(await get(input)), time: { created: 1 } };
+      },
       async prompt() {
         throw new Error("Unexpected host prompt");
       },
@@ -137,16 +148,22 @@ async function fixture(t: TestContext, get: (input: { sessionID: string }) => Pr
     dir,
     root,
     warnings,
-    prompt: (id: string) => deadline(hook({ sessionID: id, prompt: { text: "Enable GitRelay" } })),
+    prompt: (id: string) => {
+      deletedSessions.delete(id);
+      return deadline(hook({ sessionID: id, prompt: { text: "Enable GitRelay" } }));
+    },
     tick: () => tick?.(),
     hasTimer: () => Boolean(tick),
-    deleted: (id: string) =>
-      deadline(
+    deleted: async (id: string) => {
+      deletedSessions.add(id);
+      await deadline(
         new Promise<void>((done) => {
           queue.push({ event: { type: "session.deleted", data: { sessionID: id } }, done });
           wake?.();
         }),
-      ),
+      );
+      await pause();
+    },
   };
 }
 
@@ -287,5 +304,33 @@ test(
     f.tick();
     await pause();
     assert.equal(started, 129);
+  },
+);
+
+test(
+  "OpenCode bounds concurrent deletion verification lookups",
+  { skip: process.platform === "win32" || !existsSync("/usr/bin/git"), timeout: 10000 },
+  async (t) => {
+    let directory = "";
+    const held: PromiseWithResolvers<Session>[] = [];
+    const f = await fixture(
+      t,
+      ({ sessionID }) =>
+        sessionID === "active" ? Promise.resolve({ location: { directory } }) : Promise.reject(new Error("transient")),
+      () => {
+        const pending = Promise.withResolvers<Session>();
+        held.push(pending);
+        return pending.promise;
+      },
+    );
+    t.after(() => held.forEach((pending) => pending.resolve({ location: { directory } })));
+    directory = f.root;
+    await f.prompt("active");
+    for (let n = 0; n < 128; n++) await f.prompt(`retry-${n}`);
+    for (let n = 0; n < 128; n++) await f.deleted(`retry-${n}`);
+    assert.equal(held.length, 128);
+    await f.deleted("active");
+    assert.equal(held.length, 128);
+    assert.ok(f.warnings.some((message) => message.includes("Too many pending OpenCode deletion checks")));
   },
 );

@@ -11,8 +11,8 @@ import {
   validRecord,
 } from "./install-opencode.ts";
 import { codexDirectory, installCodex, uninstallCodex, validCodexRecord } from "./install-codex.ts";
-import { readJson } from "../core/store.ts";
 import { readInstallationRecord } from "./install-record.ts";
+import { readJson } from "../core/store.ts";
 
 const platforms: Platform[] = ["codex", "opencode"];
 
@@ -74,7 +74,30 @@ export async function install(
           continue;
         }
         if (dryRun) {
-          if (platform === "codex") await readInstallationRecord(join(root, "codex-hooks.json"), "Codex");
+          const exists = await lstat(root).then(
+            () => true,
+            (error) => {
+              if (error.code === "ENOENT") return false;
+              throw error;
+            },
+          );
+          if (exists) await checkWorkspace(root);
+          if (platform === "codex" && (await readJson(join(root, "codex-install.json"))) !== undefined)
+            throw new Error("A previous Codex plugin installation record exists; inspect it before installing hooks.");
+          const name = platform === "codex" ? "Codex" : "OpenCode";
+          const state = join(root, platform === "codex" ? "codex-hooks.json" : "opencode.json");
+          const record = await readInstallationRecord(state, name);
+          const valid =
+            platform === "codex"
+              ? validCodexRecord(record, join(await codexDirectory(env), "hooks.json"), root)
+              : validRecord(
+                  record,
+                  join(await canonicalDirectory(config), "opencode", "plugins", "git-relay.js"),
+                  root,
+                );
+          if (record !== undefined && !valid) throw new Error(`Invalid ${name} installation record: ${state}`);
+          if (record && typeof record === "object" && "removing" in record && record.removing)
+            throw new Error("An uninstall is incomplete; rerun uninstall before installing.");
           results.push(detected);
           continue;
         }
@@ -143,7 +166,7 @@ export async function install(
         }
         await checkWorkspace(root);
         const canonicalConfig = await canonicalDirectory(config);
-        const record = await readJson(join(root, "opencode.json"));
+        const record = await readInstallationRecord(join(root, "opencode.json"), "OpenCode");
         const entry = join(canonicalConfig, "opencode", "plugins", "git-relay.js");
         if (!validRecord(record, entry, root))
           throw new Error(`Invalid OpenCode installation record: ${join(root, "opencode.json")}`);

@@ -90,6 +90,17 @@ operation may have completed requires inspecting `uninstall --dry-run` and the
 client configuration before retrying. Stop sessions before migrating a legacy
 launcher: already-running old code and its short publication gap are not fenced.
 
+If an installer reports that entry ownership cannot be established because its
+hidden anchor is missing, do not recreate the anchor from matching content: a
+replacement file can have the same bytes. Inspect the entry and, if you decide
+to remove it, move it to a safe backup location that does not overwrite another
+file. The entry is `hooks.json` in `CODEX_HOME` (default `~/.codex`) for Codex,
+or `opencode/plugins/git-relay.js` in `XDG_CONFIG_HOME` (default `~/.config`)
+for OpenCode. With both entry and anchor absent, run
+`git-relay uninstall --platform codex` or `git-relay uninstall --platform opencode`;
+then reinstall that platform if needed. If an uninstall was interrupted and an archive is
+recorded, preserve it and investigate instead of using this recovery path.
+
 Automatic setup on Windows has not been accepted on a real host. Codex automatic
 installation is unavailable there. `.cmd`/`.bat` client launchers may fail version
 probing without a shell; use manual configuration where necessary.
@@ -165,15 +176,25 @@ settles can still leave the prompt hook waiting. When the pending-ID limit is
 reached, the plugin warns and the affected session needs another user prompt.
 Sessions are registered only after a successful lookup verifies that the
 session is a root session in this directory. Messages sent before registration
-are not retroactively addressed to it. A deletion event cancels pending retry
-work, but missed events, moved sessions and reused session IDs remain subject
+are not retroactively addressed to it. A deletion event triggers a host lookup; a confirmed missing session cancels
+pending retry work, but missed events, moved sessions and reused session IDs remain subject
 to the identity and event-order limitations below.
+
+For an explicit opt-out, GitRelay closes a known in-memory session without
+changing a recreated instance. If the plugin has no verified in-memory session
+but finds an open subscription, it warns in the OpenCode logs and asks for the
+opt-out prompt again to confirm the current instance. A later enable or a host-confirmed session
+deletion cancels that pending opt-out. If closing fails, retry the prompt after
+repairing the reported problem; unread messages remain preserved. Pending opt-outs are held in memory; after a plugin restart, an earlier enabled session can resume if the opt-out failed. Retry the opt-out after repairing the reported error. At most 128
+opt-outs can be pending; resolve an earlier one before retrying if the limit is reached.
+An unresponsive host lookup can leave an opt-out pending until a later enable,
+confirmed session deletion, or plugin shutdown cancels it.
 
 - `ctx.session.hook("prompt", ...)` enables only requested or previously opted-in root sessions and establishes/restores their baselines.
 - Registered sessions are checked every five seconds, with at most one check in flight per session. Delivery uses `ctx.session.prompt({ sessionID, id, text, delivery: "queue", metadata })`. Busy sessions queue; idle sessions start. Each event is submitted separately with a stable message ID derived from the GitRelay repository identity, worktree, native session instance, and event ID. This can create more queued turns and model usage than combining a batch into one prompt. A receipt is written after each individual event is accepted.
 - The [OpenCode plugin documentation](https://opencode.ai/v2/docs/build/plugins/) says retrying an ID already pending or delivered returns the original admission. This lets the adapter retry an uncertain response or failed receipt without creating another admission while the host retains that ID. A local OpenCode 2.1.2 test verified this for a pending queue item, not after model processing. Permanent deduplication and exactly-once agent work are not claimed.
 - `metadata.source: "git-relay"` marks automatic messages. Both that and legacy `worktree-relay` sources are recognized, preventing recursive registration.
-- `ctx.event.subscribe()` observes `session.deleted` and cancels in-flight checks, but **does not close the GitRelay subscription**. Later sends can still select that deleted session, and unread messages remain ineligible for GC. Inspect `git-relay sessions --cwd /absolute/worktree`, verify the session is no longer needed in the correct OpenCode data directory, then run `git-relay leave --cwd /absolute/worktree --agent opencode --session SESSION_ID --instance INSTANCE_ID`. `leave` prevents future targeting without acknowledging existing unread messages. The adapter resubscribes after an event-stream error or early end using a 1–60 second backoff; OpenCode exposes no replay cursor here, so events missed during disconnection or while the plugin is unloaded are not replayed. OpenCode can recreate a session using the same ID, and another OpenCode data directory can report a live session as not found; neither a delayed deletion event nor a host lookup failure alone safely identifies the session incarnation. Automatic deleted-session cleanup remains unresolved.
+- `ctx.event.subscribe()` observes `session.deleted` and checks the host asynchronously before cancelling in-flight work. If the session still exists or lookup fails, state is retained; failed verification is logged. These checks do not block other session events and retain at most 128 pending IDs; if that limit is reached, the plugin warns and preserves the affected state. The host can ignore cancellation, so underlying read-only lookups can continue after GitRelay stops waiting. They **do not close the GitRelay subscription**. Later sends can still select that deleted session, and unread messages remain ineligible for GC. Inspect `git-relay sessions --cwd /absolute/worktree`, verify the session is no longer needed in the correct OpenCode data directory, then run `git-relay leave --cwd /absolute/worktree --agent opencode --session SESSION_ID --instance INSTANCE_ID`. `leave` prevents future targeting without acknowledging existing unread messages. The adapter resubscribes after an event-stream error or early end using a 1–60 second backoff; OpenCode exposes no replay cursor here, so events missed during disconnection or while the plugin is unloaded are not replayed. OpenCode can recreate a session using the same ID, and another OpenCode data directory can report a live session as not found; neither a delayed deletion event nor a host lookup failure alone safely identifies the session incarnation, and the lookup and a later recreation are not atomic. Automatic deleted-session cleanup remains unresolved.
 - Native sessions are bound to the OpenCode data root and their creation time. A recreated ID has a separate inbox; missing or invalid creation metadata is rejected. Identity is checked before and after prompt admission. Preserve old unbound inboxes for manual review and use the exact `--instance` reported by `sessions` for manual commands. A host lookup and admission are not atomic, and indistinguishable host metadata cannot identify a replacement. See [migration](migration.md#native-session-identity-upgrade).
 - The plugin does not enumerate historical sessions or enroll subagents. Before delivery, it checks the session's `location.directory` against `ctx.location.directory` rather than mapping other directories to this worktree. This check and host prompt admission are not atomic; a concurrent session move can occur between them.
 - Shutdown cancels polling and waits for known in-flight scans, even if the host's hook disposal fails. The locally inspected 2.1.2 Promise adapter ignores cancellation options for `session.get` and `session.prompt`. GitRelay stops waiting for a pending read-only `get` after shutdown or session deletion, but the underlying host operation can still run. An in-flight `prompt` can already have been accepted, so GitRelay waits for it while holding the session lock; if it never settles, cleanup can remain pending. No bounded shutdown time or cancellation of a submitted prompt is guaranteed.

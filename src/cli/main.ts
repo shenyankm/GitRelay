@@ -2,14 +2,20 @@
 import { parseArgs } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
 import { consumeMailbox } from "../core/consumer.ts";
-import { formatNotifications, listSessions, messagePayloadWithinLimit, sendMessage } from "../core/mailbox.ts";
+import {
+  formatNotifications,
+  listSessions,
+  messagePayloadWithinLimit,
+  sendMessage,
+  validateIdentity,
+} from "../core/mailbox.ts";
 import { runHook } from "../adapters/hooks.ts";
-import { joinSession, leaveSession } from "../core/sessions.ts";
+import { joinSession, leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../core/sessions.ts";
 import { sessionActivation } from "../core/activation.ts";
 import { collectGarbage } from "../core/cleanup.ts";
 import { runDaemon } from "../core/daemon.ts";
 import { daemonStatus } from "../core/daemon-state.ts";
-import { branchStatus } from "../core/branch-status.ts";
+import { branchStatus, validateGitHubRepository } from "../core/branch-status.ts";
 import { syncBranch } from "../core/branch-sync.ts";
 import { git, gitRefLine } from "../core/git.ts";
 import { writeFile } from "node:fs/promises";
@@ -25,7 +31,7 @@ import {
   withRepositoryIdentity,
 } from "../core/store.ts";
 import { migrateLegacyState } from "../core/identity-migration.ts";
-import { join } from "node:path";
+import { join, parse } from "node:path";
 
 const abort = new AbortController();
 let stopSignal: "SIGINT" | "SIGTERM" | undefined;
@@ -64,8 +70,20 @@ function reportDiagnostic(message: string): void {
 }
 
 let outputFailed = false;
+let hookDelivered = false;
 let installationCommand = false;
 let longRunningCommand = false;
+async function validateWatchRef(ref: string): Promise<boolean> {
+  try {
+    await git(parse(process.execPath).root, ["check-ref-format", ref], abort.signal);
+    return true;
+  } catch (error) {
+    abort.signal.throwIfAborted();
+    const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
+    if (cause?.code === 1 && !cause.stderr?.toString()) throw error;
+    return false;
+  }
+}
 async function output(value: object | string): Promise<void> {
   const written = Promise.withResolvers<void>();
   const cancel = () => written.reject(abort.signal.reason);
@@ -123,7 +141,7 @@ async function main() {
     (command === "status" && values.watch === true);
   if (values["branch-status"] && !(command === "hook" && agent === "codex"))
     throw new Error("--branch-status requires hook codex.");
-  if ((values.format || values.output) && command !== "status")
+  if ((values.format !== undefined || values.output !== undefined) && command !== "status")
     throw new Error("--format and --output require status.");
   const days = values["retention-days"].trim() ? Number(values["retention-days"]) : NaN;
   if (values.help || !command) {
@@ -145,7 +163,20 @@ async function main() {
     return;
   }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
+  if (values["dry-run"] && !["install", "uninstall", "gc"].includes(command))
+    throw new Error("--dry-run requires install, uninstall or gc.");
+  if (values.session === "") throw new Error("--session must not be empty.");
   if (values.instance !== undefined && !values.session) throw new Error("--instance requires --session.");
+  if (
+    command !== "status" &&
+    (values.github ||
+      values.repo !== undefined ||
+      values.branch !== undefined ||
+      values.watch ||
+      values["auto-sync"] ||
+      values["no-auto-sync"])
+  )
+    throw new Error("--github, --repo, --branch, --watch and sync flags require the status command.");
   if (values["acknowledge-history-gap"] && (command !== "check" || !values.apply))
     throw new Error(
       "--acknowledge-history-gap requires check --apply; it accepts unreadable history without recovering the diff.",
@@ -193,11 +224,14 @@ async function main() {
   }
   if (command === "status") {
     if (positionals.length !== 1) throw new Error("Expected status without positional arguments.");
-    if (values.format && !["json", "markdown"].includes(values.format))
+    if (values.format !== undefined && !["json", "markdown"].includes(values.format))
       throw new Error("--format must be json or markdown.");
-    if (values.output && (values.format !== "markdown" || values.watch))
+    if (values.output !== undefined && (values.format !== "markdown" || values.watch))
       throw new Error("--output requires --format markdown without --watch.");
-    if (values.repo && !values.github) throw new Error("--repo requires --github.");
+    if (values.output === "") throw new Error("--output must not be empty.");
+    if (values.repo !== undefined && !values.github) throw new Error("--repo requires --github.");
+    if (values.repo === "") throw new Error("--repo must not be empty.");
+    if (values.branch === "") throw new Error("--branch must not be empty.");
     if (values["auto-sync"] && values["no-auto-sync"])
       throw new Error("Choose --auto-sync or --no-auto-sync, not both.");
     if (values["auto-sync"] && values.repo)
@@ -206,17 +240,30 @@ async function main() {
     const interval = Number(values["interval-ms"] ?? (network ? "30000" : "5000"));
     if (!Number.isInteger(interval) || interval < (network ? 5000 : 50) || interval > 3_600_000)
       throw new Error(`interval-ms must be an integer between ${network ? 5000 : 50} and 3600000.`);
+    let branchValidated = !values.watch || values.branch === undefined;
+    if (values.watch) {
+      if (values.session !== undefined)
+        validateIdentity({ adapter: values.agent, session: values.session, instance: values.instance });
+      if (values.branch !== undefined) branchValidated = await validateWatchRef(`refs/heads/${values.branch}`);
+      if (values.repo) validateGitHubRepository(values.repo);
+    }
     const cwd = values.cwd ?? process.cwd();
     let branch = values.branch;
     if (branch === undefined && values["auto-sync"]) {
       // --short can return heads/NAME when a tag has the same name.
-      const ref = gitRefLine(await git(cwd, ["symbolic-ref", "HEAD"], abort.signal, "paths"));
+      const ref = await git(cwd, ["symbolic-ref", "--quiet", "HEAD"], abort.signal, "paths")
+        .then(gitRefLine)
+        .catch((error: Error & { cause?: { code?: number } }) => {
+          if (error.cause?.code === 1) return "";
+          throw error;
+        });
       if (!ref.startsWith("refs/heads/"))
         throw new Error("HEAD does not point to a local branch; choose --branch NAME.");
       branch = ref.slice("refs/heads/".length);
     }
     let previous: string | undefined;
     do {
+      if (!branchValidated) branchValidated = await validateWatchRef(`refs/heads/${values.branch}`);
       try {
         const sync = values["auto-sync"] ? await syncBranch(cwd, branch!, abort.signal) : undefined;
         const snapshot = {
@@ -287,8 +334,6 @@ async function main() {
     } while (!abort.signal.aborted);
     return;
   }
-  if (values.github || values.repo || values.branch || values.watch || values["auto-sync"] || values["no-auto-sync"])
-    throw new Error("--github, --repo, --branch, --watch and sync flags require the status command.");
   if (command === "hook") {
     if (positionals.length !== 2 || agent !== "codex") throw new Error("Choose hook codex.");
     let data = "";
@@ -310,7 +355,9 @@ async function main() {
     const input = JSON.parse(data);
     if (!input || typeof input !== "object" || Array.isArray(input))
       throw new Error("Hook input must be a JSON object.");
-    await runHook(input, values.ref, output, abort.signal, values["branch-status"]);
+    const result = await runHook(input, values.ref, output, abort.signal, values["branch-status"]);
+    hookDelivered = result?.delivered === true;
+    if (result?.diagnostic) reportDiagnostic(`git-relay: ${result.diagnostic}`);
     return;
   }
   if (command === "daemon" && agent === "status" && positionals.length === 2) {
@@ -324,7 +371,7 @@ async function main() {
     throw new Error("Expected status, check, watch, send, sessions, join, leave, gc, daemon or hook.");
   const cwd = () => values.cwd ?? process.cwd();
   if (command === "sessions") {
-    await output({ sessions: await listSessions(cwd()) });
+    await output({ sessions: await listSessions(cwd(), abort.signal) });
     return;
   }
   if (command === "gc") {
@@ -336,6 +383,13 @@ async function main() {
   }
   if (command !== "daemon" && !values.session)
     throw new Error("--session ID is required for per-session delivery and deduplication.");
+  let refValidated = command !== "watch";
+  if (command === "watch") {
+    validateIdentity({ adapter: values.agent, session: values.session!, instance: values.instance });
+    if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
+      throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
+    refValidated = await validateWatchRef(values.ref);
+  }
   if (command === "join" || command === "leave") {
     const options = {
       cwd: cwd(),
@@ -346,8 +400,15 @@ async function main() {
       signal: abort.signal,
       repositoryId: values["repository-id"],
     };
-    if (command === "leave") await sessionActivation(options, false);
-    const session = command === "join" ? await joinSession(options) : await leaveSession(options);
+    const checked = command === "leave" ? await preflightLeaveSession(options) : {};
+    if (command === "leave") await sessionActivation(options, false, checked);
+    let session;
+    if (command === "join") session = await joinSession(options);
+    else if (options.repositoryId !== undefined) session = await leaveSession(options);
+    else {
+      session = await leaveSessionIfRepository(options, checked);
+      if (!checked.root && !session) throw new Error("Worktree is unavailable; select --repository-id if needed.");
+    }
     if (command === "join") await sessionActivation(options, true);
     await output({ session, left: command === "leave" && session !== undefined });
     return;
@@ -403,6 +464,7 @@ async function main() {
     return;
   }
   while (!abort.signal.aborted) {
+    if (!refValidated) refValidated = await validateWatchRef(values.ref);
     try {
       await check();
     } catch (error) {
@@ -450,7 +512,7 @@ main()
         } catch {
           /* A closed stderr must not prevent cleanup. */
         }
-        process.exitCode ??= stopSignal === "SIGTERM" ? 143 : 130;
+        process.exitCode ??= hookDelivered ? 0 : stopSignal === "SIGTERM" ? 143 : 130;
       }
       process.exit(process.exitCode ?? 0);
     }

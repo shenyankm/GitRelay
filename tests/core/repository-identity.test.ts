@@ -130,6 +130,57 @@ test("interruption after publishing the owner can be recovered without deleting 
   assert.equal((await repository(f.main)).id, pending.id);
 });
 
+test("a failed ready write is archived intact before initialization is retried", async (t) => {
+  const f = await fixture(t);
+  const moduleUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+  const source = `
+    import fs from "node:fs/promises";
+    import { syncBuiltinESMExports } from "node:module";
+    import { basename } from "node:path";
+    const realOpen = fs.open;
+    fs.open = async (path, ...args) => {
+      const file = await realOpen(path, ...args);
+      if (basename(String(path)).startsWith("identity-ready.json.") && String(path).endsWith(".tmp")) {
+        const write = file.writeFile.bind(file);
+        file.writeFile = async () => { await write("partial"); throw Object.assign(new Error("disk full"), { code: "ENOSPC" }); };
+      }
+      return file;
+    };
+    syncBuiltinESMExports();
+    const { repository } = await import(${JSON.stringify(moduleUrl)});
+    try { await repository(process.argv[1]); process.exitCode = 1; }
+    catch (error) { if (error.cause?.code !== "ENOSPC") throw error; }
+  `;
+  await exec(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", source, f.main], {
+    env: process.env,
+    timeout: 20_000,
+  });
+  const pending = await withRepositoryIdentity(f.main, undefined, async (repo) => repo);
+  const temporary = (await readdir(pending.directory)).find((name) => name.startsWith("identity-ready.json."));
+  assert.ok(temporary);
+  await assert.rejects(repository(f.main), /Incomplete GitRelay state initialization/);
+  const { archived } = await recoverRepositoryInitialization(f.main);
+  assert.equal(await readFile(join(archived, temporary), "utf8"), "partial");
+  assert.equal((await repository(f.main)).id, pending.id);
+});
+
+test("recovery rejects malformed ready temporaries and symlinks", async (t) => {
+  const f = await fixture(t);
+  const pending = await withRepositoryIdentity(f.main, undefined, async (repo) => repo);
+  await mkdir(pending.directory, { recursive: true });
+  await writeFile(join(pending.directory, "identity-owner.json"), JSON.stringify({ id: pending.id }));
+  const invalid = join(pending.directory, "identity-ready.json.not-a-uuid.tmp");
+  await writeFile(invalid, "keep");
+  await assert.rejects(recoverRepositoryInitialization(f.main), /contains data/);
+  assert.equal(await readFile(invalid, "utf8"), "keep");
+  await rm(invalid);
+  const target = join(f.root, "outside");
+  await writeFile(target, "outside");
+  await symlink(target, join(pending.directory, "identity-ready.json.12345678-1234-4123-8123-123456789abc.tmp"));
+  await assert.rejects(recoverRepositoryInitialization(f.main), /contains data/);
+  assert.equal(await readFile(target, "utf8"), "outside");
+});
+
 for (const code of ["EPERM", "EACCES", "EOPNOTSUPP", "ENOTSUP", "EXDEV"]) {
   test(`unsupported owner hard link reports ${code} and preserves unowned state`, async (t) => {
     const f = await fixture(t);

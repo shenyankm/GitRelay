@@ -96,6 +96,50 @@ test("explicit migration preserves old unread events, receipts and metadata", as
   assert.deepEqual(await readFile(join(f.newDirectory, "events", `${f.event}.json`)), oldEvent);
 });
 
+test("migration preserves POSIX format events and rejects duplicate IDs", async (t) => {
+  const f = await fixture(t),
+    id = "a".repeat(64);
+  const event = {
+    id,
+    kind: "message",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    sender: { root: f.root, adapter: "test", session: "sender" },
+    recipients: [f.key],
+    text: "message",
+    files: ["\\notes"],
+    pathFormat: "posix-v1",
+  };
+  await writeJson(join(f.oldDirectory, "events", `${id}.posix.json`), event);
+  await writeJson(join(f.oldDirectory, "trash", `${id}.json`), { ...event, pathFormat: undefined, files: ["notes"] });
+  await assert.rejects(migrateLegacyState(f.options), /Duplicate legacy event/);
+  await rm(join(f.oldDirectory, "trash", `${id}.json`));
+  await migrateLegacyState(f.options);
+  assert.deepEqual(JSON.parse(await readFile(join(f.newDirectory, "events", `${id}.posix.json`), "utf8")), event);
+});
+
+test("missing legacy metadata reports an actionable error and leaves fresh state available", async (t) => {
+  const f = await gitFixture(t);
+  const repo = await withRepositoryIdentity(f.b, undefined, async (value) => value);
+  const oldDirectory = join(stateDirectory(), "repos", hash(repo.common));
+  await mkdir(oldDirectory, { recursive: true });
+  for (const folder of ["sessions", "events", "receipts", "refs", "trash"]) await mkdir(join(oldDirectory, folder));
+  await assert.rejects(
+    withRepositoryIdentity(f.b, undefined, (current) =>
+      migrateLegacyState({
+        common: current.common,
+        oldDirectory,
+        newDirectory: current.directory,
+        newId: current.id,
+        identity: current.identity,
+        identitySource: current.identitySource,
+      }),
+    ),
+    /Legacy repository metadata is missing.*identity-fresh/,
+  );
+  assert.equal((await chooseFreshRepository(f.b)).id, repo.id);
+  assert.deepEqual((await readdir(oldDirectory)).sort(), ["events", "receipts", "refs", "sessions", "trash"]);
+});
+
 test("migration refuses an active old consumer and leaves source and target intact", async (t) => {
   const f = await fixture(t);
   await withLock(join(f.oldDirectory, "sessions", `${f.key}.lock`), async () => {
@@ -255,6 +299,8 @@ test("cross-filesystem publication reports the limit and preserves partial state
     fs.link = original;
     syncBuiltinESMExports();
   }
+  await migrateLegacyState(f.options);
+  assert.ok(await readFile(join(f.newDirectory, "events", `${f.event}.json`)));
 });
 
 test("synthetic interruptions before ready or completion resume the same unconsumed copy", async (t) => {
@@ -275,14 +321,15 @@ test("synthetic interruptions before ready or completion resume the same unconsu
   }
 });
 
-test("an incomplete target without an owner is preserved for manual inspection", async (t) => {
+test("a nonempty incomplete target without an owner is preserved for manual inspection", async (t) => {
   const f = await fixture(t),
     claims = join(f.root, "identity-migration-claims");
   await mkdir(claims);
   await writeJson(join(claims, `${hash(f.common)}.json`), { common: f.common, newId: f.newId });
   await mkdir(f.newDirectory);
+  await writeFile(join(f.newDirectory, "unknown"), "preserve");
   await assert.rejects(migrateLegacyState(f.options), /Unowned incomplete migration target/);
-  assert.deepEqual(await readdir(f.newDirectory), []);
+  assert.equal(await readFile(join(f.newDirectory, "unknown"), "utf8"), "preserve");
   assert.ok(await readFile(join(f.oldDirectory, "events", `${f.event}.json`)));
 });
 

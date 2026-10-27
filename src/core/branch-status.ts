@@ -13,7 +13,19 @@ export interface BranchStatusOptions {
   signal?: AbortSignal;
 }
 
-async function gh(cwd: string, args: string[], signal?: AbortSignal): Promise<unknown> {
+export function validateGitHubRepository(repo: string): void {
+  if (!/^(?:[a-zA-Z0-9][a-zA-Z0-9.-]*(?::[0-9]{1,5})?\/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\/[a-zA-Z0-9_.-]+$/.test(repo))
+    throw new Error("--repo must be [HOST/]OWNER/REPO.");
+  if (repo.split("/").length === 3) {
+    try {
+      new URL(`https://${repo.split("/")[0]}`);
+    } catch {
+      throw new Error("--repo must be [HOST/]OWNER/REPO.");
+    }
+  }
+}
+
+async function gh(cwd: string, args: string[], signal?: AbortSignal, host?: string): Promise<unknown> {
   signal?.throwIfAborted();
   try {
     const { stdout } = await exec("gh", args, {
@@ -21,7 +33,7 @@ async function gh(cwd: string, args: string[], signal?: AbortSignal): Promise<un
       signal,
       timeout: 30_000,
       maxBuffer: 16 * 1024 * 1024,
-      env: { ...process.env, GH_PROMPT_DISABLED: "1", GH_PAGER: "cat" },
+      env: { ...process.env, GH_PROMPT_DISABLED: "1", GH_PAGER: "cat", ...(host ? { GH_HOST: host } : {}) },
       encoding: "utf8",
     });
     return JSON.parse(stdout);
@@ -30,6 +42,58 @@ async function gh(cwd: string, args: string[], signal?: AbortSignal): Promise<un
     const failure = error as Error & { stderr?: string };
     throw new Error(`GitHub CLI: ${failure.stderr?.trim() || failure.message}`, { cause: error });
   }
+}
+
+async function missingUpstream(cwd: string, branch: string, signal?: AbortSignal): Promise<string | null> {
+  const config = async (key: string) => {
+    try {
+      const output = await git(cwd, ["config", "--null", "--get-all", key], signal, "paths");
+      if (!output.endsWith("\0")) throw new Error("Git returned unterminated configuration data.");
+      return output.slice(0, -1).split("\0");
+    } catch (error) {
+      signal?.throwIfAborted();
+      const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
+      if (cause?.code === 1 && !cause.stderr?.toString()) return [];
+      throw error;
+    }
+  };
+  const remote = (await config(`branch.${branch}.remote`)).at(-1);
+  const merge = (await config(`branch.${branch}.merge`))[0];
+  if (!remote || !merge) return null;
+  for (const spec of await config(`remote.${remote}.fetch`)) {
+    if (spec.startsWith("^")) continue;
+    const [source, destination] = spec.replace(/^\+/, "").split(":");
+    if (!destination) continue;
+    const star = source.indexOf("*");
+    if (star < 0) {
+      if (source === merge) return destination;
+    } else {
+      const prefix = source.slice(0, star),
+        suffix = source.slice(star + 1);
+      if (merge.startsWith(prefix) && merge.endsWith(suffix) && merge.length >= prefix.length + suffix.length) {
+        return destination.replace("*", () => merge.slice(prefix.length, merge.length - suffix.length));
+      }
+    }
+  }
+  if (remote === ".") {
+    if (merge.startsWith("refs/") || merge.startsWith("-")) return merge;
+    try {
+      if (merge !== "@") await git(cwd, ["check-ref-format", "--allow-onelevel", merge], signal);
+      const resolved = await git(
+        cwd,
+        ["rev-parse", "--symbolic-full-name", "--verify", "--quiet", "--end-of-options", merge],
+        signal,
+        "paths",
+      );
+      return resolved ? gitRefLine(resolved) : merge;
+    } catch (error) {
+      signal?.throwIfAborted();
+      const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
+      if (cause?.code === 1 && !cause.stderr?.toString()) return merge;
+      throw error;
+    }
+  }
+  return null;
 }
 
 export async function branchStatus(options: BranchStatusOptions) {
@@ -98,7 +162,7 @@ export async function branchStatus(options: BranchStatusOptions) {
   );
   const row = rows.map((line) => line.split("\0")).find(([name]) => name === ref);
   const commit = row?.[1] ?? null;
-  const upstream = row?.[2] || null;
+  const upstream = row ? row[2] || null : await missingUpstream(cwd, branch, signal);
   let tracking: { ref: string; commit: string | null; ahead: number | null; behind: number | null } | null = null;
   if (upstream) {
     const upstreamRows = gitRefLines(
@@ -125,11 +189,7 @@ export async function branchStatus(options: BranchStatusOptions) {
     | undefined;
   if (options.github) {
     try {
-      if (
-        options.repo &&
-        !/^(?:[a-zA-Z0-9][a-zA-Z0-9.-]*\/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\/[a-zA-Z0-9_.-]+$/.test(options.repo)
-      )
-        throw new Error("--repo must be [HOST/]OWNER/REPO.");
+      if (options.repo) validateGitHubRepository(options.repo);
       const repo = (await gh(
         cwd,
         ["repo", "view", ...(options.repo ? [options.repo] : []), "--json", "nameWithOwner,url"],
@@ -148,8 +208,7 @@ export async function branchStatus(options: BranchStatusOptions) {
         cwd,
         [
           "api",
-          "--hostname",
-          url.hostname,
+          ...(url.port ? [] : ["--hostname", url.hostname]),
           "--method",
           "GET",
           "--paginate",
@@ -157,6 +216,7 @@ export async function branchStatus(options: BranchStatusOptions) {
           `repos/${repo.nameWithOwner}/git/matching-refs/heads/${encodeURIComponent(branch)}`,
         ],
         signal,
+        url.port ? url.host : undefined,
       );
       if (!Array.isArray(pages) || !pages.every(Array.isArray)) throw new Error("Invalid GitHub references response.");
       const refs = pages.flat();

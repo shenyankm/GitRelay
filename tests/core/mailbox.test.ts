@@ -239,8 +239,7 @@ test("file aliases normalize before deduplication and delivery, including retain
     "./../secret",
     "src/../shared.txt",
     "/shared.txt",
-    "C:\\shared.txt",
-    "./C:/shared.txt",
+    ...(process.platform === "win32" ? ["C:\\shared.txt", "./C:/shared.txt"] : []),
   ]) {
     await assert.rejects(
       sendMessage({ cwd: f.a, adapter: "cc", session: "A", text: "invalid", files: [file] }),

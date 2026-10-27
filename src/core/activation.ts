@@ -4,6 +4,7 @@ import { sessionKey, type Identity } from "./mailbox.ts";
 import { checkStateDirectory, readJson, stateDirectory, writeJson } from "./store.ts";
 import { watchRoot } from "./changes.ts";
 import { GitPathOutputError } from "./git.ts";
+import { preflightLeaveSession } from "./sessions.ts";
 
 type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSignal };
 
@@ -32,7 +33,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
     )
       continue;
     if (
-      /^(?:(?:请|麻烦|这次|本次|现在)\s*)*(?:不要|别|无需|停止|关闭|停用|禁用)|^(?:please\s+)?(?:disable|deactivate|stop|turn off|do not|don't|never)\b/i.test(
+      /^(?:(?:请|麻烦|这次|本次|现在)\s*)*(?:不要|别|无需|停止|关闭|停用|禁用)|^(?:please\s+)?(?:(?:disable|deactivate|stop|turn off)\b|(?:do not|don't|never)\s+(?:(?:use|enable|activate|turn on|start)\b|(?:develop|implement|code|work)\b.{0,60}\bin parallel\b))/i.test(
         request,
       )
     ) {
@@ -51,8 +52,13 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
 }
 
 /** Read-only until an explicit opt-in/out; no Git is needed without a candidate activation. */
-export async function sessionActivation(options: ActivationOptions, enabled?: boolean): Promise<boolean> {
+export async function sessionActivation(
+  options: ActivationOptions,
+  enabled?: boolean,
+  checked?: Awaited<ReturnType<typeof preflightLeaveSession>>,
+): Promise<boolean> {
   options.signal?.throwIfAborted();
+  const optOut = enabled === false ? (checked ?? (await preflightLeaveSession(options))) : undefined;
   const directory = join(stateDirectory(), "activations");
   await checkStateDirectory(directory, true);
   const read = async (root: string) => {
@@ -118,7 +124,15 @@ export async function sessionActivation(options: ActivationOptions, enabled?: bo
       candidate = parent;
     }
   }
-  const root = await worktreeRoot();
+  let root: string;
+  if (optOut?.root) root = await realpath(resolve(optOut.root));
+  else if (optOut) {
+    await worktreeRoot();
+    const current = await preflightLeaveSession(options);
+    if (current.root || current.repositoryId !== optOut.repositoryId)
+      throw new Error("GitRelay target changed during opt-out; preserve state and retry.");
+    root = cwd;
+  } else root = await worktreeRoot();
   const { key, path, current } = await read(root);
   if (current?.enabled === enabled) return current?.enabled === true;
   await mkdir(directory, { recursive: true, mode: 0o700 });

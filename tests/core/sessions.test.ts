@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { collectGarbage } from "../../src/core/cleanup.ts";
 import { listSessions, sendMessage, sessionKey, sessionsIn, type Notification } from "../../src/core/mailbox.ts";
-import { joinSession, leaveSession } from "../../src/core/sessions.ts";
+import { joinSession, leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../../src/core/sessions.ts";
 import { repository, withLock, writeJson } from "../../src/core/store.ts";
 import { fixture } from "../helpers.ts";
 
@@ -75,6 +75,16 @@ test("explicit leave excludes future messages but keeps the old inbox for an exp
   const next = await sendMessage({ ...sender, text: "after rejoin" });
   await consumeMailbox(receiver);
   assert.deepEqual(received, [pending.id, next.id]);
+});
+
+test("a preflight-bound opt-out returns the closed session", async (t) => {
+  const f = await fixture(t),
+    options = { cwd: f.b, ref, adapter: "test", session: "receiver" };
+  const joined = await joinSession(options),
+    checked = await preflightLeaveSession(options);
+  const closed = await leaveSessionIfRepository(options, checked);
+  assert.equal(closed?.key, joined.key);
+  assert.ok(closed?.closedAt);
 });
 
 test("session identity fields must match the stored key before leave or send", async (t) => {

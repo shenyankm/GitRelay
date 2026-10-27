@@ -5,7 +5,7 @@ import { branchStatus } from "../core/branch-status.ts";
 import { formatBranchStatus } from "../core/status-format.ts";
 import { GitPathOutputError } from "../core/git.ts";
 import { requestedActivation, sessionActivation } from "../core/activation.ts";
-import { joinSession, leaveSession } from "../core/sessions.ts";
+import { joinSession, leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../core/sessions.ts";
 
 export type HookInput = Record<string, unknown>;
 
@@ -22,7 +22,7 @@ export async function runHook(
   output: (value: object) => Promise<void>,
   signal?: AbortSignal,
   showBranchStatus = false,
-): Promise<void> {
+): Promise<{ delivered: true; diagnostic?: string } | void> {
   const event = input.hook_event_name;
   const events = ["SessionStart", "UserPromptSubmit", "PostToolUse", "Stop"];
   if (typeof event !== "string" || !events.includes(event)) {
@@ -51,8 +51,9 @@ export async function runHook(
   const request = event === "UserPromptSubmit" ? requestedActivation(input.prompt) : undefined;
   const wasEnabled = await sessionActivation(options);
   if (request === false) {
-    await sessionActivation(options, false);
-    if (wasEnabled) await leaveSession(options);
+    const checked = await preflightLeaveSession(options);
+    await sessionActivation(options, false, checked);
+    await leaveSessionIfRepository(options, checked);
     await output({});
     return;
   }
@@ -94,7 +95,7 @@ export async function runHook(
     await output(summary || message ? { ...response, systemMessage: summary || message } : response);
   };
   let sent = false;
-  await consumeMailbox({
+  const result = await consumeMailbox({
     cwd: cwd as string,
     ref,
     adapter: "codex",
@@ -114,7 +115,11 @@ export async function runHook(
       );
       sent = true;
     },
+  }).catch((error: unknown) => {
+    if (sent) return error instanceof Error ? error.message : String(error);
+    throw error;
   });
+  if (sent) return { delivered: true, ...(typeof result === "string" ? { diagnostic: result } : {}) };
   if (!sent)
     await visibleOutput(
       summary

@@ -32,6 +32,32 @@ test("separate CLI processes share messages across coding agents", async (t) => 
   assert.equal(JSON.parse((await run("sessions", "--cwd", f.main)).stdout).sessions.length, 2);
 });
 
+test("unsupported dry-run options fail before delivering or changing state", async (t) => {
+  const f = await fixture(t);
+  const receiver = ["--cwd", f.b, "--agent", "codex", "--session", "B"];
+  await run("check", ...receiver);
+  const sent = JSON.parse((await run("send", "--cwd", f.a, "--session", "A", "--message", "unread")).stdout);
+  for (const args of [
+    ["check", ...receiver],
+    ["watch", ...receiver],
+    ["send", "--cwd", f.a, "--session", "A", "--message", "must not send"],
+    ["join", ...receiver],
+    ["leave", ...receiver],
+    ["hook", "codex"],
+    ["daemon"],
+    ["status", "--cwd", f.b, "--watch"],
+  ]) {
+    await assert.rejects(run(...args, "--dry-run"), /--dry-run requires install, uninstall or gc/);
+  }
+  const delivered = JSON.parse((await run("check", ...receiver)).stdout);
+  assert.equal(delivered.eventId, sent.eventId);
+  assert.equal((await run("check", ...receiver)).stdout, "");
+  const sessions = JSON.parse((await run("sessions", "--cwd", f.b)).stdout).sessions;
+  assert.equal(sessions.length, 1);
+  assert.equal(sessions[0].closedAt, undefined);
+  assert.equal(JSON.parse((await run("daemon", "status")).stdout).running, false);
+});
+
 test(
   "CLI help, explicit cwd and hooks survive a deleted process cwd",
   { skip: process.platform === "win32" },

@@ -33,6 +33,16 @@ test("status reports local divergence, dirty worktree, missing upstream and exac
   assert.deepEqual(gone.local.tracking, { ref: "refs/remotes/origin/main", commit: null, ahead: null, behind: null });
   git(f.b, "checkout", "--detach");
   await assert.rejects(run("status", "--cwd", f.b), /Detached HEAD/);
+  await assert.rejects(run("status", "--cwd", f.b, "--auto-sync"), /choose --branch NAME/);
+  await assert.rejects(
+    run("status", "--cwd", f.b, "--auto-sync", "--branch", "main"),
+    (error: Error & { stdout?: string; code?: number }) => {
+      assert.equal(error.code, 1);
+      assert.equal(JSON.parse(error.stdout!).sync.state, "blocked");
+      return true;
+    },
+  );
+  await assert.rejects(run("status", "--cwd", join(f.root, "missing"), "--auto-sync"), /No such file|cannot change/);
   assert.equal(JSON.parse((await run("status", "--cwd", f.b, "--branch", "main")).stdout).worktree.branch, null);
   await assert.rejects(run("status", "--cwd", f.b, "--branch", "../main"));
   await assert.rejects(run("status", "--cwd", f.b, "--repo", "owner/repo"), /requires --github/);
@@ -47,6 +57,126 @@ test("status handles unborn branches", async (t) => {
   const status = JSON.parse((await run("status", "--cwd", empty)).stdout);
   assert.equal(status.worktree.commit, null);
   assert.equal(status.local.commit, null);
+  assert.equal(status.local.tracking, null);
+  git(empty, "remote", "add", "origin", f.main);
+  git(empty, "fetch", "origin", "main");
+  git(empty, "config", "branch.main.remote", "origin");
+  git(empty, "config", "branch.main.merge", "refs/heads/main");
+  for (const args of [[], ["--branch", "main"]]) {
+    const tracked = JSON.parse((await run("status", "--cwd", empty, ...args)).stdout);
+    assert.deepEqual(tracked.local.tracking, {
+      ref: "refs/remotes/origin/main",
+      commit: f.initial,
+      ahead: null,
+      behind: null,
+    });
+    assert.match(
+      (await run("status", "--cwd", empty, "--format", "markdown", ...args)).stdout,
+      /refs\/remotes\/origin\/main/,
+    );
+  }
+  assert.equal(JSON.parse((await run("status", "--cwd", empty, "--branch", "@")).stdout).local.tracking, null);
+  git(empty, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main");
+  git(empty, "config", "branch.main.merge", "refs/heads/HEAD");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/remotes/origin/HEAD",
+    commit: f.initial,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "symbolic-ref", "--delete", "refs/remotes/origin/HEAD");
+  git(empty, "config", "branch.main.merge", "refs/heads/main");
+  git(empty, "update-ref", "-d", "refs/remotes/origin/main");
+  for (const args of [[], ["--branch", "main"]]) {
+    assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, ...args)).stdout).local.tracking, {
+      ref: "refs/remotes/origin/main",
+      commit: null,
+      ahead: null,
+      behind: null,
+    });
+  }
+  git(empty, "config", "--replace-all", "remote.origin.fetch", "+refs/heads/m*:refs/custom/z*");
+  git(empty, "config", "--add", "remote.origin.fetch", "+refs/heads/*:refs/other/*");
+  git(empty, "config", "--add", "remote.origin.fetch", "^refs/heads/main");
+  git(empty, "config", "--add", "branch.main.merge", "refs/heads/other");
+  assert.match(git(empty, "status", "--porcelain=v2", "--branch"), /# branch\.upstream custom\/zain/);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/custom/zain",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "branch.other.remote", ".");
+  git(empty, "config", "branch.other.merge", "refs/heads/missing");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "refs/heads/missing",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "branch.other.merge", "missing");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "missing",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "update-ref", "refs/heads/missing", f.initial);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "refs/heads/missing",
+    commit: f.initial,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "update-ref", "refs/heads/shared", f.initial);
+  git(empty, "update-ref", "refs/tags/shared", f.initial);
+  git(empty, "config", "branch.other.merge", "shared");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, "--branch", "other")).stdout).local.tracking, {
+    ref: "shared",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "branch.other.merge", "refs/heads/missing");
+  git(empty, "config", "remote...fetch", "+refs/heads/*:refs/remotes/local/*");
+  git(empty, "symbolic-ref", "HEAD", "refs/heads/other");
+  assert.match(git(empty, "status", "--porcelain=v2", "--branch"), /# branch\.upstream local\/missing/);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/remotes/local/missing",
+    commit: null,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "symbolic-ref", "HEAD", "refs/heads/main");
+  git(empty, "config", "--unset-all", "remote...fetch");
+  git(empty, "config", "--replace-all", "branch.main.merge", "refs/heads/price$&");
+  git(empty, "config", "--replace-all", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*");
+  git(empty, "update-ref", "refs/remotes/origin/price$&", f.initial);
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/remotes/origin/price$&",
+    commit: f.initial,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "config", "--replace-all", "remote.origin.fetch", "+refs/heads/other:refs/custom/other");
+  assert.equal(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, null);
+});
+
+test("explicit empty CLI options are rejected", async (t) => {
+  const f = await fixture(t);
+  for (const [args, message] of [
+    [["status", "--format", ""], /json or markdown/],
+    [["status", "--format", "markdown", "--output", ""], /--output must not be empty/],
+    [["status", "--branch", ""], /--branch must not be empty/],
+    [["status", "--github", "--repo", ""], /--repo must not be empty/],
+    [["status", "--session", ""], /--session must not be empty/],
+    [["check", "--session", "s", "--branch", ""], /require the status command/],
+    [["check", "--session", "s", "--repo", ""], /require the status command/],
+    [["check", "--session", "s", "--format", ""], /require status/],
+    [["install", "--branch", ""], /require the status command/],
+  ] as const) {
+    await assert.rejects(run(...args, "--cwd", f.b), message);
+  }
 });
 
 test("status writes an App-readable Markdown snapshot and keeps JSON as the default", async (t) => {
@@ -81,22 +211,24 @@ test(
     await mkdir(bin);
     const response = join(f.root, "response.json");
     const log = join(f.root, "gh.log");
+    const hosts = join(f.root, "hosts.log");
     await writeFile(
       join(bin, "gh"),
       `#!/usr/bin/env node
 const fs = require('node:fs');
 const args = process.argv.slice(2);
 fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + '\\n');
+fs.appendFileSync(${JSON.stringify(hosts)}, (process.env.GH_HOST || '') + '\\n');
 const fixture = JSON.parse(fs.readFileSync(${JSON.stringify(response)}, 'utf8'));
 if (fixture.fail) { process.stderr.write('HTTP 403: denied'); process.exit(1); }
-if (args[0] === 'repo') console.log(JSON.stringify({ nameWithOwner: 'owner/repo', url: 'https://github.example.com/owner/repo' }));
+if (args[0] === 'repo') console.log(JSON.stringify({ nameWithOwner: 'owner/repo', url: fixture.url || 'https://github.example.com/owner/repo' }));
 else console.log(JSON.stringify(fixture.pages));
 `,
       { mode: 0o755 },
     );
-    const invoke = () =>
-      exec(process.execPath, [cli, "status", "--cwd", f.b, "--github", "--repo", "github.example.com/owner/repo"], {
-        env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
+    const invoke = (repo: string | null = "github.example.com/owner/repo") =>
+      exec(process.execPath, [cli, "status", "--cwd", f.b, "--github", ...(repo ? ["--repo", repo] : [])], {
+        env: { ...process.env, GH_HOST: "unrelated.invalid:9999", PATH: `${bin}:${process.env.PATH}` },
       });
     const ref = (name: string, sha = f.initial) => ({ ref: `refs/heads/${name}`, object: { type: "commit", sha } });
     await writeFile(response, JSON.stringify({ pages: [[ref("feature/b-other")], [ref("feature/b")]] }));
@@ -133,6 +265,30 @@ else console.log(JSON.stringify(fixture.pages));
     }
     await writeFile(response, JSON.stringify({ pages: [[ref("feature/b")]] }));
     assert.equal(JSON.parse((await invoke()).stdout).github.matchesLocal, true);
+    await writeFile(
+      response,
+      JSON.stringify({ url: "https://github.example.com:8443/owner/repo", pages: [[ref("feature/b")]] }),
+    );
+    for (const repo of ["github.example.com:8443/owner/repo", null]) {
+      assert.equal(JSON.parse((await invoke(repo)).stdout).github.matchesLocal, true);
+      const entries = (await readFile(log, "utf8"))
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line));
+      assert.equal(entries.at(-1)[0], "api");
+      assert.ok(!entries.at(-1).includes("--hostname"));
+      assert.equal((await readFile(hosts, "utf8")).trim().split("\n").at(-1), "github.example.com:8443");
+    }
+    for (const repo of [
+      "github.example.com:bad/owner/repo",
+      "github.example.com:65536/owner/repo",
+      "github.example.com:/owner/repo",
+    ]) {
+      await assert.rejects(invoke(repo), (error: Error & { stdout?: string }) => {
+        assert.match(JSON.parse(error.stdout!).github.error, /--repo must be/);
+        return true;
+      });
+    }
   },
 );
 

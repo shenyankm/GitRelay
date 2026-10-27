@@ -9,7 +9,15 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { daemonStatus } from "../../src/core/daemon-state.ts";
 import { runDaemon } from "../../src/core/daemon.ts";
 import { eventsIn, registerSession, sendMessage } from "../../src/core/mailbox.ts";
-import { hash, readJson, repository, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import {
+  GC_LOCK_TOKEN,
+  hash,
+  readJson,
+  repository,
+  stateDirectory,
+  withLock,
+  writeJson,
+} from "../../src/core/store.ts";
 import { fixture, git } from "../helpers.ts";
 
 async function waitFor(check: () => Promise<boolean>) {
@@ -131,6 +139,124 @@ test("daemon preserves state when the repository ownership marker is missing", a
   await running;
   assert.deepEqual(await eventsIn(repo), []);
   assert.deepEqual(await readJson(refPath), initialRef);
+});
+
+test("daemon maintains its heartbeat during a stalled cleanup", async (t) => {
+  const abort = new AbortController();
+  const entered = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  let running: Promise<void> | undefined;
+  t.after(async () => {
+    abort.abort();
+    release.resolve();
+    await running;
+  });
+  const f = await fixture(t);
+  await consumeMailbox({ cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "B", async deliver() {} });
+  const repo = await repository(f.b);
+  const readdir = fs.promises.readdir;
+  const mocked = t.mock.method(fs.promises, "readdir", (async (...args: Parameters<typeof readdir>) => {
+    if (args[0] === join(repo.directory, "trash")) {
+      const lock = (await readJson(join(repo.directory, "publish.lock"))) as { token?: string } | undefined;
+      if (lock?.token === GC_LOCK_TOKEN) {
+        entered.resolve();
+        await release.promise;
+      }
+    }
+    return readdir(...args);
+  }) as typeof readdir);
+  syncBuiltinESMExports();
+  t.after(() => {
+    mocked.mock.restore();
+    syncBuiltinESMExports();
+  });
+  running = runDaemon({ signal: abort.signal, intervalMs: 50 });
+  running.catch(entered.reject);
+  await entered.promise;
+  const statePath = join(stateDirectory(), "daemon.json");
+  const state = (await readJson(statePath)) as object;
+  await writeJson(statePath, { ...state, heartbeatAt: "2000-01-01T00:00:00.000Z" });
+  await waitFor(async () => (await daemonStatus()).running);
+  await assert.rejects(runDaemon({ signal: new AbortController().signal, intervalMs: 50 }), /busy/i);
+  abort.abort();
+  release.resolve();
+  await running;
+  assert.equal(await readJson(statePath), undefined);
+});
+
+test("daemon monitors a marker identity selected by an equal external mapping", async (t) => {
+  const abort = new AbortController();
+  let running: Promise<void> | undefined;
+  const previous = process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+  t.after(async () => {
+    abort.abort();
+    await running;
+    if (previous === undefined) delete process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+    else process.env.WORKTREE_SYNC_REPOSITORY_IDS = previous;
+  });
+  const f = await fixture(t);
+  await consumeMailbox({ cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "B", async deliver() {} });
+  const repo = await repository(f.b);
+  process.env.WORKTREE_SYNC_REPOSITORY_IDS = JSON.stringify({ [repo.common]: repo.identity });
+  await f.commit(f.main, "shared.txt", "upstream\n");
+  const errors: string[] = [];
+  const reports: string[] = [];
+  running = runDaemon({
+    signal: abort.signal,
+    intervalMs: 50,
+    onEvent(event: any) {
+      if (event.type === "daemon.error") errors.push(event.message);
+      if (event.type === "daemon.cleanup") reports.push(event.repo);
+    },
+  });
+  await waitFor(async () => errors.length > 0 || (reports.includes(repo.id) && (await eventsIn(repo)).length > 0));
+  assert.deepEqual(errors, []);
+  assert.ok((await eventsIn(repo)).some((event) => event.kind === "upstream"));
+});
+
+test("daemon accepts the original marker and rejects a changed identity", async (t) => {
+  let abort = new AbortController();
+  let running: Promise<void> | undefined;
+  const previous = process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+  t.after(async () => {
+    abort.abort();
+    await running;
+    if (previous === undefined) delete process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+    else process.env.WORKTREE_SYNC_REPOSITORY_IDS = previous;
+  });
+  const f = await fixture(t);
+  const repo = await repository(f.b);
+  process.env.WORKTREE_SYNC_REPOSITORY_IDS = JSON.stringify({ [repo.common]: repo.identity });
+  await consumeMailbox({ cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "B", async deliver() {} });
+  delete process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+  await f.commit(f.main, "shared.txt", "upstream\n");
+  const errors: string[] = [];
+  running = runDaemon({
+    signal: abort.signal,
+    intervalMs: 50,
+    onEvent(event: any) {
+      if (event.type === "daemon.error") errors.push(event.message);
+    },
+  });
+  await waitFor(async () => errors.length > 0 || (await eventsIn(repo)).length > 0);
+  assert.equal(errors.length, 0);
+  const events = await eventsIn(repo);
+  assert.ok(events.some((event) => event.kind === "upstream"));
+  abort.abort();
+  await running;
+  process.env.WORKTREE_SYNC_REPOSITORY_IDS = JSON.stringify({ [repo.common]: hash("different identity") });
+  await f.commit(f.main, "shared.txt", "must remain unpublished\n");
+  abort = new AbortController();
+  running = runDaemon({
+    signal: abort.signal,
+    intervalMs: 50,
+    onEvent(event: any) {
+      if (event.type === "daemon.error") errors.push(event.message);
+    },
+  });
+  await waitFor(async () => errors.length > 0);
+  assert.match(errors[0], /Repository identity mismatch/);
+  assert.deepEqual(await eventsIn(repo), events);
 });
 
 test("daemon cleans newly confirmed events again at the hourly maintenance interval", async (t) => {
@@ -320,6 +446,66 @@ test("daemon retries cleanup when a recipient was busy", async (t) => {
   assert.ok(!(await eventsIn(repo)).some((item) => item.id === event.id));
   abort.abort();
   await running;
+});
+
+test("a long busy cleanup leaves time for other operations before retrying", async (t) => {
+  const abort = new AbortController();
+  let running: Promise<void> | undefined;
+  t.after(async () => {
+    abort.abort();
+    await running;
+  });
+  const f = await fixture(t);
+  const receiver = { cwd: f.b, ref: "refs/heads/main", adapter: "test", session: "B", async deliver() {} };
+  await consumeMailbox(receiver);
+  const confirmed = await sendMessage({ cwd: f.a, adapter: "test", session: "A", text: "confirmed" });
+  await consumeMailbox(receiver);
+  const unread = await sendMessage({ cwd: f.a, adapter: "test", session: "A", text: "unread" });
+  const repo = await repository(f.b);
+  let elapsed = performance.now();
+  t.mock.method(performance, "now", () => elapsed);
+  const readdir = fs.promises.readdir;
+  let delayed = false;
+  const mocked = t.mock.method(fs.promises, "readdir", (async (...args: Parameters<typeof readdir>) => {
+    if (!delayed && args[0] === join(repo.directory, "trash")) {
+      const lock = (await readJson(join(repo.directory, "publish.lock"))) as { token?: string } | undefined;
+      if (lock?.token === GC_LOCK_TOKEN) {
+        delayed = true;
+        elapsed += 6000;
+      }
+    }
+    return readdir(...args);
+  }) as typeof readdir);
+  syncBuiltinESMExports();
+  t.after(() => {
+    mocked.mock.restore();
+    syncBuiltinESMExports();
+  });
+  const reports: any[] = [];
+  await withLock(join(repo.directory, "sessions", `${confirmed.recipients[0]}.lock`), async () => {
+    running = runDaemon({
+      signal: abort.signal,
+      intervalMs: 50,
+      retentionDays: 0,
+      onEvent(value: any) {
+        if (value.type === "daemon.cleanup") reports.push(value);
+      },
+    });
+    await waitFor(async () => reports.length > 0);
+    assert.equal(reports[0].removed, 0);
+  });
+  elapsed += 5001;
+  await delay(200);
+  assert.equal(reports.length, 1);
+  await withLock(join(repo.directory, "publish.lock"), async () => {}, {
+    waitMs: 5000,
+    signal: AbortSignal.timeout(5000),
+  });
+  elapsed += 1000;
+  await waitFor(async () => reports.some((report) => report.removed === 1));
+  const events = await eventsIn(repo);
+  assert.ok(events.some((event) => event.id === unread.id));
+  assert.ok(!events.some((event) => event.id === confirmed.id));
 });
 
 test("a repository without metadata does not consume its first maintenance attempt", async (t) => {

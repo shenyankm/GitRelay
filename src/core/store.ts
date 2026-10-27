@@ -154,6 +154,7 @@ export async function withRepositoryIdentity<T>(
   cwd: string,
   signal: AbortSignal | undefined,
   run: (repo: Repository) => Promise<T>,
+  initialize = true,
 ): Promise<T> {
   await checkManagedRoot();
   const root = await watchRoot(cwd, signal);
@@ -165,7 +166,9 @@ export async function withRepositoryIdentity<T>(
   return withLock(
     join(locks, `${hash(common)}.lock`),
     async () => {
-      const identity = (await repositoryIdentity(common, true))!;
+      const identity = await repositoryIdentity(common, initialize);
+      if (!identity)
+        throw new Error(`GitRelay repository identity is missing in ${common}; restore it before retrying.`);
       const id = hash([common, identity.identity]);
       return run({ root, common, id, directory: join(stateDirectory(), "repos", id), ...identity });
     },
@@ -268,6 +271,13 @@ export async function recoverRepositoryInitialization(
       );
     const allowed = new Set(["identity-owner.json", "sessions", "events", "receipts", "refs", "trash"]);
     for (const name of entries) {
+      if (
+        /^identity-ready\.json\.[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.tmp$/.test(name)
+      ) {
+        if (!(await lstat(join(repo.directory, name))).isFile())
+          throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
+        continue;
+      }
       if (!allowed.has(name))
         throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
       if (name === "identity-owner.json") continue;
@@ -316,66 +326,73 @@ export async function chooseFreshRepository(
   });
 }
 
-export async function repository(cwd: string, signal?: AbortSignal): Promise<Repository> {
-  return withRepositoryIdentity(cwd, signal, async (repo) => {
-    await assertMigrationReady(repo);
-    const existing = await lstat(repo.directory).catch((error) => {
-      if (error.code === "ENOENT") return undefined;
-      throw error;
-    });
-    if (existing) {
-      if (!existing.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
-      const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
-      const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
-      if (ready?.id !== repo.id || owner?.id !== repo.id)
-        throw new Error(
-          `Incomplete GitRelay state initialization: ${repo.directory}; inspect and preserve it before recovery.`,
-        );
-      await checkRepositoryDirectories(repo.directory);
-    } else {
-      const prior = await priorRepositories(repo);
-      const choice = (await readJson(join(stateDirectory(), "identity-choices", `${repo.id}.json`))) as
-        { id?: string } | undefined;
-      if (prior.length && choice?.id !== repo.id)
-        throw new Error(
-          `Earlier GitRelay state exists for ${repo.common}; run git-relay identity-fresh --apply or identity-migrate --apply after inspecting it. Prior state is preserved.`,
-        );
-      await recordRepositoryIdentity(repo);
-      await mkdir(join(stateDirectory(), "repos"), { recursive: true, mode: 0o700 });
-      const temporary = join(stateDirectory(), "repos", `.git-relay-owner-${randomUUID()}.tmp`);
-      await writeExclusiveTemporary(temporary, JSON.stringify({ id: repo.id }));
-      try {
-        await mkdir(repo.directory, { mode: 0o700 });
+export async function repository(cwd: string, signal?: AbortSignal, initialize = true): Promise<Repository> {
+  return withRepositoryIdentity(
+    cwd,
+    signal,
+    async (repo) => {
+      await assertMigrationReady(repo);
+      const existing = await lstat(repo.directory).catch((error) => {
+        if (error.code === "ENOENT") return undefined;
+        throw error;
+      });
+      if (existing) {
+        if (!existing.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
+        const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
+        const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
+        if (ready?.id !== repo.id || owner?.id !== repo.id)
+          throw new Error(
+            `Incomplete GitRelay state initialization: ${repo.directory}; inspect and preserve it before recovery.`,
+          );
+        await checkRepositoryDirectories(repo.directory);
+      } else {
+        if (!initialize)
+          throw new Error(`GitRelay repository state is missing: ${repo.directory}; preserve it for inspection.`);
+        const prior = await priorRepositories(repo);
+        const choice = (await readJson(join(stateDirectory(), "identity-choices", `${repo.id}.json`))) as
+          { id?: string } | undefined;
+        if (prior.length && choice?.id !== repo.id)
+          throw new Error(
+            `Earlier GitRelay state exists for ${repo.common}; run git-relay identity-fresh --apply or identity-migrate --apply after inspecting it. Prior state is preserved.`,
+          );
+        await recordRepositoryIdentity(repo);
+        await mkdir(join(stateDirectory(), "repos"), { recursive: true, mode: 0o700 });
+        const temporary = join(stateDirectory(), "repos", `.git-relay-owner-${randomUUID()}.tmp`);
+        await writeExclusiveTemporary(temporary, JSON.stringify({ id: repo.id }));
         try {
-          await link(temporary, join(repo.directory, "identity-owner.json"));
-        } catch (error) {
-          const code = (error as NodeJS.ErrnoException).code;
-          if (
-            code === "EPERM" ||
-            code === "EACCES" ||
-            code === "EOPNOTSUPP" ||
-            code === "ENOTSUP" ||
-            code === "EXDEV"
-          ) {
-            throw Object.assign(
-              new Error(
-                `Cannot publish GitRelay state ownership using a hard link; inspect and preserve the incomplete directory: ${repo.directory}`,
-                { cause: error },
-              ),
-              { code },
-            );
+          await mkdir(repo.directory, { mode: 0o700 });
+          try {
+            await link(temporary, join(repo.directory, "identity-owner.json"));
+          } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (
+              code === "EPERM" ||
+              code === "EACCES" ||
+              code === "EOPNOTSUPP" ||
+              code === "ENOTSUP" ||
+              code === "EXDEV"
+            ) {
+              throw Object.assign(
+                new Error(
+                  `Cannot publish GitRelay state ownership using a hard link; inspect and preserve the incomplete directory: ${repo.directory}`,
+                  { cause: error },
+                ),
+                { code },
+              );
+            }
+            throw error;
           }
-          throw error;
+        } finally {
+          await rm(temporary, { force: true });
         }
-      } finally {
-        await rm(temporary, { force: true });
+        for (const name of ["sessions", "events", "receipts", "refs", "trash"])
+          await mkdir(join(repo.directory, name), { mode: 0o700 });
+        await writeJson(join(repo.directory, "identity-ready.json"), { id: repo.id });
       }
-      for (const name of ["sessions", "events", "receipts", "refs", "trash"])
-        await mkdir(join(repo.directory, name), { mode: 0o700 });
-      await writeJson(join(repo.directory, "identity-ready.json"), { id: repo.id });
-    }
-    return repo;
-  });
+      return repo;
+    },
+    initialize,
+  );
 }
 
 export async function readJson(path: string, noFollow = false): Promise<unknown | undefined> {
@@ -530,6 +547,25 @@ export async function withLock<T>(
         ? ((await readJson(path).catch(() => undefined)) as { pid?: number; token?: string } | undefined)
         : undefined;
       options.signal?.throwIfAborted();
+      if (!info) continue;
+      if (!options.waitMs && (!owner || !Number.isInteger(owner.pid) || owner.pid! <= 0)) {
+        await delay(50, undefined, { signal: options.signal });
+        const latest = await lstat(path).catch((failure) => {
+          if (failure.code === "ENOENT") return undefined;
+          throw failure;
+        });
+        options.signal?.throwIfAborted();
+        if (
+          latest &&
+          latest.dev === info.dev &&
+          latest.ino === info.ino &&
+          latest.size === info.size &&
+          latest.mtimeMs === info.mtimeMs &&
+          latest.ctimeMs === info.ctimeMs
+        )
+          throw new Error(`Cannot read git-relay lock owner: ${path}. Retry later; do not remove a live lock.`);
+        continue;
+      }
       if (owner && Number.isInteger(owner.pid) && owner.pid! > 0) {
         let alive = false;
         try {
