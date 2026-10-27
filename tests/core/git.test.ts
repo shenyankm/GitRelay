@@ -133,3 +133,70 @@ test("supports explicit start points and reports non-repository errors", async (
   assert.equal(git(path, "rev-parse", "HEAD"), git(repo, "rev-parse", "main"));
   await assert.rejects(listWorktrees(root), /git repository/);
 });
+
+test("a branch start point wins over a direct ref with the same name", async (t) => {
+  const { repo, root } = await fixture(t);
+  const initial = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "update-ref", "refs/stash", initial);
+  git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "--allow-empty", "-m", "new");
+  const newer = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "branch", "stash");
+  const fromBranch = await addWorktree(repo, join(root, "branch"), "feature/stash", true, "stash");
+  assert.equal(git(fromBranch, "rev-parse", "HEAD").trim(), newer);
+});
+
+test("new worktrees pin commits despite hash-shaped ref collisions", async (t) => {
+  const { repo, root } = await fixture(t);
+  const initial = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "--allow-empty", "-m", "new");
+  const newer = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "update-ref", `refs/heads/${newer}`, initial);
+  git(repo, "update-ref", `refs/tags/${newer}`, initial);
+  const path = await addWorktree(repo, join(root, "hash"), "feature/hash", true, "main");
+  assert.equal(git(path, "rev-parse", "HEAD").trim(), newer);
+});
+
+test(
+  "new worktrees pin commits when a hash-shaped ref appears before creation",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const { repo, root } = await fixture(t);
+    const initial = git(repo, "rev-parse", "HEAD").trim();
+    git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "--allow-empty", "-m", "new");
+    const newer = git(repo, "rev-parse", "HEAD").trim();
+    const actualGit = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+    const bin = join(root, "bin");
+    await mkdir(bin);
+    await writeFile(
+      join(bin, "git"),
+      `#!/bin/sh
+if [ "$3" = worktree ] && [ "$4" = add ]; then
+  "$ISSUE40_GIT" -C "$2" update-ref "refs/heads/$ISSUE40_NEWER" "$ISSUE40_INITIAL" || exit 1
+fi
+exec "$ISSUE40_GIT" "$@"
+`,
+      { mode: 0o755 },
+    );
+    const previous = {
+      PATH: process.env.PATH,
+      ISSUE40_GIT: process.env.ISSUE40_GIT,
+      ISSUE40_NEWER: process.env.ISSUE40_NEWER,
+      ISSUE40_INITIAL: process.env.ISSUE40_INITIAL,
+    };
+    Object.assign(process.env, {
+      PATH: `${bin}:${previous.PATH}`,
+      ISSUE40_GIT: actualGit,
+      ISSUE40_NEWER: newer,
+      ISSUE40_INITIAL: initial,
+    });
+    t.after(() => {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    });
+    const path = await addWorktree(repo, join(root, "injected"), "feature/injected", true, "main");
+    assert.equal(git(path, "rev-parse", "HEAD").trim(), newer);
+    assert.equal(git(repo, "rev-parse", `refs/heads/${newer}`).trim(), initial);
+  },
+);

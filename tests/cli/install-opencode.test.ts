@@ -20,6 +20,99 @@ import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { installOpenCode, uninstallOpenCode } from "../../src/cli/install-opencode.ts";
+import { installerDigest } from "../../src/cli/installer-digest.ts";
+
+test("OpenCode upgrades legacy digests and rejects a modified runtime", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-legacy-digest-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const root = join(dir, "root"),
+    config = join(dir, "config"),
+    source = join(dir, "dist");
+  await mkdir(join(source, "adapters", "opencode"), { recursive: true });
+  await writeFile(
+    join(source, "adapters", "opencode", "index.js"),
+    "export default { id: 'git-relay', setup() {} };\n",
+  );
+  await writeFile(join(source, "changes.js"), "changes");
+  await writeFile(join(source, "cleanup.js"), "cleanup");
+  await installOpenCode(root, config, source);
+  const state = join(root, "opencode.json"),
+    record = JSON.parse(await readFile(state, "utf8"));
+  const legacy = `${record.current.slice(0, 21)}${await installerDigest(source, undefined, "cs")}`;
+  assert.notEqual(legacy, record.current);
+  await rename(join(root, "runtimes", record.current.slice(21)), join(root, "runtimes", legacy.slice(21)));
+  await rename(join(root, "opencode-revisions", record.current), join(root, "opencode-revisions", legacy));
+  await writeFile(state, JSON.stringify({ ...record, current: legacy }));
+  await writeFile(join(source, "upgrade"), "new source");
+  await writeFile(join(root, "runtimes", legacy.slice(21), "dist", "tampered"), "x");
+  await assert.rejects(installOpenCode(root, config, source), /runtime was modified/);
+  await rm(join(root, "runtimes", legacy.slice(21), "dist", "tampered"));
+  await installOpenCode(root, config, source);
+  assert.notEqual(JSON.parse(await readFile(state, "utf8")).current, legacy);
+});
+
+test("OpenCode recovers a lost anchor after the user preserves and removes the entry", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "git-relay-anchor-recovery-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const root = join(dir, "workspace"),
+    config = join(dir, "config"),
+    source = join(dir, "dist");
+  await mkdir(join(source, "adapters", "opencode"), { recursive: true });
+  await writeFile(
+    join(source, "adapters", "opencode", "index.js"),
+    "export default { id: 'git-relay', setup() {} };\n",
+  );
+  await installOpenCode(root, config, source);
+  const record = JSON.parse(await readFile(join(root, "opencode.json"), "utf8"));
+  const original = await readFile(record.entry, "utf8");
+  await rm(join(config, "opencode", "plugins", record.anchor));
+  await assert.rejects(uninstallOpenCode(root, config), /ownership cannot be established/);
+  await assert.rejects(installOpenCode(root, config, source), /ownership cannot be established/);
+  assert.equal(await readFile(record.entry, "utf8"), original);
+  const backup = join(dir, "saved-entry.js");
+  await rename(record.entry, backup);
+  const archive = join(config, "opencode", "plugins", ".git-relay-removed-abc", "entry");
+  await mkdir(join(config, "opencode", "plugins", ".git-relay-removed-abc"));
+  await writeFile(archive, "preserve pending archive");
+  await writeFile(join(root, "opencode.json"), JSON.stringify({ ...record, removing: archive }));
+  await assert.rejects(uninstallOpenCode(root, config), /ownership cannot be established/);
+  assert.equal(await readFile(archive, "utf8"), "preserve pending archive");
+  await writeFile(join(root, "opencode.json"), JSON.stringify(record));
+  await uninstallOpenCode(root, config);
+  await installOpenCode(root, config, source);
+  assert.equal(await readFile(backup, "utf8"), original);
+  assert.equal(await readFile(record.entry, "utf8"), original);
+});
+
+test("OpenCode reinstalls a missing owned runtime and upgrades after it is removed", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-repair-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const root = join(dir, "workspace"),
+    config = join(dir, "config"),
+    source = join(dir, "dist");
+  await mkdir(join(source, "adapters", "opencode"), { recursive: true });
+  await writeFile(
+    join(source, "adapters", "opencode", "index.js"),
+    "export default { id: 'git-relay', setup() {} };\n",
+  );
+  const state = join(root, "opencode.json");
+  const runtime = () =>
+    readFile(state, "utf8").then((value) => join(root, "runtimes", JSON.parse(value).current.slice(21)));
+  await installOpenCode(root, config, source);
+  const first = await runtime();
+  await rm(first, { recursive: true });
+  await installOpenCode(root, config, source);
+  assert.ok((await lstat(join(first, "dist"))).isDirectory());
+  await rm(join(first, "dist"), { recursive: true });
+  await writeFile(join(first, "user-data"), "preserve");
+  await assert.rejects(installOpenCode(root, config, source), /runtime is incomplete or was modified; preserved/);
+  assert.equal(await readFile(join(first, "user-data"), "utf8"), "preserve");
+  await rm(first, { recursive: true });
+  await writeFile(join(source, "upgrade-marker.txt"), "upgrade");
+  await installOpenCode(root, config, source);
+  assert.notEqual(await runtime(), first);
+  assert.equal(await readFile(join(await runtime(), "dist", "upgrade-marker.txt"), "utf8"), "upgrade");
+});
 
 test("OpenCode preserves an existing incomplete runtime directory", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-runtime-"));
@@ -258,6 +351,23 @@ test(
     const env = { ...process.env, PATH: bin, XDG_DATA_HOME: join(dir, "data"), XDG_CONFIG_HOME: join(dir, "config") };
     const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
     const run = promisify(execFile);
+    const unowned = join(env.XDG_DATA_HOME, "git-relay");
+    await mkdir(unowned, { recursive: true });
+    for (const extra of [[], ["--dry-run"]]) {
+      const error = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", "opencode", ...extra],
+        { env },
+      ).then(
+        () => null,
+        (failure) => failure,
+      );
+      assert.match(
+        JSON.parse(error.stdout).results.find((item: { platform: string }) => item.platform === "opencode").reason,
+        /Not an owned GitRelay workspace/,
+      );
+    }
+    await rm(unowned, { recursive: true });
     const result = JSON.parse(
       (await run(process.execPath, ["--experimental-strip-types", cli, "install", "--platform", "opencode"], { env }))
         .stdout,
@@ -288,6 +398,8 @@ test(
     const savedOpenCode = await readFile(openCodeState, "utf8");
     await writeFile(openCodeState, JSON.stringify({ ...JSON.parse(savedOpenCode), removed: "false" }));
     for (const args of [
+      ["install", "--platform", "opencode"],
+      ["install", "--platform", "opencode", "--dry-run"],
       ["uninstall", "--platform", "opencode"],
       ["uninstall", "--platform", "opencode", "--dry-run"],
     ]) {
@@ -303,11 +415,34 @@ test(
       );
       await readFile(entry);
     }
+    await writeFile(
+      openCodeState,
+      JSON.stringify({
+        ...JSON.parse(savedOpenCode),
+        removing: join(JSON.parse(savedOpenCode).entry, "..", ".git-relay-removed-abc", "entry"),
+      }),
+    );
+    for (const extra of [[], ["--dry-run"]]) {
+      const error = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", "opencode", ...extra],
+        { env },
+      ).then(
+        () => null,
+        (failure) => failure,
+      );
+      assert.match(
+        JSON.parse(error.stdout).results.find((item: { platform: string }) => item.platform === "opencode").reason,
+        /uninstall is incomplete/,
+      );
+    }
     await writeFile(openCodeState, savedOpenCode);
     const savedRecordPath = join(result.workspace, "opencode.saved.json");
     await rename(openCodeState, savedRecordPath);
-    await symlink("missing-record", openCodeState);
+    await symlink("opencode.saved.json", openCodeState);
     for (const args of [
+      ["install", "--platform", "opencode"],
+      ["install", "--platform", "opencode", "--dry-run"],
       ["uninstall", "--platform", "opencode"],
       ["uninstall", "--platform", "opencode", "--dry-run"],
     ]) {
@@ -319,9 +454,9 @@ test(
       assert.equal(output.failed, true);
       assert.match(
         output.results.find((item: { platform: string }) => item.platform === "opencode").reason,
-        /State path exists but cannot be read/,
+        /Invalid OpenCode installation record/,
       );
-      assert.equal(await readlink(openCodeState), "missing-record");
+      assert.equal(await readlink(openCodeState), "opencode.saved.json");
       assert.equal(await readFile(savedRecordPath, "utf8"), savedOpenCode);
       assert.match(await readFile(entry, "utf8"), /file:/);
     }
@@ -447,6 +582,8 @@ test(
       saved = await readFile(state, "utf8");
     await writeFile(state, JSON.stringify({ ...JSON.parse(saved), removed: "false" }));
     for (const args of [
+      ["install", "--platform", "codex"],
+      ["install", "--platform", "codex", "--dry-run"],
       ["uninstall", "--platform", "codex"],
       ["uninstall", "--platform", "codex", "--dry-run"],
     ]) {
@@ -463,6 +600,23 @@ test(
       await readFile(hooks);
     }
     await writeFile(state, saved);
+    const legacy = join(result.workspace, "codex-install.json");
+    await writeFile(legacy, "{}");
+    for (const extra of [[], ["--dry-run"]]) {
+      const error = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", "codex", ...extra],
+        { env },
+      ).then(
+        () => null,
+        (failure) => failure,
+      );
+      assert.match(
+        JSON.parse(error.stdout).results.find((item: { platform: string }) => item.platform === "codex").reason,
+        /previous Codex plugin installation record/,
+      );
+    }
+    await rm(legacy);
     const target = join(result.workspace, "codex.saved.json"),
       savedHooks = await readFile(hooks, "utf8");
     await rename(state, target);

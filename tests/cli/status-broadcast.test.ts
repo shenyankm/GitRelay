@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
-import { chmod, mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, delimiter } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -104,6 +104,45 @@ function launch(f: Awaited<ReturnType<typeof fixture>>, args: string[], env: Nod
   return { child, done, stdout: () => stdout, stderr: () => stderr };
 }
 
+test("status watch broadcasts to the same native session's distinct instance", unix, async (t) => {
+  const f = await fixture(t);
+  const env = { ...f.env, WORKTREE_SYNC_STATE_DIR: join(f.root, "state") };
+  const joinOutput = execFileSync(
+    process.execPath,
+    [
+      "--experimental-strip-types",
+      cli,
+      "join",
+      "--cwd",
+      f.repo,
+      "--agent",
+      "opencode",
+      "--session",
+      "monitor",
+      "--instance",
+      "a".repeat(64),
+    ],
+    { env, encoding: "utf8" },
+  );
+  const key = JSON.parse(joinOutput).session.key;
+  const p = launch(
+    f,
+    ["status", "--cwd", f.repo, "--watch", "--interval-ms", "50", "--agent", "opencode", "--session", "monitor"],
+    env,
+  );
+  await until(() => p.stdout().includes("\n"));
+  await writeFile(join(f.repo, "local.txt"), "edit\n");
+  await until(() => p.stdout().trimEnd().split("\n").length >= 2);
+  const repos = join(f.root, "state", "repos");
+  const repo = (await readdir(repos, { withFileTypes: true })).find((entry) => entry.isDirectory())!;
+  const events = join(repos, repo.name, "events");
+  const names = (await readdir(events)).filter((name) => name.endsWith(".json"));
+  const messages = await Promise.all(names.map(async (name) => JSON.parse(await readFile(join(events, name), "utf8"))));
+  assert.ok(messages.some((message) => message.kind === "message" && message.recipients.includes(key)));
+  p.child.kill("SIGTERM");
+  assert.deepEqual(await p.done, { code: 0, signal: null });
+});
+
 test("status watch displays oversized GitHub errors without claiming a broadcast", unix, async (t) => {
   const f = await fixture(t),
     marker = join(f.root, "first-api"),
@@ -150,6 +189,17 @@ test("message payload limit counts UTF-8 and JSON escaping", unix, async (t) => 
   assert.equal(messagePayloadWithinLimit(text + "x", []), false);
   await assert.rejects(
     sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: text + "x" }),
+    /Serialized message text and files must be at most 64 KiB/,
+  );
+  const ascii = "x".repeat(65536 - base);
+  assert.equal(messagePayloadWithinLimit(ascii, []), true);
+  assert.ok((await sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: ascii })).id);
+  await assert.rejects(
+    sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: ascii + "x" }),
+    /Serialized message text and files must be at most 64 KiB/,
+  );
+  await assert.rejects(
+    sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: "hello", files: ["../invalid"] }),
     /Message files must be repository-relative paths/,
   );
 });

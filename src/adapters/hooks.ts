@@ -22,7 +22,7 @@ export async function runHook(
   output: (value: object) => Promise<void>,
   signal?: AbortSignal,
   showBranchStatus = false,
-): Promise<void> {
+): Promise<{ delivered: true; diagnostic?: string } | void> {
   const event = input.hook_event_name;
   const events = ["SessionStart", "UserPromptSubmit", "PostToolUse", "Stop"];
   if (typeof event !== "string" || !events.includes(event)) {
@@ -94,7 +94,7 @@ export async function runHook(
     await output(summary || message ? { ...response, systemMessage: summary || message } : response);
   };
   let sent = false;
-  await consumeMailbox({
+  const result = await consumeMailbox({
     cwd: cwd as string,
     ref,
     adapter: "codex",
@@ -114,7 +114,11 @@ export async function runHook(
       );
       sent = true;
     },
+  }).catch((error: unknown) => {
+    if (sent) return error instanceof Error ? error.message : String(error);
+    throw error;
   });
+  if (sent) return { delivered: true, ...(typeof result === "string" ? { diagnostic: result } : {}) };
   if (!sent)
     await visibleOutput(
       summary
