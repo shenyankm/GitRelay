@@ -300,7 +300,7 @@ export async function preflightLeaveSession(options: LeaveOptions): Promise<{ ro
 export async function leaveSessionIfRepository(
   options: LeaveOptions,
   preflight?: { root?: string; repositoryId?: string },
-): Promise<void> {
+): Promise<Session | undefined> {
   try {
     const checked = preflight ?? (await preflightLeaveSession(options));
     if (checked.root && !checked.repositoryId) {
@@ -316,7 +316,7 @@ export async function leaveSessionIfRepository(
       options.signal?.throwIfAborted();
       if (current) throw new Error("Git worktree root changed during opt-out; preserve the subscription and retry.");
     }
-    await leaveSession(options, true, checked.repositoryId, checked.root);
+    return await leaveSession(options, true, checked.repositoryId, checked.root);
   } catch (error) {
     options.signal?.throwIfAborted();
     const failure = (error as Error)?.cause as
