@@ -47,6 +47,12 @@ test(
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Release tag must match/);
     }
+    const preserveMain = spawnSync(process.execPath, ["--preserve-symlinks-main", join(base, "release.mjs")], {
+      env,
+      encoding: "utf8",
+    });
+    assert.equal(preserveMain.status, 1);
+    assert.match(preserveMain.stderr, /Release tag must match/);
     const valid = spawnSync(process.execPath, [join(base, "link", "scripts", "check-release.mjs")], {
       env: { ...env, GITHUB_REF_NAME: "v0.1.0" },
       encoding: "utf8",
