@@ -467,9 +467,9 @@ test("a delayed deletion for an old instance preserves the recreated session's d
   const event = await sendMessage({ cwd: f.a, adapter: "codex", session: "sender", text: "recreated inbox" });
   await waitFor(async () => {
     f.tick();
-    return calls.some((input) => input.text?.includes(event.id));
+    return (await readReceipt(f.repo, f.key, event.id))?.status === "delivered";
   });
-  assert.equal((await readReceipt(f.repo, f.key, event.id))?.status, "delivered");
+  assert.equal(calls.filter((input) => input.text?.includes(event.id)).length, 1);
 });
 
 test("a deletion verification failure warns and preserves the live session", async (t) => {
