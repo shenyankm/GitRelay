@@ -80,6 +80,8 @@ To claim the old **path-keyed shared state** for the current repository:
 
    The command checks the legacy state, copies it into a separate identity directory, and leaves the source intact. It refuses to overwrite or merge an unrelated existing target and rejects unsafe or unexpected state. A migration claim records the selected target; an interrupted migration can resume by running the same command if the retained files and ownership records still match. Conflicts are preserved and reported. The command only imports the former path-keyed shared directory, not another identity's directory.
 
+   Older read-only commands could create an empty legacy directory without `repo.json`. Migration requires that metadata to verify the source; inspect the preserved directory and use `identity-fresh --apply` if you choose a new inbox instead.
+
 4. Review the output and restart only updated clients with the same state root and identity configuration. Check the intended sessions and unread messages. Preserve the old state: the copy is not a synchronization relationship with the old version. Repeating a completed migration does not replay the old inbox; if the completed target is missing or its required identity metadata has changed, the command stops for inspection instead of recreating it.
 
 To use a new, empty inbox instead of claiming old data, stop the old clients as above and explicitly select fresh state:

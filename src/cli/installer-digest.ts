@@ -3,8 +3,12 @@ import { constants, type BigIntStats } from "node:fs";
 import { lstat, open, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
-/** Preserve the published runtime digest while reading verified files in bounded chunks. */
-export async function installerDigest(root: string, signal?: AbortSignal): Promise<string> {
+/** Compute the runtime digest while reading verified files in bounded chunks. */
+export async function installerDigest(
+  root: string,
+  signal?: AbortSignal,
+  legacyLocale?: string | null,
+): Promise<string> {
   const hash = createHash("sha256");
   const witnesses: {
     path: string;
@@ -83,7 +87,15 @@ export async function installerDigest(root: string, signal?: AbortSignal): Promi
     }
     if (!info.isDirectory()) throw new Error(`Unexpected installer entry: ${path}`);
     const entries = await readdir(path, { withFileTypes: true });
-    entries.sort((a, b) => a.name.localeCompare(b.name));
+    entries.sort((a, b) =>
+      legacyLocale === undefined
+        ? a.name < b.name
+          ? -1
+          : a.name > b.name
+            ? 1
+            : 0
+        : a.name.localeCompare(b.name, legacyLocale ?? undefined),
+    );
     for (const entry of entries) {
       signal?.throwIfAborted();
       if (!entry.isDirectory() && !entry.isFile())
@@ -123,4 +135,16 @@ export async function installerDigest(root: string, signal?: AbortSignal): Promi
   }
   signal?.throwIfAborted();
   return hash.digest("hex");
+}
+
+export async function matchesLegacyInstallerDigest(
+  root: string,
+  expected: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  // shortcut: unlisted legacy collations or ICU versions need the original locale; extend when reported.
+  for (const locale of [null, "en", "cs", "sv", "dz", "az", "br", "fy", "om", "haw", "th"]) {
+    if ((await installerDigest(root, signal, locale)) === expected) return true;
+  }
+  return false;
 }

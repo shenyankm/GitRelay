@@ -181,7 +181,11 @@ try {
     await collectRepository(repo, { apply: true, retentionDays: 0 });
     assert.deepEqual(await readdir(join(repo.directory, "events")), []);
     assert.deepEqual(await readdir(join(repo.directory, "trash")), []);
-    for (const key of recipients) assert.deepEqual(await readdir(join(repo.directory, "receipts", key)), []);
+    for (const key of recipients)
+      assert.deepEqual(
+        (await readdir(join(repo.directory, "receipts", key))).filter((name) => name !== "delivery-cursor.json"),
+        [],
+      );
     console.log(
       JSON.stringify({
         processes: count,
