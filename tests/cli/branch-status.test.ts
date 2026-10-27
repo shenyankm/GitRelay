@@ -59,6 +59,23 @@ test("status handles unborn branches", async (t) => {
   assert.equal(status.local.commit, null);
 });
 
+test("explicit empty CLI options are rejected", async (t) => {
+  const f = await fixture(t);
+  for (const [args, message] of [
+    [["status", "--format", ""], /json or markdown/],
+    [["status", "--format", "markdown", "--output", ""], /--output must not be empty/],
+    [["status", "--branch", ""], /--branch must not be empty/],
+    [["status", "--github", "--repo", ""], /--repo must not be empty/],
+    [["status", "--session", ""], /--session must not be empty/],
+    [["check", "--session", "s", "--branch", ""], /require the status command/],
+    [["check", "--session", "s", "--repo", ""], /require the status command/],
+    [["check", "--session", "s", "--format", ""], /require status/],
+    [["install", "--branch", ""], /require the status command/],
+  ] as const) {
+    await assert.rejects(run(...args, "--cwd", f.b), message);
+  }
+});
+
 test("status writes an App-readable Markdown snapshot and keeps JSON as the default", async (t) => {
   const f = await fixture(t);
   const path = join(f.root, "status.md");

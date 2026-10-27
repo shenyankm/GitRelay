@@ -71,8 +71,8 @@ export function sessionKey(repo: Pick<Repository, "root">, identity: Identity, r
   return hash(parts);
 }
 
-export async function listSessions(cwd: string): Promise<Session[]> {
-  return sessionsIn(await repository(cwd));
+export async function listSessions(cwd: string, signal?: AbortSignal): Promise<Session[]> {
+  return sessionsIn(await repository(cwd, signal));
 }
 
 export async function readSession(repo: Repository, key: string): Promise<Session | undefined> {
