@@ -86,7 +86,15 @@ export async function migrateLegacyState(
   const alreadyMigrated = await withLock(
     join(oldDirectory, "publish.lock"),
     async () => {
-      const metadata = (await readState(join(oldDirectory, "repo.json"))).value as { id?: unknown; common?: unknown };
+      const metadata = (
+        await readState(join(oldDirectory, "repo.json")).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === "ENOENT")
+            throw new Error(
+              "Legacy repository metadata is missing; inspect the source and use identity-fresh --apply to start a new inbox.",
+            );
+          throw error;
+        })
+      ).value as { id?: unknown; common?: unknown };
       if (
         !metadata ||
         metadata.id !== hash(common) ||
