@@ -150,6 +150,17 @@ test("message payload limit counts UTF-8 and JSON escaping", unix, async (t) => 
   assert.equal(messagePayloadWithinLimit(text + "x", []), false);
   await assert.rejects(
     sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: text + "x" }),
+    /Serialized message text and files must be at most 64 KiB/,
+  );
+  const ascii = "x".repeat(65536 - base);
+  assert.equal(messagePayloadWithinLimit(ascii, []), true);
+  assert.ok((await sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: ascii })).id);
+  await assert.rejects(
+    sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: ascii + "x" }),
+    /Serialized message text and files must be at most 64 KiB/,
+  );
+  await assert.rejects(
+    sendMessage({ cwd: f.repo, adapter: "test", session: "boundary", text: "hello", files: ["../invalid"] }),
     /Message files must be repository-relative paths/,
   );
 });

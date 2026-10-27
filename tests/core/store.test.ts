@@ -75,6 +75,51 @@ test("GC busy marker only skips a fresh live matching lock", { skip: process.pla
   await assert.rejects(waiting, BusyError);
 });
 
+test("ownerless lock inspection retries when initialization completes", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "git-relay-lock-initializing-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const path = join(directory, "session.lock");
+  await writeFile(path, "");
+  const probe = await open(path, "r");
+  const prototype = Object.getPrototypeOf(probe),
+    original = prototype.read,
+    initial = await probe.stat();
+  await probe.close();
+  let initialized = false;
+  prototype.read = async function (...args: unknown[]) {
+    const result = await original.apply(this, args);
+    if (!initialized && !result.bytesRead && (await this.stat()).ino === initial.ino) {
+      initialized = true;
+      await writeFile(path, JSON.stringify({ pid: process.pid }));
+    }
+    return result;
+  };
+  try {
+    await assert.rejects(
+      withLock(path, async () => assert.fail("must not acquire")),
+      BusyError,
+    );
+    assert.equal(initialized, true);
+    assert.equal(JSON.parse(await readFile(path, "utf8")).pid, process.pid);
+  } finally {
+    prototype.read = original;
+  }
+});
+
+test("ownerless lock inspection remains abortable and preserves the lock", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "git-relay-lock-cancel-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const path = join(directory, "session.lock");
+  await writeFile(path, "");
+  await assert.rejects(
+    withLock(path, async () => assert.fail("must not acquire"), { signal: AbortSignal.timeout(10) }),
+    {
+      name: "AbortError",
+    },
+  );
+  assert.equal(await readFile(path, "utf8"), "");
+});
+
 test(
   "GC busy marker is ignored when the lock path was replaced during inspection",
   { skip: process.platform === "win32" },

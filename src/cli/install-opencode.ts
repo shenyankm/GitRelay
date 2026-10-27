@@ -16,9 +16,10 @@ import {
 } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { readJson, withLock, writeJson } from "../core/store.ts";
+import { withLock, writeJson } from "../core/store.ts";
+import { readInstallationRecord } from "./install-record.ts";
 import { commandOutput } from "./command-output.ts";
-import { installerDigest } from "./installer-digest.ts";
+import { installerDigest, matchesLegacyInstallerDigest } from "./installer-digest.ts";
 
 type Record = {
   entry: string;
@@ -73,18 +74,6 @@ async function contents(path: string): Promise<string | undefined> {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
     throw error;
   }
-}
-
-async function readRecord(path: string): Promise<Record | undefined> {
-  try {
-    if (!(await lstat(path)).isFile()) throw new Error(`Invalid OpenCode installation record: ${path}`);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
-    throw error;
-  }
-  const record = await readJson(path);
-  if (record === undefined) throw new Error(`Invalid OpenCode installation record: ${path}`);
-  return record as Record;
 }
 
 const digest = (dir: string, signal?: AbortSignal) => installerDigest(dir, signal);
@@ -150,8 +139,8 @@ export async function installOpenCode(
     async () => {
       const state = join(root, "opencode.json");
       const entry = join(config, "opencode", "plugins", "git-relay.js");
-      const record = await readRecord(state);
-      if (record && !validRecord(record, entry, root))
+      const record = (await readInstallationRecord(state, "OpenCode")) as Record | undefined;
+      if (record !== undefined && !validRecord(record, entry, root))
         throw new Error(`Invalid OpenCode installation record: ${state}`);
       if (record?.removing) throw new Error("An uninstall is incomplete; rerun uninstall before installing.");
       if (!record && (await contents(entry)) !== undefined)
@@ -190,16 +179,33 @@ export async function installOpenCode(
         (record && (latest ?? null) !== (record.pending ?? record.current) && (latest ?? null) !== record.current)
       )
         throw new Error(`OpenCode revisions changed outside GitRelay: ${revisions}`);
+      const id = await digest(sourceDist, signal);
       if (latest) {
         const existingRuntime = join(root, "runtimes", latest.slice(21));
-        if (
-          (await digest(join(existingRuntime, "dist"), signal)) !== latest.slice(21) ||
-          (await contents(join(existingRuntime, "package.json"))) !== '{"type":"module"}\n'
-        )
-          throw new Error(`OpenCode runtime was modified: ${existingRuntime}`);
+        try {
+          const existingDigest = await digest(join(existingRuntime, "dist"), signal);
+          if (
+            (existingDigest !== latest.slice(21) &&
+              existingDigest !== id &&
+              !(await matchesLegacyInstallerDigest(join(existingRuntime, "dist"), latest.slice(21), signal))) ||
+            (await contents(join(existingRuntime, "package.json"))) !== '{"type":"module"}\n'
+          )
+            throw new Error(
+              `OpenCode runtime was modified or its legacy digest cannot be verified; preserved: ${existingRuntime}. Retry with the original LC_ALL/LANG if known.`,
+            );
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+          const present = await lstat(existingRuntime).catch((failure) => {
+            if (failure.code === "ENOENT") return undefined;
+            throw failure;
+          });
+          if (present)
+            throw new Error(`OpenCode runtime is incomplete or was modified; preserved: ${existingRuntime}`, {
+              cause: error,
+            });
+        }
       }
 
-      const id = await digest(sourceDist, signal);
       const runtimes = join(root, "runtimes");
       const runtime = join(runtimes, id);
       await mkdir(runtimes, { recursive: true });
@@ -221,7 +227,16 @@ export async function installOpenCode(
           if ((await digest(join(temp, "dist"), signal)) !== id)
             throw new Error("Runtime changed while copying; retry installation.");
           await writeFile(join(temp, "package.json"), '{"type":"module"}\n', { flag: "wx" });
-          await rename(temp, runtime);
+          try {
+            await rename(temp, runtime);
+          } catch (error) {
+            if (!["EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? "")) throw error;
+            if (
+              (await digest(join(runtime, "dist"), signal)) !== id ||
+              (await contents(join(runtime, "package.json"))) !== '{"type":"module"}\n'
+            )
+              throw new Error(`OpenCode runtime was modified: ${runtime}`);
+          }
         } finally {
           await rm(temp, { recursive: true, force: true });
         }
@@ -286,8 +301,8 @@ export async function uninstallOpenCode(
     join(root, "install.lock"),
     async () => {
       const state = join(root, "opencode.json");
-      const record = await readRecord(state);
-      if (!record) return;
+      const record = (await readInstallationRecord(state, "OpenCode")) as Record | undefined;
+      if (record === undefined) return;
       const entry = join(config, "opencode", "plugins", "git-relay.js");
       if (!validRecord(record, entry, root)) throw new Error(`Invalid OpenCode installation record: ${state}`);
       if (record.removed) return record.archive;
@@ -297,7 +312,12 @@ export async function uninstallOpenCode(
       if (!record.removing && actual !== undefined && actual !== record.content)
         throw new Error(`OpenCode entry was modified; preserved: ${entry}`);
       const anchor = await anchorPath(entry, record.anchor);
-      if ((await contents(anchor)) !== record.content || (actual !== undefined && !(await sameFile(entry, anchor))))
+      const anchorContent = await contents(anchor);
+      if (
+        (anchorContent !== record.content &&
+          !(anchorContent === undefined && actual === undefined && !record.removing)) ||
+        (actual !== undefined && !(await sameFile(entry, anchor)))
+      )
         throw new Error(`OpenCode entry ownership cannot be established; preserved: ${entry}`);
       let archive = record.removing;
       if (!archive && actual !== undefined) {

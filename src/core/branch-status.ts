@@ -13,6 +13,18 @@ export interface BranchStatusOptions {
   signal?: AbortSignal;
 }
 
+export function validateGitHubRepository(repo: string): void {
+  if (!/^(?:[a-zA-Z0-9][a-zA-Z0-9.-]*(?::[0-9]{1,5})?\/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\/[a-zA-Z0-9_.-]+$/.test(repo))
+    throw new Error("--repo must be [HOST/]OWNER/REPO.");
+  if (repo.split("/").length === 3) {
+    try {
+      new URL(`https://${repo.split("/")[0]}`);
+    } catch {
+      throw new Error("--repo must be [HOST/]OWNER/REPO.");
+    }
+  }
+}
+
 async function gh(cwd: string, args: string[], signal?: AbortSignal, host?: string): Promise<unknown> {
   signal?.throwIfAborted();
   try {
@@ -125,20 +137,7 @@ export async function branchStatus(options: BranchStatusOptions) {
     | undefined;
   if (options.github) {
     try {
-      if (
-        options.repo &&
-        !/^(?:[a-zA-Z0-9][a-zA-Z0-9.-]*(?::[0-9]{1,5})?\/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\/[a-zA-Z0-9_.-]+$/.test(
-          options.repo,
-        )
-      )
-        throw new Error("--repo must be [HOST/]OWNER/REPO.");
-      if (options.repo?.split("/").length === 3) {
-        try {
-          new URL(`https://${options.repo.split("/")[0]}`);
-        } catch {
-          throw new Error("--repo must be [HOST/]OWNER/REPO.");
-        }
-      }
+      if (options.repo) validateGitHubRepository(options.repo);
       const repo = (await gh(
         cwd,
         ["repo", "view", ...(options.repo ? [options.repo] : []), "--json", "nameWithOwner,url"],
