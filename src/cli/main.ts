@@ -310,7 +310,8 @@ async function main() {
     const input = JSON.parse(data);
     if (!input || typeof input !== "object" || Array.isArray(input))
       throw new Error("Hook input must be a JSON object.");
-    await runHook(input, values.ref, output, abort.signal, values["branch-status"]);
+    const diagnostic = await runHook(input, values.ref, output, abort.signal, values["branch-status"]);
+    if (diagnostic) reportDiagnostic(`git-relay: ${diagnostic}`);
     return;
   }
   if (command === "daemon" && agent === "status" && positionals.length === 2) {
