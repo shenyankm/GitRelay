@@ -5,7 +5,7 @@ import { branchStatus } from "../core/branch-status.ts";
 import { formatBranchStatus } from "../core/status-format.ts";
 import { GitPathOutputError } from "../core/git.ts";
 import { requestedActivation, sessionActivation } from "../core/activation.ts";
-import { joinSession, leaveSession } from "../core/sessions.ts";
+import { joinSession, leaveSession, leaveSessionIfRepository } from "../core/sessions.ts";
 
 export type HookInput = Record<string, unknown>;
 
@@ -52,7 +52,7 @@ export async function runHook(
   const wasEnabled = await sessionActivation(options);
   if (request === false) {
     await sessionActivation(options, false);
-    if (wasEnabled) await leaveSession(options);
+    await leaveSessionIfRepository(options);
     await output({});
     return;
   }

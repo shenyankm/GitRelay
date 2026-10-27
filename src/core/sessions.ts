@@ -1,5 +1,7 @@
+import { execFile } from "node:child_process";
 import { lstat, readdir, stat } from "node:fs/promises";
 import { dirname, join, parse, resolve } from "node:path";
+import { promisify } from "node:util";
 import { readSession, registerSession, sessionKey, validateIdentity, type Identity, type Session } from "./mailbox.ts";
 import { synchronizeRef } from "./publisher.ts";
 import {
@@ -186,6 +188,36 @@ export async function leaveSession(options: LeaveOptions): Promise<Session | und
       ),
     { signal: options.signal },
   );
+}
+
+/** Native opt-out remains a no-op outside a repository. */
+export async function leaveSessionIfRepository(options: LeaveOptions): Promise<void> {
+  try {
+    await leaveSession(options);
+  } catch (error) {
+    options.signal?.throwIfAborted();
+    const failure = (error as Error)?.cause as
+      { code?: unknown; signal?: NodeJS.Signals | null; killed?: boolean } | undefined;
+    if (failure?.code !== 128 || failure.signal || failure.killed) throw error;
+    try {
+      await promisify(execFile)("git", ["-C", options.cwd, "rev-parse", "--show-toplevel"], {
+        env: { ...process.env, LC_ALL: "C", GIT_TERMINAL_PROMPT: "0" },
+        signal: options.signal,
+        timeout: 30_000,
+      });
+    } catch (probe) {
+      options.signal?.throwIfAborted();
+      const result = probe as Error & {
+        code?: unknown;
+        signal?: NodeJS.Signals | null;
+        killed?: boolean;
+        stderr?: string;
+      };
+      if (result.code === 128 && !result.signal && !result.killed && /not a git repository/i.test(result.stderr ?? ""))
+        return;
+    }
+    throw error;
+  }
 }
 
 /** Explicit rejoin keeps old inbox/receipts, but does not replay publications while closed. */

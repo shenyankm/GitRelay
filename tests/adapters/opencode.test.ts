@@ -964,6 +964,34 @@ test("OpenCode opt-out drains delivery, preserves unread events and permits an e
   assert.equal(calls.length, 1);
 });
 
+test("OpenCode retries closing a subscription after a transient session lookup failure", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {});
+  await f.enroll();
+  const lookup = t.mock.method(f.session, "get", async () => {
+    throw new Error("transient lookup failure");
+  });
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.match(String(warnings[0]), /transient lookup failure/);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  lookup.mock.restore();
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.ok((await listSessions(f.b))[0].closedAt);
+  const message = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "after disable" });
+  assert.ok(!message.recipients.includes(f.key));
+});
+
+test("OpenCode disable outside a repository is a no-op", async (t) => {
+  const warnings: unknown[] = [];
+  t.mock.method(console, "warn", (message: unknown) => warnings.push(message));
+  const f = await harness(t, async () => {}, true);
+  f.locations.set(f.id, { location: { directory: f.root } });
+  await f.enroll(f.id, undefined, "Disable GitRelay");
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(await listSessions(f.b), []);
+});
+
 test("OpenCode can re-enable after a CLI leave before its next polling tick", async (t) => {
   const calls: Prompt[] = [];
   const f = await harness(t, async (input) => {

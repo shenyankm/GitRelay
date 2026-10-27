@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, writeFile } from "node:fs/promises";
+import { access, chmod, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { hookResponse, runHook } from "../../src/adapters/hooks.ts";
@@ -97,6 +97,51 @@ test("disabling closes enrollment and preserves unread messages for an explicit 
   assert.equal((await readReceipt(repo, key, event.id))?.status, "delivered");
 });
 
+test("a failed disable can be retried after the session lock is released", async (t) => {
+  const f = await fixture(t),
+    output = async (_value: object) => {},
+    options = { cwd: f.b, ref, adapter: "codex", session: "receiver" };
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  const repo = await repository(f.b),
+    key = sessionKey(repo, options, ref);
+  await withLock(join(repo.directory, "sessions", `${key}.lock`), async () => {
+    await assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /busy/);
+  });
+  assert.equal(await sessionActivation(options), false);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
+  assert.ok((await listSessions(f.b))[0].closedAt);
+  const message = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "after disable" });
+  assert.ok(!message.recipients.includes(key));
+});
+
+test("disabling outside a Git repository is a no-op", async (t) => {
+  const f = await fixture(t);
+  await runHook({ ...input(f.root), prompt: "Disable GitRelay" }, ref, async (value) => assert.deepEqual(value, {}));
+});
+
+test(
+  "disabling reports Git failures instead of treating every exit 128 as a non-repository",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      bin = join(f.root, "bin"),
+      previousPath = process.env.PATH;
+    t.after(() => {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+    });
+    await mkdir(bin);
+    await writeFile(join(bin, "git"), "#!/bin/sh\nprintf 'fatal: injected failure\\n' >&2\nexit 128\n");
+    await chmod(join(bin, "git"), 0o755);
+    process.env.PATH = `${bin}:${previousPath ?? ""}`;
+    await assert.rejects(
+      runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, async () => {}),
+      /injected failure/,
+    );
+  },
+);
+
 test("legacy auto-enrollment alone does not activate hooks or acknowledge an old inbox", async (t) => {
   const f = await fixture(t),
     responses: object[] = [];
@@ -186,6 +231,7 @@ test("a later disable wins while an earlier hook is still joining", async (t) =>
     }
     leaving = assert.rejects(runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output), /busy/);
     await waitForChoice(false);
+    await leaving;
   } finally {
     release.resolve();
     await Promise.all([locked, joining, leaving]);

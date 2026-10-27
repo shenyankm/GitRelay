@@ -7,7 +7,7 @@ import { hash } from "../../core/store.ts";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { requestedActivation, sessionActivation } from "../../core/activation.ts";
-import { joinSession, leaveSession } from "../../core/sessions.ts";
+import { joinSession, leaveSessionIfRepository } from "../../core/sessions.ts";
 
 type SessionID = Parameters<Plugin.Context["session"]["get"]>[0]["sessionID"];
 
@@ -329,9 +329,8 @@ export default {
             instance: instanceOf(target),
             signal: abort.signal,
           };
-          const enabled = await sessionActivation(options);
           await sessionActivation(options, false);
-          if (enabled || state?.instance === options.instance) await leaveSession(options);
+          await leaveSessionIfRepository(options);
         } catch (error) {
           if (!abort.signal.aborted) warn(error);
         }
