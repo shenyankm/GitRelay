@@ -18,7 +18,7 @@ import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { readJson, withLock, writeJson } from "../core/store.ts";
 import { commandOutput } from "./command-output.ts";
-import { installerDigest } from "./installer-digest.ts";
+import { installerDigest, matchesLegacyInstallerDigest } from "./installer-digest.ts";
 
 type Record = {
   entry: string;
@@ -190,16 +190,21 @@ export async function installOpenCode(
         (record && (latest ?? null) !== (record.pending ?? record.current) && (latest ?? null) !== record.current)
       )
         throw new Error(`OpenCode revisions changed outside GitRelay: ${revisions}`);
+      const id = await digest(sourceDist, signal);
       if (latest) {
         const existingRuntime = join(root, "runtimes", latest.slice(21));
+        const existingDigest = await digest(join(existingRuntime, "dist"), signal);
         if (
-          (await digest(join(existingRuntime, "dist"), signal)) !== latest.slice(21) ||
+          (existingDigest !== latest.slice(21) &&
+            existingDigest !== id &&
+            !(await matchesLegacyInstallerDigest(join(existingRuntime, "dist"), latest.slice(21), signal))) ||
           (await contents(join(existingRuntime, "package.json"))) !== '{"type":"module"}\n'
         )
-          throw new Error(`OpenCode runtime was modified: ${existingRuntime}`);
+          throw new Error(
+            `OpenCode runtime was modified or its legacy digest cannot be verified; preserved: ${existingRuntime}. Retry with the original LC_ALL/LANG if known.`,
+          );
       }
 
-      const id = await digest(sourceDist, signal);
       const runtimes = join(root, "runtimes");
       const runtime = join(runtimes, id);
       await mkdir(runtimes, { recursive: true });
