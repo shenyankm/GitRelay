@@ -28,6 +28,9 @@ test("only direct coordination requests opt a session in or out", () => {
     "Please do not use multiple worktrees",
     "Don't use GitRelay",
     "Never enable GitRelay",
+    "Don't work in parallel",
+    "Please do not implement this feature in parallel",
+    "Never develop in parallel",
   ])
     assert.equal(requestedActivation(text), false, text);
   for (const text of [
