@@ -324,7 +324,7 @@ async function main() {
     throw new Error("Expected status, check, watch, send, sessions, join, leave, gc, daemon or hook.");
   const cwd = () => values.cwd ?? process.cwd();
   if (command === "sessions") {
-    await output({ sessions: await listSessions(cwd()) });
+    await output({ sessions: await listSessions(cwd(), abort.signal) });
     return;
   }
   if (command === "gc") {
