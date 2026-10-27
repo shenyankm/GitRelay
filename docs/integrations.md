@@ -12,6 +12,13 @@ session. OpenCode also binds activation to its data root and session creation
 time. A different conversation stays off; resuming the same bound conversation
 retains its choice.
 
+Activation applies throughout the worktree, including its subdirectories; a
+nested Git repository remains separate. Older subdirectory-keyed activation
+records cannot be located from the worktree root because they contain only a
+hash of the original path. After upgrading, explicitly enable GitRelay again
+from the desired worktree to record its worktree-wide choice; existing records
+and unread messages are preserved.
+
 `Disable GitRelay` or `关闭 GitRelay` stops delivery and closes the subscription.
 Unread events and receipts are preserved. An explicit opt-in reopens the inbox;
 events published while it was closed are not retroactively addressed to it.

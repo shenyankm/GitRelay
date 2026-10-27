@@ -10,9 +10,9 @@ export async function runEnabledHook(...args: Parameters<typeof runHook>): Promi
   const previous = process.env.WORKTREE_SYNC_STATE_DIR;
   process.env.WORKTREE_SYNC_STATE_DIR = directory;
   try {
-    const [input, ref] = args;
+    const [input, ref, , signal] = args;
     await sessionActivation(
-      { cwd: input.cwd as string, ref, adapter: "codex", session: input.session_id as string },
+      { cwd: input.cwd as string, ref, adapter: "codex", session: input.session_id as string, signal },
       true,
     );
     await runHook(...args);

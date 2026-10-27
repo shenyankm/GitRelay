@@ -264,7 +264,7 @@ export default {
           if (!sessions.has(id)) {
             sessions.set(id, { abort: new AbortController(), instance, rejoin: optIns.has(id) });
             optIns.delete(id);
-            await scan(id, true);
+            await scan(id, !retry);
           }
         }
       } catch (error) {

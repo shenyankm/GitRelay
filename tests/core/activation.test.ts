@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { access, mkdir, symlink, writeFile } from "node:fs/promises";
+import { access, chmod, mkdir, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { requestedActivation, sessionActivation } from "../../src/core/activation.ts";
 import { sessionKey } from "../../src/core/mailbox.ts";
 import { hash } from "../../src/core/store.ts";
-import { fixture } from "../helpers.ts";
+import { fixture, git } from "../helpers.ts";
 
 test("only direct coordination requests opt a session in or out", () => {
   for (const text of [
@@ -66,6 +66,70 @@ test("activation defaults off without creating state and is isolated by native s
   await sessionActivation(options, false);
   assert.equal(await sessionActivation(options), false);
 });
+
+test("activation is shared within one worktree, not a nested repository", async (t) => {
+  const f = await fixture(t),
+    sub = join(f.b, "sub"),
+    nested = join(sub, "nested"),
+    options = { cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "receiver" };
+  await mkdir(nested, { recursive: true });
+  git(nested, "init");
+  await sessionActivation(options, true);
+  assert.equal(await sessionActivation({ ...options, cwd: sub }), true);
+  assert.equal(await sessionActivation({ ...options, cwd: nested }), false);
+  await sessionActivation({ ...options, cwd: sub }, false);
+  assert.equal(await sessionActivation(options), false);
+  await sessionActivation({ ...options, cwd: sub }, true);
+  assert.equal(await sessionActivation(options), true);
+  assert.equal(await sessionActivation({ ...options, cwd: f.c }), false);
+  const openCode = { ...options, adapter: "opencode", instance: hash("native-instance") };
+  await sessionActivation({ ...openCode, cwd: sub }, true);
+  assert.equal(await sessionActivation(openCode), true);
+  assert.equal(await sessionActivation({ ...openCode, instance: hash("other-instance") }), false);
+});
+
+test("legacy subdirectory activation never overrides a newer worktree choice", async (t) => {
+  const f = await fixture(t),
+    sub = join(f.b, "sub"),
+    options = { cwd: sub, ref: "refs/heads/main", adapter: "codex", session: "receiver" },
+    directory = join(f.root, "state", "activations");
+  await mkdir(sub);
+  await mkdir(directory, { recursive: true });
+  const key = sessionKey({ root: sub }, options, options.ref);
+  await writeFile(join(directory, `${key}.json`), JSON.stringify({ key, enabled: true }));
+  assert.equal(await sessionActivation(options), true);
+  await sessionActivation({ ...options, cwd: f.b }, false);
+  assert.equal(await sessionActivation(options), false);
+  await sessionActivation({ ...options, cwd: f.b }, true);
+  assert.equal(await sessionActivation(options), true);
+});
+
+test(
+  "failed worktree discovery cannot silently disable the wrong path",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      sub = join(f.b, "sub"),
+      bin = join(f.root, "bin"),
+      options = { cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "receiver" },
+      previousPath = process.env.PATH;
+    await mkdir(sub);
+    await mkdir(bin);
+    await writeFile(join(bin, "git"), "#!/bin/sh\nexit 128\n");
+    await chmod(join(bin, "git"), 0o755);
+    await sessionActivation(options, true);
+    process.env.PATH = bin;
+    try {
+      await assert.rejects(sessionActivation({ ...options, cwd: sub }, false));
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+    }
+    assert.equal(await sessionActivation(options), true);
+    await sessionActivation({ ...options, cwd: sub }, false);
+    assert.equal(await sessionActivation(options), false);
+  },
+);
 
 test("invalid activation state and managed symlinks fail closed", { skip: process.platform === "win32" }, async (t) => {
   const f = await fixture(t),

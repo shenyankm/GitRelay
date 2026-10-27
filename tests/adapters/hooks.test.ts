@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { hookResponse, runHook } from "../../src/adapters/hooks.ts";
@@ -8,7 +8,7 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { listSessions, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
 import { repository, withLock } from "../../src/core/store.ts";
 import { setTimeout as delay } from "node:timers/promises";
-import { fixture } from "../helpers.ts";
+import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";
 const input = (cwd: string, session = "receiver") => ({
@@ -48,6 +48,39 @@ test("ordinary hooks skip Git, status and subscriptions until the native session
   await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
 });
 
+test("an unrelated session in a subdirectory stays off without Git even when the worktree is enabled", async (t) => {
+  const f = await fixture(t),
+    sub = join(f.b, "pkg"),
+    previousPath = process.env.PATH;
+  await mkdir(sub);
+  await sessionActivation({ cwd: f.b, ref, adapter: "codex", session: "enabled" }, true);
+  process.env.PATH = join(f.root, "missing-bin");
+  t.after(() => {
+    if (previousPath === undefined) delete process.env.PATH;
+    else process.env.PATH = previousPath;
+  });
+  await runHook({ ...input(sub, "other"), hook_event_name: "PostToolUse" }, ref, async (value) => {
+    assert.deepEqual(value, {});
+  });
+});
+
+test("an unenabled nested repository stays off without Git for the same session", async (t) => {
+  const f = await fixture(t),
+    nested = join(f.b, "nested"),
+    previousPath = process.env.PATH;
+  await mkdir(nested);
+  git(nested, "init");
+  await sessionActivation({ cwd: f.b, ref, adapter: "codex", session: "receiver" }, true);
+  process.env.PATH = join(f.root, "missing-bin");
+  t.after(() => {
+    if (previousPath === undefined) delete process.env.PATH;
+    else process.env.PATH = previousPath;
+  });
+  await runHook({ ...input(nested), hook_event_name: "PostToolUse" }, ref, async (value) => {
+    assert.deepEqual(value, {});
+  });
+});
+
 test("a direct prompt enables only its session and later hooks deliver shared messages once", async (t) => {
   const f = await fixture(t),
     responses: object[] = [],
@@ -68,6 +101,28 @@ test("a direct prompt enables only its session and later hooks deliver shared me
     (await listSessions(f.b)).map((session) => session.session),
     ["receiver"],
   );
+});
+
+test("hooks deliver across root and nested directories in either activation direction", async (t) => {
+  const f = await fixture(t),
+    sub = join(f.b, "pkg"),
+    responses: object[] = [],
+    output = async (value: object) => {
+      responses.push(value);
+    };
+  await mkdir(sub);
+  const repo = await repository(f.b);
+  for (const [activation, delivery, session] of [
+    [f.b, sub, "root-first"],
+    [sub, f.b, "sub-first"],
+  ]) {
+    await runHook({ ...input(activation, session), prompt: "Enable GitRelay" }, ref, output);
+    const event = await sendMessage({ cwd: f.a, adapter: "cli", session: "sender", text: session });
+    await runHook({ ...input(delivery, session), hook_event_name: "PostToolUse" }, ref, output);
+    assert.match(JSON.stringify(responses.at(-1)), new RegExp(session));
+    const key = sessionKey(repo, { adapter: "codex", session }, ref);
+    assert.equal((await readReceipt(repo, key, event.id))?.status, "delivered");
+  }
 });
 
 test("disabling closes enrollment and preserves unread messages for an explicit rejoin", async (t) => {
