@@ -96,6 +96,27 @@ test("explicit migration preserves old unread events, receipts and metadata", as
   assert.deepEqual(await readFile(join(f.newDirectory, "events", `${f.event}.json`)), oldEvent);
 });
 
+test("migration preserves POSIX format events and rejects duplicate IDs", async (t) => {
+  const f = await fixture(t),
+    id = "a".repeat(64);
+  const event = {
+    id,
+    kind: "message",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    sender: { root: f.root, adapter: "test", session: "sender" },
+    recipients: [f.key],
+    text: "message",
+    files: ["\\notes"],
+    pathFormat: "posix-v1",
+  };
+  await writeJson(join(f.oldDirectory, "events", `${id}.posix.json`), event);
+  await writeJson(join(f.oldDirectory, "trash", `${id}.json`), { ...event, pathFormat: undefined, files: ["notes"] });
+  await assert.rejects(migrateLegacyState(f.options), /Duplicate legacy event/);
+  await rm(join(f.oldDirectory, "trash", `${id}.json`));
+  await migrateLegacyState(f.options);
+  assert.deepEqual(JSON.parse(await readFile(join(f.newDirectory, "events", `${id}.posix.json`), "utf8")), event);
+});
+
 test("missing legacy metadata reports an actionable error and leaves fresh state available", async (t) => {
   const f = await gitFixture(t);
   const repo = await withRepositoryIdentity(f.b, undefined, async (value) => value);

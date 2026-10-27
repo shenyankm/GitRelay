@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readdir, rename, stat } from "node:fs/promises";
+import { lstat, readdir, rename, stat } from "node:fs/promises";
 import { join, posix } from "node:path";
 import { formatChange, type Change } from "./changes.ts";
 import {
@@ -30,6 +30,7 @@ export interface Session extends Identity {
   baseline?: string;
   migrated?: boolean;
   closedAt?: string;
+  posixPaths?: true;
 }
 
 interface EventBase {
@@ -48,6 +49,7 @@ export interface AgentMessage extends EventBase {
   kind: "message";
   text: string;
   files: string[];
+  pathFormat?: "posix-v1";
 }
 export type SharedEvent = UpstreamEvent | AgentMessage;
 export type Notification =
@@ -95,7 +97,8 @@ export function validateSession(value: unknown, key: string): Session {
     (session.closedAt !== undefined &&
       (typeof session.closedAt !== "string" || !Number.isFinite(Date.parse(session.closedAt)))) ||
     (session.migrated !== undefined && typeof session.migrated !== "boolean") ||
-    (session.baseline !== undefined && !isCommit(session.baseline))
+    (session.baseline !== undefined && !isCommit(session.baseline)) ||
+    (session.posixPaths !== undefined && session.posixPaths !== true)
   )
     throw new Error(`Invalid session: ${key}`);
   validateIdentity(session);
@@ -125,6 +128,7 @@ export async function registerSession(
   identity: Identity,
   ref: string,
   baseline?: string,
+  receiver?: boolean,
 ): Promise<Session> {
   const adapter = identity.adapter;
   validateIdentity({ adapter, session: "snapshot" });
@@ -155,12 +159,23 @@ export async function registerSession(
     baseline: previous?.baseline ?? baseline,
     migrated: previous?.migrated,
     closedAt: previous?.closedAt,
+    posixPaths:
+      receiver === undefined ? previous?.posixPaths : receiver && process.platform !== "win32" ? true : undefined,
   };
   await writeJson(path, session);
   return session;
 }
 
-export function validateEvent(value: unknown, id: string): SharedEvent {
+export function eventFilename(event: SharedEvent): string {
+  return `${event.id}${event.kind === "message" && event.pathFormat === "posix-v1" ? ".posix" : ""}.json`;
+}
+
+export function parseEventFilename(name: string): { id: string; posixPaths: boolean } | undefined {
+  const match = /^([a-f0-9]{64})(\.posix)?\.json$/.exec(name);
+  return match ? { id: match[1], posixPaths: !!match[2] } : undefined;
+}
+
+export function validateEvent(value: unknown, id: string, posixPaths = false): SharedEvent {
   const event = value as SharedEvent | undefined;
   if (
     !event ||
@@ -176,10 +191,12 @@ export function validateEvent(value: unknown, id: string): SharedEvent {
     throw new Error(`Invalid shared event: ${id}`);
   validateIdentity(event.sender);
   if (event.kind === "upstream") {
-    if (typeof event.ref !== "string" || !isCommit(event.previous) || !isCommit(event.commit))
+    if (posixPaths || typeof event.ref !== "string" || !isCommit(event.previous) || !isCommit(event.commit))
       throw new Error(`Invalid upstream event: ${id}`);
   } else if (event.kind === "message") {
-    event.files = validateMessage(event.text, event.files, false);
+    if (posixPaths ? event.pathFormat !== "posix-v1" : event.pathFormat !== undefined)
+      throw new Error(`Invalid message path format: ${id}`);
+    event.files = validateMessage(event.text, event.files, false, posixPaths);
   } else throw new Error(`Unknown shared event: ${id}`);
   return event;
 }
@@ -245,17 +262,42 @@ export async function eventsIn(repo: Repository, key?: string, signal?: AbortSig
         }),
   );
   // shortcut: directory names and receipts are still scanned; add an index if safe GC is insufficient.
-  const names = (await readdir(join(repo.directory, "events"))).filter((name) => /^[a-f0-9]{64}\.json$/.test(name));
+  const names = (await readdir(join(repo.directory, "events"))).filter((name) => parseEventFilename(name));
+  const paths = new Map<string, string[]>();
+  for (const [folder, entries] of [
+    ["events", names],
+    ["trash", await readdir(join(repo.directory, "trash"))],
+  ] as const) {
+    for (const name of entries) {
+      const event = parseEventFilename(name);
+      if (event) paths.set(event.id, [...(paths.get(event.id) ?? []), join(repo.directory, folder, name)]);
+    }
+  }
+  const exists = async (path: string) =>
+    !!(await lstat(path).catch((error) => {
+      if (error.code === "ENOENT") return undefined;
+      throw error;
+    }));
+  for (const candidates of paths.values()) {
+    if (candidates.length < 2 || !candidates.some((path) => path.endsWith(".posix.json"))) continue;
+    const present: string[] = [];
+    for (const path of candidates) if (await exists(path)) present.push(path);
+    // GC can move an event between the directory scans without ever duplicating it.
+    if (present.length > 1 && (await exists(present[0])))
+      throw new Error(
+        "Duplicate events or event formats, including events in both events and trash; preserve state for inspection.",
+      );
+  }
   const events: SharedEvent[] = [];
   for (let offset = 0; offset < names.length; offset += 32) {
     signal?.throwIfAborted();
     const batch = await Promise.allSettled(
       names.slice(offset, offset + 32).map(async (name) => {
-        const id = name.slice(0, -5);
+        const { id, posixPaths } = parseEventFilename(name)!;
         // A filename alone is not an acknowledgement: validate the receipt before skipping its event.
-        if (key !== undefined && receipts.has(name) && (await readReceipt(repo, key, id))) return;
+        if (key !== undefined && receipts.has(`${id}.json`) && (await readReceipt(repo, key, id))) return;
         const value = await readJson(join(repo.directory, "events", name));
-        return value === undefined ? undefined : validateEvent(value, id);
+        return value === undefined ? undefined : validateEvent(value, id, posixPaths);
       }),
     );
     for (const result of batch) {
@@ -329,6 +371,16 @@ export async function publishUpstream(
   )
     throw new Error("Invalid upstream publication input.");
   const id = hash(["upstream", ref, previous, commit, salt]);
+  for (const folder of ["events", "trash"]) {
+    const other = join(repository.directory, folder, `${id}.posix.json`);
+    if (
+      await lstat(other).catch((error) => {
+        if (error.code === "ENOENT") return undefined;
+        throw error;
+      })
+    )
+      throw new Error(`Upstream event ID conflicts with POSIX message: ${id}`);
+  }
   const path = join(repository.directory, "events", `${id}.json`);
   let existing = await readJson(path);
   // Recover a pre-fix GC journal only when all original acknowledgements are
@@ -376,7 +428,7 @@ export function messagePayloadWithinLimit(text: string, files: unknown[]): boole
   return Buffer.byteLength(text) <= 64 * 1024 && Buffer.byteLength(JSON.stringify({ text, files })) <= 64 * 1024;
 }
 
-function validateMessage(text: unknown, files: unknown, strict = true): string[] {
+function validateMessage(text: unknown, files: unknown, strict = true, posixPaths = false): string[] {
   if (typeof text !== "string" || !text.trim() || Buffer.byteLength(text) > 64 * 1024)
     throw new Error("Message text must be non-empty and at most 64 KiB.");
   if (!Array.isArray(files))
@@ -390,8 +442,8 @@ function validateMessage(text: unknown, files: unknown, strict = true): string[]
         file.length > 0 &&
         file.length <= 4096 &&
         !file.includes("\0") &&
-        !/^(?:[\\/]|[A-Za-z]:)/.test(file) &&
-        !file.split(/[\\/]/).includes(".."),
+        !(posixPaths ? file.startsWith("/") : /^(?:[\\/]|[A-Za-z]:)/.test(file)) &&
+        !file.split(posixPaths ? /\// : /[\\/]/).includes(".."),
     )
   )
     throw new Error("Message files must be repository-relative paths (max 1000), without parent traversal.");
@@ -399,10 +451,13 @@ function validateMessage(text: unknown, files: unknown, strict = true): string[]
     throw new Error("Serialized message text and files must be at most 64 KiB.");
   // Git emits slash-separated paths; backslashes are literal filename characters on Unix.
   const normalized = paths.map((file: string) =>
-    posix.normalize(process.platform === "win32" ? file.replaceAll("\\", "/") : file),
+    posix.normalize(!posixPaths && process.platform === "win32" ? file.replaceAll("\\", "/") : file),
   );
   // Old producers accepted these literal paths; keep them non-matching rather than bricking the inbox.
-  if (strict && normalized.some((file) => file === "." || file.endsWith("/") || /^(?:[\\/]|[A-Za-z]:)/.test(file)))
+  if (
+    strict &&
+    normalized.some((file) => file === "." || file.endsWith("/") || (!posixPaths && /^(?:[\\/]|[A-Za-z]:)/.test(file)))
+  )
     throw new Error("Message files must be repository-relative file paths, not directories.");
   return [...new Set(normalized)];
 }
@@ -415,7 +470,10 @@ export async function sendMessage(
     ref = options.ref ?? "refs/heads/main";
   if (identity.instance === undefined) delete identity.instance;
   validateIdentity(identity);
-  const files = validateMessage(text, options.files ?? []);
+  const files = validateMessage(text, options.files ?? [], true, process.platform !== "win32");
+  const posixPaths =
+    process.platform !== "win32" &&
+    files.some((file) => /^(?:[\\/]|[A-Za-z]:)/.test(file) || file.split(/[\\/]/).includes(".."));
   const repo = await repository(cwd, signal);
   for (const file of files) {
     signal?.throwIfAborted();
@@ -431,12 +489,13 @@ export async function sendMessage(
       await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
       const sender = await readSession(repo, sessionKey(repo, identity, ref));
       if (sender?.closedAt) throw new Error("This session has left; use join before sending messages.");
-      const recipients = (await sessionsIn(repo))
-        .filter(
-          (other) =>
-            !other.closedAt && !(other.root === repo.root && other.adapter === adapter && other.session === session),
-        )
-        .map((other) => other.key);
+      const targets = (await sessionsIn(repo)).filter(
+        (other) =>
+          !other.closedAt && !(other.root === repo.root && other.adapter === adapter && other.session === session),
+      );
+      if (posixPaths && targets.some((target) => !target.posixPaths))
+        throw new Error("POSIX filename messages require all recipients to register with a compatible POSIX receiver.");
+      const recipients = targets.map((other) => other.key);
       const event: AgentMessage = {
         id: hash(randomUUID()),
         kind: "message",
@@ -445,9 +504,22 @@ export async function sendMessage(
         recipients,
         text,
         files,
+        ...(posixPaths ? { pathFormat: "posix-v1" as const } : {}),
       };
+      for (const folder of ["events", "trash"]) {
+        for (const suffix of [".json", ".posix.json"]) {
+          const path = join(repo.directory, folder, `${event.id}${suffix}`);
+          if (
+            await lstat(path).catch((error) => {
+              if (error.code === "ENOENT") return undefined;
+              throw error;
+            })
+          )
+            throw new Error(`Message event ID already exists: ${event.id}`);
+        }
+      }
       signal?.throwIfAborted();
-      await writeJson(join(repo.directory, "events", `${event.id}.json`), event);
+      await writeJson(join(repo.directory, "events", eventFilename(event)), event);
       return event;
     },
     { signal, waitMs: 5000 },

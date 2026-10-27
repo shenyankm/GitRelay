@@ -1,6 +1,14 @@
 import { readdir, rename, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { eventsIn, readReceipt, readSession, validateEvent, type SharedEvent } from "./mailbox.ts";
+import {
+  eventFilename,
+  eventsIn,
+  parseEventFilename,
+  readReceipt,
+  readSession,
+  validateEvent,
+  type SharedEvent,
+} from "./mailbox.ts";
 import { readRef } from "./publisher.ts";
 import {
   BusyError,
@@ -47,12 +55,15 @@ export async function collectRepository(repo: Repository, options: CleanupOption
       const approved: SharedEvent[] = [];
       for (const name of await readdir(join(repo.directory, "trash"))) {
         options.signal?.throwIfAborted();
-        if (!/^[a-f0-9]{64}\.json$/.test(name)) continue;
+        const parsed = parseEventFilename(name);
+        if (!parsed) continue;
         const value = await readJson(join(repo.directory, "trash", name));
-        if (value !== undefined) approved.push(validateEvent(value, name.slice(0, -5)));
+        if (value !== undefined) approved.push(validateEvent(value, parsed.id, parsed.posixPaths));
       }
       const events = await eventsIn(repo, undefined, options.signal); // Validate before making any deletion.
       const trashIds = new Set(approved.map(({ id }) => id));
+      if (trashIds.size !== approved.length)
+        throw new Error("Duplicate event formats in trash; preserve state for inspection.");
       const duplicate = events.find(({ id }) => trashIds.has(id));
       if (duplicate) throw new Error(`Event exists in both events and trash: ${duplicate.id}`);
       // A published event can be consumed before its ref cursor is committed. Keep
@@ -122,9 +133,9 @@ export async function collectRepository(repo: Repository, options: CleanupOption
           report.eligible.push(event.id);
           if (!options.apply) continue;
           options.signal?.throwIfAborted();
-          const trash = join(repo.directory, "trash", `${event.id}.json`);
+          const trash = join(repo.directory, "trash", eventFilename(event));
           // The rename commits deletion. A crash can only leave confirmed events in trash.
-          if (!committed) await rename(join(repo.directory, "events", `${event.id}.json`), trash);
+          if (!committed) await rename(join(repo.directory, "events", eventFilename(event)), trash);
           for (const key of event.recipients) {
             const directory = join(repo.directory, "receipts", key);
             let byEvent = proofFiles.get(key);

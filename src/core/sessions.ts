@@ -205,7 +205,13 @@ export async function joinSession(options: SessionOptions): Promise<Session> {
         async () => {
           const current = await synchronizeRef(repo, options.ref, options, options.signal);
           await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
-          const registered = await registerSession(repo, options, options.ref, current);
+          const registered = await registerSession(
+            repo,
+            options,
+            options.ref,
+            current,
+            process.platform === "win32" ? false : undefined,
+          );
           const open = { ...registered, closedAt: undefined };
           await writeJson(join(repo.directory, "sessions", `${key}.json`), open);
           return open;

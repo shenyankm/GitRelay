@@ -26,6 +26,7 @@ The default is `~/.local/state/worktree-agent-sync`, or `$XDG_STATE_HOME/worktre
 ├── sessions/<session-key>.json   # Adapter, native ID, worktree, subscription, lastSeen
 ├── sessions/<session-key>.lock   # Per-session consumption lock
 ├── events/<event-id>.json        # One shared copy of each event
+├── events/<event-id>.posix.json  # Message with POSIX-only file names
 ├── trash/                       # Recovery journal for approved deletions
 └── receipts/<session-key>/
     ├── <event-id>.json           # Independent delivery/irrelevance receipt
@@ -98,6 +99,10 @@ an idempotency key or an automatic result-recovery operation; preserve the
 event and receipt state and inspect it before deciding whether to resend.
 
 Text must be nonempty and at most 64 KiB in UTF-8. The JSON serialization of `{ text, files }` must also be at most 64 KiB, including JSON syntax and escaping, so the maximum text size depends on its contents and file list. Files must be repository-relative file paths: no absolute paths, directories, or `..` traversal. Existing directories are rejected even without a trailing slash. Deleted or renamed paths and files present only in other worktrees are allowed; a regular file at a sender-side prefix does not invalidate an otherwise valid target.
+
+On POSIX, names rejected by older cross-platform validation (such as `\\notes`, `C:notes`, and `dir\\..\\inside`) use a separate event format that preserves backslashes as literal characters. Sending such a message requires every open recipient to have checked its inbox with a compatible POSIX message receiver; `join` or the upstream-only `consumeChanges` API does not establish this capability. An incompatible or Windows recipient causes the entire send to fail before an event is published. The saved capability reflects the last receiver check, not proof that the receiver is online or has not since been downgraded.
+
+Older clients ignore these new-format events, including during cleanup. A recipient downgraded after publication will not see or acknowledge them until it runs a compatible receiver again; preserve the shared state during upgrades and downgrades. A compatible garbage collector retains the events until every original recipient has a receipt. Existing names that older validation accepted keep the old format; a backslash in such a name remains a literal character on POSIX but is interpreted as a separator by older Windows receivers.
 
 Each serialized JSON state file is limited to 2 MiB. A sufficiently large recipient snapshot can exceed this limit even when the message itself is valid. Publication then fails before replacing or creating the event; recipients are never silently truncated, and an upstream ref cursor does not advance. Inspect subscriptions and preserve unread state before any explicit maintenance.
 

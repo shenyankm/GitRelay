@@ -3,7 +3,7 @@ import { lstat, mkdir, open, readdir, link, unlink } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { checkStateDirectory, hash, isId, withLock, writeExclusiveTemporary } from "./store.ts";
-import { validateEvent } from "./mailbox.ts";
+import { parseEventFilename, validateEvent } from "./mailbox.ts";
 
 interface MigrationOptions {
   common: string;
@@ -112,6 +112,7 @@ export async function migrateLegacyState(
         throw new Error("Unexpected legacy repository state; source preserved.");
       const files: string[] = [],
         sessionKeys = new Set<string>(),
+        eventIds = new Set<string>(),
         receiptDirectories: string[] = [];
       const entries = new Map<string, string[]>();
       for (const folder of folders) {
@@ -139,11 +140,18 @@ export async function migrateLegacyState(
               files.push(join(folder, name, receipt));
             }
           } else {
-            if (!filename.test(name)) throw new Error(`Unexpected legacy ${folder} entry: ${name}`);
+            const eventName = folder === "events" || folder === "trash" ? parseEventFilename(name) : undefined;
+            if (!eventName && !filename.test(name)) throw new Error(`Unexpected legacy ${folder} entry: ${name}`);
             files.push(join(folder, name));
             if (folder === "sessions") sessionKeys.add(name.slice(0, -5));
             if (folder === "events" || folder === "trash") {
-              const event = validateEvent((await readState(join(source, name))).value, name.slice(0, -5));
+              if (eventIds.has(eventName!.id)) throw new Error(`Duplicate legacy event: ${eventName!.id}`);
+              eventIds.add(eventName!.id);
+              const event = validateEvent(
+                (await readState(join(source, name))).value,
+                eventName!.id,
+                eventName!.posixPaths,
+              );
               for (const key of event.recipients) sessionKeys.add(key);
             }
           }

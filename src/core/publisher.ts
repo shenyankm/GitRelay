@@ -3,6 +3,7 @@ import { readdir } from "node:fs/promises";
 import { resolveMain } from "./changes.ts";
 import {
   eventsIn,
+  parseEventFilename,
   publishUpstream,
   registerSession,
   sessionsIn,
@@ -62,9 +63,10 @@ export async function synchronizeRef(
     signal?.throwIfAborted();
     const batch = await Promise.allSettled(
       trashNames.slice(offset, offset + 4).map(async (name) => {
-        if (!/^[a-f0-9]{64}\.json$/.test(name)) return;
+        const parsed = parseEventFilename(name);
+        if (!parsed) return;
         const value = await readJson(join(repo.directory, "trash", name));
-        return value === undefined ? undefined : validateEvent(value, name.slice(0, -5));
+        return value === undefined ? undefined : validateEvent(value, parsed.id, parsed.posixPaths);
       }),
     );
     for (const [index, result] of batch.entries()) {

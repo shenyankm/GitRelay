@@ -72,6 +72,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
   const identity = { adapter, session, instance: options.instance };
   validateIdentity(identity);
   const signal = options.signal;
+  const upstreamOnly = !!options.upstreamOnly;
   signal?.throwIfAborted();
   const cwd = options.cwd;
   const ref = options.ref;
@@ -97,7 +98,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
               // A daemon hint cannot rule out a later interrupted publication.
               current = await synchronizeRef(repo, ref, identity, signal);
               await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
-              const registered = await registerSession(repo, identity, ref, current);
+              const registered = await registerSession(repo, identity, ref, current, !upstreamOnly);
               if (!registered.migrated) {
                 const legacyPath = join(repo.common, "worktree-agent-sync", `${key}.json`);
                 const legacy = options.initialCursor ?? (await readJson(legacyPath));
@@ -189,7 +190,9 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
         let upstreamPending = false;
         for (const event of ordered) {
           signal?.throwIfAborted();
-          if (!event.recipients.includes(key) || (options.upstreamOnly && event.kind !== "upstream")) continue;
+          if (!event.recipients.includes(key) || (upstreamOnly && event.kind !== "upstream")) continue;
+          if (event.kind === "message" && event.pathFormat === "posix-v1" && process.platform === "win32")
+            throw new Error(`POSIX filename event ${event.id} requires a POSIX receiver; event preserved.`);
           if (event.kind === "upstream" && event.ref !== ref)
             throw new Error(
               `Upstream event ${event.id} targets a session subscribed to another ref; preserve state for inspection.`,
