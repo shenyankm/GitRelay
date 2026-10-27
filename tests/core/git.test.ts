@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -132,4 +132,29 @@ test("supports explicit start points and reports non-repository errors", async (
   const path = await addWorktree(repo, join(root, "target"), "feature/base", true, "main");
   assert.equal(git(path, "rev-parse", "HEAD"), git(repo, "rev-parse", "main"));
   await assert.rejects(listWorktrees(root), /git repository/);
+});
+
+test("a branch start point wins over a direct ref with the same name", async (t) => {
+  const { repo, root } = await fixture(t);
+  const initial = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "update-ref", "refs/stash", initial);
+  git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "--allow-empty", "-m", "new");
+  const newer = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "branch", "stash");
+  const fromBranch = await addWorktree(repo, join(root, "branch"), "feature/stash", true, "stash");
+  assert.equal(git(fromBranch, "rev-parse", "HEAD").trim(), newer);
+});
+
+test("new worktrees reject hash-shaped ref collisions", async (t) => {
+  const { repo, root } = await fixture(t);
+  const initial = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "--allow-empty", "-m", "new");
+  const newer = git(repo, "rev-parse", "HEAD").trim();
+  git(repo, "update-ref", `refs/heads/${newer}`, initial);
+  const path = join(root, "hash");
+  await assert.rejects(addWorktree(repo, path, "feature/hash", true, "main"), /commit.*ambiguous.*ref/i);
+  git(repo, "update-ref", `refs/tags/${newer}`, initial);
+  await assert.rejects(addWorktree(repo, path, "feature/hash", true, "main"), /commit.*ambiguous.*ref/i);
+  await assert.rejects(access(path));
+  assert.throws(() => git(repo, "show-ref", "--verify", "refs/heads/feature/hash"));
 });
