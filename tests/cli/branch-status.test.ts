@@ -65,6 +65,16 @@ test("status handles unborn branches", async (t) => {
       /refs\/remotes\/origin\/main/,
     );
   }
+  git(empty, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main");
+  git(empty, "config", "branch.main.merge", "refs/heads/HEAD");
+  assert.deepEqual(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, {
+    ref: "refs/remotes/origin/HEAD",
+    commit: f.initial,
+    ahead: null,
+    behind: null,
+  });
+  git(empty, "symbolic-ref", "--delete", "refs/remotes/origin/HEAD");
+  git(empty, "config", "branch.main.merge", "refs/heads/main");
   git(empty, "update-ref", "-d", "refs/remotes/origin/main");
   for (const args of [[], ["--branch", "main"]]) {
     assert.deepEqual(JSON.parse((await run("status", "--cwd", empty, ...args)).stdout).local.tracking, {

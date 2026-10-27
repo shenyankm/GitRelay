@@ -133,25 +133,8 @@ export async function branchStatus(options: BranchStatusOptions) {
   );
   const row = rows.map((line) => line.split("\0")).find(([name]) => name === ref);
   const commit = row?.[1] ?? null;
-  let upstream = row?.[2] || null;
-  if (!row) {
-    try {
-      upstream = gitRefLine(
-        await git(
-          cwd,
-          ["rev-parse", "--symbolic-full-name", "--verify", "--quiet", "--end-of-options", `${branch}@{upstream}`],
-          signal,
-          "paths",
-        ),
-      );
-    } catch (error) {
-      signal?.throwIfAborted();
-      const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
-      if (cause?.code !== 1 || cause.stderr?.toString()) throw error;
-      upstream = await missingUpstream(cwd, branch, signal);
-      if (upstream) await git(cwd, ["check-ref-format", upstream], signal);
-    }
-  }
+  const upstream = row ? row[2] || null : await missingUpstream(cwd, branch, signal);
+  if (!row && upstream) await git(cwd, ["check-ref-format", upstream], signal);
   let tracking: { ref: string; commit: string | null; ahead: number | null; behind: number | null } | null = null;
   if (upstream) {
     const upstreamRows = gitRefLines(
