@@ -268,6 +268,13 @@ export async function recoverRepositoryInitialization(
       );
     const allowed = new Set(["identity-owner.json", "sessions", "events", "receipts", "refs", "trash"]);
     for (const name of entries) {
+      if (
+        /^identity-ready\.json\.[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.tmp$/.test(name)
+      ) {
+        if (!(await lstat(join(repo.directory, name))).isFile())
+          throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
+        continue;
+      }
       if (!allowed.has(name))
         throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
       if (name === "identity-owner.json") continue;
