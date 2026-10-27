@@ -2,14 +2,20 @@
 import { parseArgs } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
 import { consumeMailbox } from "../core/consumer.ts";
-import { formatNotifications, listSessions, messagePayloadWithinLimit, sendMessage } from "../core/mailbox.ts";
+import {
+  formatNotifications,
+  listSessions,
+  messagePayloadWithinLimit,
+  sendMessage,
+  validateIdentity,
+} from "../core/mailbox.ts";
 import { runHook } from "../adapters/hooks.ts";
 import { joinSession, leaveSession } from "../core/sessions.ts";
 import { sessionActivation } from "../core/activation.ts";
 import { collectGarbage } from "../core/cleanup.ts";
 import { runDaemon } from "../core/daemon.ts";
 import { daemonStatus } from "../core/daemon-state.ts";
-import { branchStatus } from "../core/branch-status.ts";
+import { branchStatus, validateGitHubRepository } from "../core/branch-status.ts";
 import { syncBranch } from "../core/branch-sync.ts";
 import { git, gitRefLine } from "../core/git.ts";
 import { writeFile } from "node:fs/promises";
@@ -25,7 +31,7 @@ import {
   withRepositoryIdentity,
 } from "../core/store.ts";
 import { migrateLegacyState } from "../core/identity-migration.ts";
-import { join } from "node:path";
+import { join, parse } from "node:path";
 
 const abort = new AbortController();
 let stopSignal: "SIGINT" | "SIGTERM" | undefined;
@@ -66,6 +72,17 @@ function reportDiagnostic(message: string): void {
 let outputFailed = false;
 let installationCommand = false;
 let longRunningCommand = false;
+async function validateWatchRef(ref: string): Promise<boolean> {
+  try {
+    await git(parse(process.execPath).root, ["check-ref-format", ref], abort.signal);
+    return true;
+  } catch (error) {
+    abort.signal.throwIfAborted();
+    const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
+    if (cause?.code === 1 && !cause.stderr?.toString()) throw error;
+    return false;
+  }
+}
 async function output(value: object | string): Promise<void> {
   const written = Promise.withResolvers<void>();
   const cancel = () => written.reject(abort.signal.reason);
@@ -206,6 +223,13 @@ async function main() {
     const interval = Number(values["interval-ms"] ?? (network ? "30000" : "5000"));
     if (!Number.isInteger(interval) || interval < (network ? 5000 : 50) || interval > 3_600_000)
       throw new Error(`interval-ms must be an integer between ${network ? 5000 : 50} and 3600000.`);
+    let branchValidated = !values.watch || values.branch === undefined;
+    if (values.watch) {
+      if (values.session !== undefined)
+        validateIdentity({ adapter: values.agent, session: values.session, instance: values.instance });
+      if (values.branch !== undefined) branchValidated = await validateWatchRef(`refs/heads/${values.branch}`);
+      if (values.repo) validateGitHubRepository(values.repo);
+    }
     const cwd = values.cwd ?? process.cwd();
     let branch = values.branch;
     if (branch === undefined && values["auto-sync"]) {
@@ -217,6 +241,7 @@ async function main() {
     }
     let previous: string | undefined;
     do {
+      if (!branchValidated) branchValidated = await validateWatchRef(`refs/heads/${values.branch}`);
       try {
         const sync = values["auto-sync"] ? await syncBranch(cwd, branch!, abort.signal) : undefined;
         const snapshot = {
@@ -336,6 +361,13 @@ async function main() {
   }
   if (command !== "daemon" && !values.session)
     throw new Error("--session ID is required for per-session delivery and deduplication.");
+  let refValidated = command !== "watch";
+  if (command === "watch") {
+    validateIdentity({ adapter: values.agent, session: values.session!, instance: values.instance });
+    if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
+      throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
+    refValidated = await validateWatchRef(values.ref);
+  }
   if (command === "join" || command === "leave") {
     const options = {
       cwd: cwd(),
@@ -403,6 +435,7 @@ async function main() {
     return;
   }
   while (!abort.signal.aborted) {
+    if (!refValidated) refValidated = await validateWatchRef(values.ref);
     try {
       await check();
     } catch (error) {
