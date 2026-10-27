@@ -123,7 +123,7 @@ async function main() {
     (command === "status" && values.watch === true);
   if (values["branch-status"] && !(command === "hook" && agent === "codex"))
     throw new Error("--branch-status requires hook codex.");
-  if ((values.format || values.output) && command !== "status")
+  if ((values.format !== undefined || values.output !== undefined) && command !== "status")
     throw new Error("--format and --output require status.");
   const days = values["retention-days"].trim() ? Number(values["retention-days"]) : NaN;
   if (values.help || !command) {
@@ -145,7 +145,18 @@ async function main() {
     return;
   }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
+  if (values.session === "") throw new Error("--session must not be empty.");
   if (values.instance !== undefined && !values.session) throw new Error("--instance requires --session.");
+  if (
+    command !== "status" &&
+    (values.github ||
+      values.repo !== undefined ||
+      values.branch !== undefined ||
+      values.watch ||
+      values["auto-sync"] ||
+      values["no-auto-sync"])
+  )
+    throw new Error("--github, --repo, --branch, --watch and sync flags require the status command.");
   if (values["acknowledge-history-gap"] && (command !== "check" || !values.apply))
     throw new Error(
       "--acknowledge-history-gap requires check --apply; it accepts unreadable history without recovering the diff.",
@@ -193,11 +204,14 @@ async function main() {
   }
   if (command === "status") {
     if (positionals.length !== 1) throw new Error("Expected status without positional arguments.");
-    if (values.format && !["json", "markdown"].includes(values.format))
+    if (values.format !== undefined && !["json", "markdown"].includes(values.format))
       throw new Error("--format must be json or markdown.");
-    if (values.output && (values.format !== "markdown" || values.watch))
+    if (values.output !== undefined && (values.format !== "markdown" || values.watch))
       throw new Error("--output requires --format markdown without --watch.");
-    if (values.repo && !values.github) throw new Error("--repo requires --github.");
+    if (values.output === "") throw new Error("--output must not be empty.");
+    if (values.repo !== undefined && !values.github) throw new Error("--repo requires --github.");
+    if (values.repo === "") throw new Error("--repo must not be empty.");
+    if (values.branch === "") throw new Error("--branch must not be empty.");
     if (values["auto-sync"] && values["no-auto-sync"])
       throw new Error("Choose --auto-sync or --no-auto-sync, not both.");
     if (values["auto-sync"] && values.repo)
@@ -292,8 +306,6 @@ async function main() {
     } while (!abort.signal.aborted);
     return;
   }
-  if (values.github || values.repo || values.branch || values.watch || values["auto-sync"] || values["no-auto-sync"])
-    throw new Error("--github, --repo, --branch, --watch and sync flags require the status command.");
   if (command === "hook") {
     if (positionals.length !== 2 || agent !== "codex") throw new Error("Choose hook codex.");
     let data = "";

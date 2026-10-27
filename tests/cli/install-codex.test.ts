@@ -113,6 +113,34 @@ test(
 );
 
 test(
+  "Codex recovers a lost anchor after the user preserves and removes the entry",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    await installCodex(f);
+    const record = JSON.parse(await readFile(join(f.workspace, "codex-hooks.json"), "utf8"));
+    const original = await readFile(f.hook, "utf8");
+    await rm(join(f.codexHome, record.anchor));
+    await assert.rejects(uninstallCodex(f), /ownership cannot be established/);
+    await assert.rejects(installCodex(f), /ownership cannot be established/);
+    assert.equal(await readFile(f.hook, "utf8"), original);
+    const backup = join(f.codexHome, "saved-hooks.json");
+    await rename(f.hook, backup);
+    const archive = join(record.entry, "..", ".git-relay-codex-removed-abc", "hooks.json");
+    await mkdir(join(f.codexHome, ".git-relay-codex-removed-abc"));
+    await writeFile(archive, "preserve pending archive");
+    await writeFile(join(f.workspace, "codex-hooks.json"), JSON.stringify({ ...record, removing: archive }));
+    await assert.rejects(uninstallCodex(f), /ownership cannot be established/);
+    assert.equal(await readFile(archive, "utf8"), "preserve pending archive");
+    await writeFile(join(f.workspace, "codex-hooks.json"), JSON.stringify(record));
+    await uninstallCodex(f);
+    await installCodex(f);
+    assert.equal(await readFile(backup, "utf8"), original);
+    assert.equal(await readFile(f.hook, "utf8"), original);
+  },
+);
+
+test(
   "Codex reinstalls a missing owned runtime and upgrades after it is removed",
   { skip: process.platform === "win32" },
   async (t) => {

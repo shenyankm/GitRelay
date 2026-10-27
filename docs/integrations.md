@@ -83,6 +83,17 @@ operation may have completed requires inspecting `uninstall --dry-run` and the
 client configuration before retrying. Stop sessions before migrating a legacy
 launcher: already-running old code and its short publication gap are not fenced.
 
+If an installer reports that entry ownership cannot be established because its
+hidden anchor is missing, do not recreate the anchor from matching content: a
+replacement file can have the same bytes. Inspect the entry and, if you decide
+to remove it, move it to a safe backup location that does not overwrite another
+file. The entry is `hooks.json` in `CODEX_HOME` (default `~/.codex`) for Codex,
+or `opencode/plugins/git-relay.js` in `XDG_CONFIG_HOME` (default `~/.config`)
+for OpenCode. With both entry and anchor absent, run
+`git-relay uninstall --platform codex` or `git-relay uninstall --platform opencode`;
+then reinstall that platform if needed. If an uninstall was interrupted and an archive is
+recorded, preserve it and investigate instead of using this recovery path.
+
 Automatic setup on Windows has not been accepted on a real host. Codex automatic
 installation is unavailable there. `.cmd`/`.bat` client launchers may fail version
 probing without a shell; use manual configuration where necessary.
