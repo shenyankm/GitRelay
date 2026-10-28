@@ -19,7 +19,7 @@ import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { readJson, withLock, writeJson } from "../core/store.ts";
 import { readInstallationRecord } from "./install-record.ts";
-import { checkWorkspace } from "./install-opencode.ts";
+import { checkWorkspace, validateWorkspacePath } from "./install-opencode.ts";
 import { commandOutput } from "./command-output.ts";
 import { installerDigest, matchesLegacyInstallerDigest } from "./installer-digest.ts";
 import { checkInlineHooks } from "./codex-config.ts";
@@ -159,6 +159,7 @@ export async function installCodex({
 }: Options): Promise<void> {
   if (process.platform === "win32") throw new Error("Automatic Codex hooks installation is not supported on Windows.");
   signal?.throwIfAborted();
+  validateWorkspacePath(workspace);
   await checkWorkspace(workspace);
   const home = await codexDirectory(env);
   await mkdir(home, { recursive: true, mode: 0o700 });
