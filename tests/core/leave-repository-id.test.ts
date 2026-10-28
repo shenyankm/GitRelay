@@ -43,6 +43,42 @@ async function fixture(t: TestContext) {
   return { directory, repos, root, ref, actor, key, add };
 }
 
+test("removed worktree lookup accepts equivalent Git root spelling", async (t) => {
+  const f = await fixture(t),
+    a = await f.add("a");
+  const root = process.platform === "win32" ? f.root.replace(/\\/g, "/") : `/${f.root}`;
+  assert.notEqual(root, f.root);
+  const key = sessionKey({ root }, f.actor, f.ref);
+  const path = join(a.target, "sessions", `${key}.json`);
+  const previous = join(a.target, "sessions", `${f.key}.json`);
+  const session = JSON.parse(await readFile(previous, "utf8"));
+  await rm(previous);
+  await writeFile(path, JSON.stringify({ ...session, key, root }));
+  for (const repositoryId of [undefined, a.id]) {
+    await writeFile(path, JSON.stringify({ ...session, key, root }));
+    assert.ok((await leaveSession({ cwd: f.root, ...f.actor, ref: f.ref, repositoryId }))?.closedAt);
+    assert.ok(JSON.parse(await readFile(path, "utf8")).closedAt);
+    await writeFile(path, JSON.stringify({ ...session, key, root }));
+    const options = { cwd: f.root, ...f.actor, ref: f.ref, repositoryId };
+    const checked = await preflightLeaveSession(options);
+    assert.ok((await leaveSessionIfRepository(options, checked))?.closedAt);
+  }
+});
+
+test("equivalent root spellings must not select between two subscriptions", async (t) => {
+  const f = await fixture(t),
+    a = await f.add("a");
+  const root = process.platform === "win32" ? f.root.replace(/\\/g, "/") : `/${f.root}`;
+  const key = sessionKey({ root }, f.actor, f.ref);
+  const path = join(a.target, "sessions", `${key}.json`);
+  const original = JSON.parse(await readFile(join(a.target, "sessions", `${f.key}.json`), "utf8"));
+  await writeFile(path, JSON.stringify({ ...original, key, root }));
+  for (const repositoryId of [undefined, a.id])
+    await assert.rejects(leaveSession({ cwd: f.root, ...f.actor, ref: f.ref, repositoryId }), /Cannot uniquely locate/);
+  assert.equal(JSON.parse(await readFile(path, "utf8")).closedAt, undefined);
+  assert.equal(JSON.parse(await readFile(join(a.target, "sessions", `${f.key}.json`), "utf8")).closedAt, undefined);
+});
+
 test("explicit state repository resolves ambiguous removed-worktree session without closing another", async (t) => {
   const f = await fixture(t),
     a = await f.add("a"),
