@@ -164,13 +164,12 @@ async function main() {
   }
   if (values.cwd === "") throw new Error("--cwd must not be empty.");
   if (
-    ["check", "watch", "send", "join", "leave", "hook"].includes(command) ||
+    ["check", "watch", "send", "join", "leave"].includes(command) ||
     (command === "status" && values.watch && values.session)
   ) {
     if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
       throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
-    if (command !== "watch" && command !== "hook")
-      await git(parse(process.execPath).root, ["check-ref-format", values.ref], abort.signal);
+    if (command !== "watch") await git(parse(process.execPath).root, ["check-ref-format", values.ref], abort.signal);
   }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
   if (values["dry-run"] && !["install", "uninstall", "gc"].includes(command))
