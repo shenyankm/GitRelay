@@ -4,7 +4,7 @@ import { access, chmod, mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { test } from "node:test";
-import { inspectChange } from "../../src/core/changes.ts";
+import { HistoryUnavailableError, inspectChange } from "../../src/core/changes.ts";
 import { fixture, git } from "../helpers.ts";
 
 for (const mode of ["cancel", "timeout"] as const)
@@ -97,3 +97,32 @@ for (const olderGit of [false, true])
       assert.equal(git(f.main, "cat-file", "-e", blob), "");
     },
   );
+
+test(
+  "a signalled patch is not classified as unavailable history",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      bin = join(f.root, "bin");
+    await writeFile(join(f.b, "shared.txt"), "local\n");
+    const tip = await f.commit(f.main, "shared.txt", "upstream\n");
+    await mkdir(bin);
+    await writeFile(
+      join(bin, "git"),
+      `#!/bin/sh\ncase "$*" in *' --unified=3 '*) kill -TERM $$;; esac\nexec /usr/bin/git "$@"\n`,
+    );
+    await chmod(join(bin, "git"), 0o755);
+    const oldPath = process.env.PATH;
+    process.env.PATH = `${bin}:${oldPath ?? ""}`;
+    try {
+      await assert.rejects(
+        inspectChange({ root: f.b, ref: "refs/heads/main", commit: f.initial }, tip),
+        (error: Error) =>
+          !(error instanceof HistoryUnavailableError) && (error.cause as { signal?: string })?.signal === "SIGTERM",
+      );
+    } finally {
+      if (oldPath === undefined) delete process.env.PATH;
+      else process.env.PATH = oldPath;
+    }
+  },
+);
