@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { test } from "node:test";
-import { fixture } from "../helpers.ts";
+import { fixture, git } from "../helpers.ts";
 
 const exec = promisify(execFile);
 const cli = fileURLToPath(new URL("../../dist/cli/main.js", import.meta.url));
@@ -147,4 +147,20 @@ test("inactive hooks ignore an invalid configured ref", async (t) => {
     JSON.stringify({ hook_event_name: "UserPromptSubmit", session_id: "s", cwd: f.b, prompt: "Enable GitRelay" }),
   );
   await assert.rejects(enabled, /full branch ref/);
+});
+
+test("leave outside a repository is a no-op while missing worktrees retain their diagnostic", async (t) => {
+  const f = await fixture(t);
+  const outside = join(f.root, "outside");
+  await mkdir(outside);
+  assert.deepEqual(JSON.parse((await run("leave", "--cwd", outside, "--agent", "codex", "--session", "s")).stdout), {
+    left: false,
+  });
+  await assert.rejects(
+    run("leave", "--cwd", join(f.root, "missing"), "--agent", "codex", "--session", "s"),
+    /Cannot uniquely locate the removed worktree subscription/,
+  );
+  await run("check", "--cwd", f.b, "--agent", "codex", "--session", "s");
+  git(f.main, "worktree", "remove", "--force", f.b);
+  assert.equal(JSON.parse((await run("leave", "--cwd", f.b, "--agent", "codex", "--session", "s")).stdout).left, true);
 });

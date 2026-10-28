@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { lstat, readdir, rename, stat } from "node:fs/promises";
+import { lstat, readdir, rename } from "node:fs/promises";
 import { join, posix } from "node:path";
 import { formatChange, type Change } from "./changes.ts";
 import {
@@ -477,9 +477,9 @@ export async function sendMessage(
   const repo = await repository(cwd, signal);
   for (const file of files) {
     signal?.throwIfAborted();
-    const info = await stat(join(repo.root, file)).catch((error) => {
+    const info = await lstat(join(repo.root, file)).catch((error) => {
       if (error.code === "ENOENT" || error.code === "ENOTDIR") return undefined; // Targets may exist only in another worktree.
-      throw error;
+      throw new Error(`Cannot inspect message file path: ${file} (${error.code ?? "unknown error"})`, { cause: error });
     });
     if (info?.isDirectory()) throw new Error(`Message files must name files, not directories: ${file}`);
   }

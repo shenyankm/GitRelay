@@ -25,6 +25,17 @@ import { installerDigest } from "../../src/cli/installer-digest.ts";
 
 const exec = promisify(execFile);
 
+async function groupHasOwnedProcess(group: number): Promise<boolean> {
+  const { stdout } = await exec("ps", ["-axo", "pgid=,uid="]);
+  const rows = stdout.trim().split("\n");
+  if (!rows.length || rows.some((row) => !/^\s*\d+\s+\d+\s*$/.test(row)))
+    throw new Error("Could not inspect process group ownership.");
+  return rows.some((row) => {
+    const [pgid, uid] = row.trim().split(/\s+/).map(Number);
+    return pgid === group && uid === process.getuid?.();
+  });
+}
+
 async function waitForGroupGone(group: number): Promise<void> {
   const deadline = Date.now() + 3000;
   while (Date.now() < deadline) {
@@ -32,12 +43,87 @@ async function waitForGroupGone(group: number): Promise<void> {
       process.kill(-group, 0);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ESRCH") return;
-      throw error;
+      if ((error as NodeJS.ErrnoException).code !== "EPERM") throw error;
+      // A reused process group can belong to another user; never overlook our own fixture processes.
+      if (!(await groupHasOwnedProcess(group))) return;
     }
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   assert.fail(`Process group ${group} remained after cancellation`);
 }
+
+test(
+  "process group inspection detects owned children until they exit",
+  { skip: process.platform === "win32" },
+  async () => {
+    const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { detached: true, stdio: "ignore" });
+    const group = child.pid!;
+    try {
+      assert.equal(await groupHasOwnedProcess(group), true);
+    } finally {
+      child.kill("SIGKILL");
+      await new Promise<void>((resolve) => child.once("close", () => resolve()));
+    }
+    assert.equal(await groupHasOwnedProcess(group), false);
+  },
+);
+
+test(
+  "process group inspection detects a child after its group leader exits",
+  { skip: process.platform === "win32" },
+  async () => {
+    const leader = spawn("/bin/sh", ["-c", "/bin/sleep 30 >/dev/null 2>&1 & echo $!"], {
+      detached: true,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    const group = leader.pid!;
+    let output = "";
+    leader.stdout.setEncoding("utf8");
+    leader.stdout.on("data", (data) => (output += data));
+    await new Promise<void>((resolve, reject) => {
+      leader.once("error", reject);
+      leader.once("close", () => resolve());
+    });
+    const child = Number(output.trim());
+    assert.ok(Number.isInteger(child) && child > 1);
+    try {
+      assert.equal(await groupHasOwnedProcess(group), true);
+    } finally {
+      try {
+        process.kill(child, "SIGKILL");
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error;
+      }
+    }
+    await waitForGroupGone(group);
+  },
+);
+
+test("an EPERM probe still waits for owned fixture processes", { skip: process.platform === "win32" }, async () => {
+  const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { detached: true, stdio: "ignore" });
+  const group = child.pid!;
+  const originalKill = process.kill;
+  let probes = 0;
+  process.kill = ((pid, signal) => {
+    if (pid === -group && signal === 0) {
+      probes++;
+      throw Object.assign(new Error("injected EPERM"), { code: "EPERM" });
+    }
+    return originalKill(pid, signal);
+  }) as typeof process.kill;
+  const pending = waitForGroupGone(group);
+  try {
+    const deadline = Date.now() + 2000;
+    while (probes < 2 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.ok(probes >= 2, "owned process was not checked again");
+    child.kill("SIGKILL");
+    await new Promise<void>((resolve) => child.once("close", () => resolve()));
+    await pending;
+  } finally {
+    process.kill = originalKill;
+    child.kill("SIGKILL");
+  }
+});
 
 async function fixture(t: import("node:test").TestContext) {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-codex-install-"));

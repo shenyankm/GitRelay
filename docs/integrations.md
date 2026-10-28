@@ -82,6 +82,8 @@ updates an owned runtime; user-modified entries, foreign hooks, invalid journals
 and unowned paths are preserved. OpenCode installs a global plugin entry;
 Codex installs user hooks only when no conflicting hook file or plugin exists.
 Codex trust through `/hooks` remains separate. A dry run does not install entries.
+On macOS and Linux, the data directory path must not contain a backslash; choose
+a different `XDG_DATA_HOME` if it does.
 
 Uninstall only removes a verified owned entry, keeping archives, runtimes and
 shared message state. Inspect reported retained paths rather than deleting them
