@@ -421,3 +421,35 @@ for (const state of ["ready", "missing-ready", "migration-incomplete"] as const)
     }
   });
 }
+
+test("recovery without an identity or state does not create either", async (t) => {
+  const f = await fixture(t);
+  await assert.rejects(recoverRepositoryInitialization(f.main), /nothing to recover/i);
+  await assert.rejects(lstat(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+  await assert.rejects(lstat(stateDirectory()), { code: "ENOENT" });
+});
+
+test("prior identity state does not recommend legacy migration", async (t) => {
+  const f = await fixture(t);
+  await repository(f.main);
+  await writeFile(join(f.main, ".git", ".git-relay-id"), `${"0".repeat(64)}\n`);
+  await assert.rejects(repository(f.main), (error: Error) => {
+    assert.match(error.message, /identity-fresh --apply/);
+    assert.doesNotMatch(error.message, /identity-migrate/);
+    return true;
+  });
+});
+
+test("recovery with an existing identity and missing state leaves locks untouched", async (t) => {
+  const f = await fixture(t);
+  await writeFile(join(f.main, ".git", ".git-relay-id"), `${"1".repeat(64)}\n`);
+  await assert.rejects(recoverRepositoryInitialization(f.main), /nothing to recover/i);
+  await assert.rejects(lstat(stateDirectory()), { code: "ENOENT" });
+});
+
+test("path-keyed prior state offers migration", async (t) => {
+  const f = await fixture(t);
+  const common = join(f.main, ".git");
+  await mkdir(join(stateDirectory(), "repos", hash(common)), { recursive: true });
+  await assert.rejects(repository(f.main), /identity-fresh --apply or identity-migrate --apply/);
+});

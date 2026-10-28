@@ -451,3 +451,11 @@ test("a migrated native session receives unread events without replaying its rec
   assert.ok(await readFile(join(oldDirectory, "events", `${unread}.json`)));
   await assert.rejects(readFile(join(oldDirectory, "receipts", key, `${unread}.json`)), { code: "ENOENT" });
 });
+
+test("missing legacy directories report that no path-keyed state exists", async (t) => {
+  const f = await fixture(t);
+  await rm(f.oldDirectory, { recursive: true });
+  await assert.rejects(migrateLegacyState(f.options), /no path-keyed legacy state.*identity-fresh/i);
+  await rm(join(f.root, "repos"), { recursive: true });
+  await assert.rejects(migrateLegacyState(f.options), /no path-keyed legacy state.*identity-fresh/i);
+});

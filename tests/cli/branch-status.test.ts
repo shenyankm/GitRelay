@@ -240,6 +240,22 @@ test("status writes an App-readable Markdown snapshot and keeps JSON as the defa
   assert.match(JSON.parse((await call).stdout).systemMessage, /feature\/b/);
 });
 
+test("status escapes control characters without changing JSON branch names", async (t) => {
+  const f = await fixture(t);
+  const branch = "x\u009b2J";
+  git(f.b, "checkout", "-b", branch);
+  const json = (await run("status", "--cwd", f.b)).stdout;
+  assert.doesNotMatch(json, /[\x7f-\x9f]/);
+  assert.equal(JSON.parse(json).worktree.branch, branch);
+  const markdown = (await run("status", "--cwd", f.b, "--format", "markdown")).stdout;
+  assert.doesNotMatch(markdown, /[\x7f-\x9f]/);
+  assert.match(markdown, /x 2J/);
+  await assert.rejects(run("status", "--cwd", f.b, "--branch", "x\u001b[2J"), (error: Error & { stderr?: string }) => {
+    assert.doesNotMatch(error.stderr!, /\u001b/);
+    return true;
+  });
+});
+
 test(
   "GitHub status uses gh auth/host, encodes branches, handles absence and preserves local state on failure",
   { skip: process.platform === "win32" },
