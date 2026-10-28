@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { consumeMailbox } from "../core/consumer.ts";
 import { watchRoot } from "../core/changes.ts";
 import { formatNotifications } from "../core/mailbox.ts";
@@ -61,7 +62,6 @@ export async function runHook(
     await output({});
     return;
   }
-  if (request === true) await sessionActivation(options, true);
   try {
     await watchRoot(cwd as string, signal);
   } catch (error) {
@@ -75,7 +75,15 @@ export async function runHook(
     return;
   }
   if (request === true) {
-    await joinSession(options);
+    const token = randomUUID();
+    await sessionActivation(options, true, undefined, { token, phase: "begin" });
+    try {
+      await joinSession(options);
+    } catch (error) {
+      await sessionActivation({ ...options, signal: undefined }, true, undefined, { token, phase: "failure" });
+      throw error;
+    }
+    await sessionActivation({ ...options, signal: undefined }, true, undefined, { token, phase: "success" });
     if (!(await sessionActivation(options))) {
       await leaveSession(options);
       await output({});

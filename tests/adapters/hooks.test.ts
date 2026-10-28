@@ -20,6 +20,21 @@ const input = (cwd: string, session = "receiver") => ({
   cwd,
 });
 
+test("failed enable leaves unborn and missing monitored branches disabled", async (t) => {
+  const f = await fixture(t),
+    output = async (value: object) => assert.deepEqual(value, {});
+  for (const name of ["unborn", "master"]) {
+    const cwd = join(f.root, name);
+    await mkdir(cwd);
+    git(cwd, "init", "-b", name === "master" ? "master" : "main");
+    if (name === "master") git(cwd, "commit", "--allow-empty", "-m", "init");
+    await assert.rejects(runHook({ ...input(cwd), prompt: "Enable GitRelay" }, ref, output));
+    assert.equal(await sessionActivation({ cwd, ref, adapter: "codex", session: "receiver" }), false);
+    for (const event of ["SessionStart", "PostToolUse", "Stop"])
+      await runHook({ ...input(cwd), hook_event_name: event }, ref, output);
+  }
+});
+
 test("legacy subdirectory activation closes its inbox when disabled at the root", async (t) => {
   const f = await fixture(t),
     sub = join(f.b, "sub"),

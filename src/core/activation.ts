@@ -1,7 +1,7 @@
 import { lstat, mkdir, realpath } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { sessionKey, type Identity } from "./mailbox.ts";
-import { checkStateDirectory, readJson, stateDirectory, writeJson } from "./store.ts";
+import { checkStateDirectory, readJson, stateDirectory, withLock, writeJson } from "./store.ts";
 import { watchRoot } from "./changes.ts";
 import { GitPathOutputError } from "./git.ts";
 import { preflightLeaveSession } from "./sessions.ts";
@@ -56,6 +56,7 @@ export async function sessionActivation(
   options: ActivationOptions,
   enabled?: boolean,
   checked?: Awaited<ReturnType<typeof preflightLeaveSession>>,
+  operation?: { token: string; phase: "begin" | "success" | "failure" },
 ): Promise<boolean> {
   options.signal?.throwIfAborted();
   const optOut = enabled === false ? (checked ?? (await preflightLeaveSession(options))) : undefined;
@@ -64,8 +65,16 @@ export async function sessionActivation(
   const read = async (root: string) => {
     const key = sessionKey({ root }, options, options.ref);
     const path = join(directory, `${key}.json`);
-    const current = (await readJson(path, true)) as { key?: unknown; enabled?: unknown } | undefined;
+    const current = (await readJson(path, true)) as
+      { key?: unknown; enabled?: unknown; pending?: unknown; committed?: unknown } | undefined;
     if (current !== undefined && (!current || current.key !== key || typeof current.enabled !== "boolean"))
+      throw new Error(`Invalid GitRelay activation: ${path}; preserve it for inspection.`);
+    if (
+      current?.pending !== undefined &&
+      (!Array.isArray(current.pending) ||
+        !current.pending.every((token) => typeof token === "string") ||
+        typeof current.committed !== "boolean")
+    )
       throw new Error(`Invalid GitRelay activation: ${path}; preserve it for inspection.`);
     return { key, path, current };
   };
@@ -133,10 +142,33 @@ export async function sessionActivation(
       throw new Error("GitRelay target changed during opt-out; preserve state and retry.");
     root = cwd;
   } else root = await worktreeRoot();
-  const { key, path, current } = await read(root);
-  if (current?.enabled === enabled) return current?.enabled === true;
+  const { key, path } = await read(root);
   await mkdir(directory, { recursive: true, mode: 0o700 });
   await checkStateDirectory(directory);
-  await writeJson(path, { key, enabled }, () => options.signal?.throwIfAborted());
-  return enabled;
+  return withLock(
+    `${path}.lock`,
+    async () => {
+      const { current } = await read(root);
+      const pending = (current?.pending as string[] | undefined) ?? [];
+      let committed = pending.length ? current?.committed === true : current?.enabled === true;
+      let nextPending: string[] = [];
+      let nextEnabled = enabled;
+      if (operation?.phase === "begin") {
+        nextPending = [...pending, operation.token];
+        nextEnabled = true;
+      } else if (operation) {
+        if (!pending.includes(operation.token)) return current?.enabled === true;
+        nextPending = pending.filter((token) => token !== operation.token);
+        if (operation.phase === "success") committed = true;
+        nextEnabled = committed || nextPending.length > 0;
+      } else if (current?.enabled === enabled && !pending.length) return enabled;
+      await writeJson(
+        path,
+        { key, enabled: nextEnabled, ...(nextPending.length ? { pending: nextPending, committed } : {}) },
+        () => options.signal?.throwIfAborted(),
+      );
+      return nextEnabled;
+    },
+    { signal: options.signal },
+  );
 }

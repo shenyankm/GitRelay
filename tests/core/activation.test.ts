@@ -7,6 +7,28 @@ import { sessionKey } from "../../src/core/mailbox.ts";
 import { hash } from "../../src/core/store.ts";
 import { fixture, git } from "../helpers.ts";
 
+test("failed pending enables preserve successful or later activation choices", async (t) => {
+  const f = await fixture(t);
+  const options = { cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "receiver" };
+  const change = (token: string, phase: "begin" | "success" | "failure") =>
+    sessionActivation(options, true, undefined, { token, phase });
+  await change("first", "begin");
+  await change("second", "begin");
+  await change("first", "failure");
+  assert.equal(await sessionActivation(options), true);
+  await change("second", "failure");
+  assert.equal(await sessionActivation(options), false);
+  await change("third", "begin");
+  await change("fourth", "begin");
+  await change("third", "success");
+  await change("fourth", "failure");
+  assert.equal(await sessionActivation(options), true);
+  await change("fifth", "begin");
+  await sessionActivation(options, false);
+  await change("fifth", "success");
+  assert.equal(await sessionActivation(options), false);
+});
+
 test("only direct coordination requests opt a session in or out", () => {
   for (const text of [
     "启用 GitRelay",
