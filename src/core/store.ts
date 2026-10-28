@@ -254,44 +254,68 @@ export async function recoverRepositoryInitialization(
   cwd: string,
   signal?: AbortSignal,
 ): Promise<{ archived: string }> {
-  return withRepositoryIdentity(cwd, signal, async (repo) => {
-    const info = await lstat(repo.directory);
-    if (!info.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
-    const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
-    if (ready?.id === repo.id) throw new Error(`GitRelay state is already initialized: ${repo.directory}`);
-    const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
-    const ownerInfo = await lstat(join(repo.directory, "identity-owner.json")).catch((error) => {
+  await checkManagedRoot();
+  const root = await watchRoot(cwd, signal);
+  const common = await realpath(
+    gitPathLine(await git(root, ["rev-parse", "--path-format=absolute", "--git-common-dir"], signal, "paths")),
+  );
+  const identity = await repositoryIdentity(common, false);
+  const directory = identity && join(stateDirectory(), "repos", hash([common, identity.identity]));
+  const existing =
+    directory &&
+    (await lstat(directory).catch((error) => {
       if (error.code === "ENOENT") return undefined;
       throw error;
-    });
-    const entries = await readdir(repo.directory);
-    if (!ownerInfo || owner?.id !== repo.id || !ownerInfo.isFile() || ownerInfo.isSymbolicLink())
-      throw new Error(
-        `Cannot establish ownership of incomplete state: ${repo.directory}; inspect and preserve it manually.`,
-      );
-    const allowed = new Set(["identity-owner.json", "sessions", "events", "receipts", "refs", "trash"]);
-    for (const name of entries) {
-      if (
-        /^identity-ready\.json\.[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.tmp$/.test(name)
-      ) {
-        if (!(await lstat(join(repo.directory, name))).isFile())
+    }));
+  if (!existing) throw new Error(`Nothing to recover for ${common}; restore its identity and state if needed.`);
+  return withRepositoryIdentity(
+    cwd,
+    signal,
+    async (repo) => {
+      if (repo.directory !== directory)
+        throw new Error(`GitRelay identity changed while preparing recovery: ${common}`);
+      const info = await lstat(repo.directory).catch((error) => {
+        if (error.code === "ENOENT") throw new Error(`Nothing to recover for ${repo.common}; state is missing.`);
+        throw error;
+      });
+      if (!info.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
+      const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
+      if (ready?.id === repo.id) throw new Error(`GitRelay state is already initialized: ${repo.directory}`);
+      const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
+      const ownerInfo = await lstat(join(repo.directory, "identity-owner.json")).catch((error) => {
+        if (error.code === "ENOENT") return undefined;
+        throw error;
+      });
+      const entries = await readdir(repo.directory);
+      if (!ownerInfo || owner?.id !== repo.id || !ownerInfo.isFile() || ownerInfo.isSymbolicLink())
+        throw new Error(
+          `Cannot establish ownership of incomplete state: ${repo.directory}; inspect and preserve it manually.`,
+        );
+      const allowed = new Set(["identity-owner.json", "sessions", "events", "receipts", "refs", "trash"]);
+      for (const name of entries) {
+        if (
+          /^identity-ready\.json\.[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.tmp$/.test(name)
+        ) {
+          if (!(await lstat(join(repo.directory, name))).isFile())
+            throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
+          continue;
+        }
+        if (!allowed.has(name))
           throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
-        continue;
+        if (name === "identity-owner.json") continue;
+        const path = join(repo.directory, name),
+          item = await lstat(path);
+        if (!item.isDirectory() || (await readdir(path)).length)
+          throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
       }
-      if (!allowed.has(name))
-        throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
-      if (name === "identity-owner.json") continue;
-      const path = join(repo.directory, name),
-        item = await lstat(path);
-      if (!item.isDirectory() || (await readdir(path)).length)
-        throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
-    }
-    const archive = join(stateDirectory(), "repos", `.git-relay-recovery-${randomUUID()}`);
-    await mkdir(archive, { mode: 0o700 });
-    const archived = join(archive, repo.id);
-    await rename(repo.directory, archived);
-    return { archived };
-  });
+      const archive = join(stateDirectory(), "repos", `.git-relay-recovery-${randomUUID()}`);
+      await mkdir(archive, { mode: 0o700 });
+      const archived = join(archive, repo.id);
+      await rename(repo.directory, archived);
+      return { archived };
+    },
+    false,
+  );
 }
 
 /** Explicitly start a separate inbox while retaining every prior state directory. */
@@ -353,7 +377,7 @@ export async function repository(cwd: string, signal?: AbortSignal, initialize =
           { id?: string } | undefined;
         if (prior.length && choice?.id !== repo.id)
           throw new Error(
-            `Earlier GitRelay state exists for ${repo.common}; run git-relay identity-fresh --apply or identity-migrate --apply after inspecting it. Prior state is preserved.`,
+            `Earlier GitRelay state exists for ${repo.common}; run git-relay identity-fresh --apply${prior.includes(hash(repo.common)) ? " or identity-migrate --apply" : ""} after inspecting it. Prior state is preserved.`,
           );
         await recordRepositoryIdentity(repo);
         await mkdir(join(stateDirectory(), "repos"), { recursive: true, mode: 0o700 });
