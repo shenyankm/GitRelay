@@ -81,7 +81,10 @@ The installer uses owned runtime copies and stable launchers. Repeating install
 updates an owned runtime; user-modified entries, foreign hooks, invalid journals,
 and unowned paths are preserved. OpenCode installs a global plugin entry;
 Codex installs user hooks only when no conflicting hook file or plugin exists.
-Codex trust through `/hooks` remains separate. A dry run does not install entries.
+Codex trust through `/hooks` remains separate. An install dry run checks existing
+destinations, ownership, journals, runtimes and Codex conflicts without writing
+installation files. It does not stage or execute the new runtime, acquire an
+installation lock, or guarantee that files will remain unchanged before install.
 
 Uninstall only removes a verified owned entry, keeping archives, runtimes and
 shared message state. Inspect reported retained paths rather than deleting them
