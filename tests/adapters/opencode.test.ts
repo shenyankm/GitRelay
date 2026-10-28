@@ -274,8 +274,10 @@ test("OpenCode preserves each accepted receipt when a later admission fails", as
   await waitFor(async () => attempts.length === 2 && (await f.unlocked()));
   assert.equal((await readReceipt(f.repo, f.key, first.id))?.status, "delivered");
   assert.equal(await readReceipt(f.repo, f.key, second.id), undefined);
-  f.tick();
-  await waitFor(async () => (await readReceipt(f.repo, f.key, second.id))?.status === "delivered");
+  await waitFor(async () => {
+    f.tick();
+    return (await readReceipt(f.repo, f.key, second.id))?.status === "delivered";
+  });
   assert.equal(attempts.length, 3);
   assert.notEqual(attempts[0].id, attempts[1].id);
   assert.equal(attempts[1].id, attempts[2].id);
@@ -309,13 +311,13 @@ test("OpenCode retries a lost admission response with the same per-event ID", as
     join(f.repo.directory, "events", `${second.id}.json`),
     JSON.stringify({ ...second, createdAt: "2026-01-01T00:00:02.000Z" }),
   );
-  f.tick();
   // Fair rotation can confirm the new event before retrying the first one.
-  await waitFor(async () =>
-    (await Promise.all([first.id, second.id].map((id) => readReceipt(f.repo, f.key, id)))).every(
+  await waitFor(async () => {
+    f.tick();
+    return (await Promise.all([first.id, second.id].map((id) => readReceipt(f.repo, f.key, id)))).every(
       (receipt) => receipt?.status === "delivered",
-    ),
-  );
+    );
+  });
   const retried = attempts.filter((input) => input.text?.includes(first.id));
   const other = attempts.filter((input) => input.text?.includes(second.id));
   assert.equal(retried.length, 2);
@@ -349,8 +351,10 @@ test("OpenCode reuses message IDs when receipt persistence fails", async (t) => 
   await waitFor(async () => attempts.length === 2 && (await f.unlocked()));
   assert.equal((await readReceipt(f.repo, f.key, first.id))?.status, "delivered");
   await rm(receiptPath, { recursive: true });
-  f.tick();
-  await waitFor(async () => (await readReceipt(f.repo, f.key, second.id))?.status === "delivered");
+  await waitFor(async () => {
+    f.tick();
+    return (await readReceipt(f.repo, f.key, second.id))?.status === "delivered";
+  });
   assert.equal(attempts.length, 3);
   assert.equal(attempts[1].id, attempts[2].id);
   assert.equal(admitted.size, 2);
