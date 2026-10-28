@@ -31,6 +31,7 @@ export interface Session extends Identity {
   migrated?: boolean;
   closedAt?: string;
   posixPaths?: true;
+  activationToken?: string;
 }
 
 interface EventBase {
@@ -98,7 +99,9 @@ export function validateSession(value: unknown, key: string): Session {
       (typeof session.closedAt !== "string" || !Number.isFinite(Date.parse(session.closedAt)))) ||
     (session.migrated !== undefined && typeof session.migrated !== "boolean") ||
     (session.baseline !== undefined && !isCommit(session.baseline)) ||
-    (session.posixPaths !== undefined && session.posixPaths !== true)
+    (session.posixPaths !== undefined && session.posixPaths !== true) ||
+    (session.activationToken !== undefined &&
+      (typeof session.activationToken !== "string" || !/^[a-zA-Z0-9-]{1,128}$/.test(session.activationToken)))
   )
     throw new Error(`Invalid session: ${key}`);
   validateIdentity(session);
@@ -129,6 +132,8 @@ export async function registerSession(
   ref: string,
   baseline?: string,
   receiver?: boolean,
+  reopen = false,
+  activationToken?: string,
 ): Promise<Session> {
   const adapter = identity.adapter;
   validateIdentity({ adapter, session: "snapshot" });
@@ -158,7 +163,8 @@ export async function registerSession(
     lastSeen: now,
     baseline: previous?.baseline ?? baseline,
     migrated: previous?.migrated,
-    closedAt: previous?.closedAt,
+    closedAt: reopen ? undefined : previous?.closedAt,
+    activationToken: activationToken ?? previous?.activationToken,
     posixPaths:
       receiver === undefined ? previous?.posixPaths : receiver && process.platform !== "win32" ? true : undefined,
   };

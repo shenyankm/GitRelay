@@ -165,6 +165,18 @@ async function main() {
     await output("git-relay check --session ID [--instance INSTANCE_ID] --acknowledge-history-gap --apply\n");
     return;
   }
+  if (values.cwd === "") throw new Error("--cwd must not be empty.");
+  let statusRefValidated = true;
+  if (
+    ["check", "watch", "send", "join", "leave"].includes(command) ||
+    (command === "status" && values.watch && values.session)
+  ) {
+    if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
+      throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
+    if (command === "status") statusRefValidated = await validateWatchRef(values.ref);
+    else if (command !== "watch")
+      await git(parse(process.execPath).root, ["check-ref-format", values.ref], abort.signal);
+  }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
   if (values["dry-run"] && !["install", "uninstall", "gc"].includes(command))
     throw new Error("--dry-run requires install, uninstall or gc.");
@@ -266,6 +278,14 @@ async function main() {
     }
     let previous: string | undefined;
     do {
+      if (!statusRefValidated) {
+        statusRefValidated = await validateWatchRef(values.ref);
+        if (!statusRefValidated) {
+          reportDiagnostic("git-relay: Could not validate the monitored ref; retrying.");
+          await delay(interval, undefined, { signal: abort.signal }).catch(() => {});
+          continue;
+        }
+      }
       if (!branchValidated) branchValidated = await validateWatchRef(`refs/heads/${values.branch}`);
       try {
         const sync = values["auto-sync"] ? await syncBranch(cwd, branch!, abort.signal) : undefined;
@@ -392,8 +412,6 @@ async function main() {
   let refValidated = command !== "watch";
   if (command === "watch") {
     validateIdentity({ adapter: values.agent, session: values.session!, instance: values.instance });
-    if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
-      throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
     refValidated = await validateWatchRef(values.ref);
   }
   if (command === "join" || command === "leave") {

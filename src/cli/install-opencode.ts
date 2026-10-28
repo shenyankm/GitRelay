@@ -137,10 +137,24 @@ export async function installOpenCode(
   config: string,
   sourceDist: string,
   signal?: AbortSignal,
+  dryRun = false,
 ): Promise<void> {
   signal?.throwIfAborted();
-  await ensureWorkspace(root);
-  await withLock(
+  validateWorkspacePath(root);
+  if (dryRun) {
+    if (
+      await lstat(root).then(
+        () => true,
+        (error) => {
+          if (error.code === "ENOENT") return false;
+          throw error;
+        },
+      )
+    )
+      await checkWorkspace(root);
+  } else await ensureWorkspace(root);
+  const lock: typeof withLock = dryRun ? async (_path, run) => run() : withLock;
+  await lock(
     join(root, "install.lock"),
     async () => {
       const state = join(root, "opencode.json");
@@ -172,8 +186,13 @@ export async function installOpenCode(
       )
         throw new Error(`OpenCode bootstrap was modified; preserved: ${pointer}`);
       const revisions = join(root, "opencode-revisions");
-      await mkdir(revisions, { recursive: true });
-      const names = (await readdir(revisions)).sort();
+      if (!dryRun) await mkdir(revisions, { recursive: true });
+      const names = (
+        await readdir(revisions).catch((error) => {
+          if (dryRun && error.code === "ENOENT") return [];
+          throw error;
+        })
+      ).sort();
       if (names.some((name) => !/^\d{20}-[a-f0-9]{64}$/.test(name)))
         throw new Error(`Unexpected OpenCode revision; preserved: ${revisions}`);
       for (const name of names)
@@ -186,6 +205,10 @@ export async function installOpenCode(
       )
         throw new Error(`OpenCode revisions changed outside GitRelay: ${revisions}`);
       const id = await digest(sourceDist, signal);
+      const desired = latest?.endsWith(`-${id}`)
+        ? latest
+        : `${String(BigInt(latest?.slice(0, 20) ?? "0") + 1n).padStart(20, "0")}-${id}`;
+      if (!/^\d{20}-[a-f0-9]{64}$/.test(desired)) throw new Error("OpenCode revision counter exhausted.");
       if (latest) {
         const existingRuntime = join(root, "runtimes", latest.slice(21));
         const verifyLatest = async () => {
@@ -223,7 +246,7 @@ export async function installOpenCode(
 
       const runtimes = join(root, "runtimes");
       const runtime = join(runtimes, id);
-      await mkdir(runtimes, { recursive: true });
+      if (!dryRun) await mkdir(runtimes, { recursive: true });
       try {
         if ((await digest(join(runtime, "dist"), signal)) !== id) throw new Error(`Runtime was modified: ${runtime}`);
         if ((await contents(join(runtime, "package.json"))) !== '{"type":"module"}\n')
@@ -250,6 +273,7 @@ export async function installOpenCode(
             });
           }
         } else {
+          if (dryRun) return;
           const temp = await mkdtemp(join(runtimes, ".stage-"));
           try {
             await cp(sourceDist, join(temp, "dist"), { recursive: true });
@@ -271,6 +295,7 @@ export async function installOpenCode(
           }
         }
       }
+      if (dryRun) return;
       const moduleUrl = pathToFileURL(join(runtime, "dist", "adapters", "opencode", "index.js")).href;
       try {
         await commandOutput(
@@ -294,10 +319,6 @@ export async function installOpenCode(
         );
       }
       signal?.throwIfAborted();
-      const desired = latest?.endsWith(`-${id}`)
-        ? latest
-        : `${String(BigInt(latest?.slice(0, 20) ?? "0") + 1n).padStart(20, "0")}-${id}`;
-      if (!/^\d{20}-[a-f0-9]{64}$/.test(desired)) throw new Error("OpenCode revision counter exhausted.");
       const entryContent = `export { default } from ${JSON.stringify(pathToFileURL(pointer).href)};\n`;
       if (record && record.content !== entryContent) throw new Error(`Invalid OpenCode entry in ${state}`);
       const anchor = record && !record.removed ? record.anchor : `.git-relay-anchor-${randomUUID()}`;

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { constants } from "node:fs";
 import {
   access,
   chmod,
@@ -21,6 +22,157 @@ import { promisify } from "node:util";
 import { test } from "node:test";
 import { installOpenCode, uninstallOpenCode } from "../../src/cli/install-opencode.ts";
 import { installerDigest } from "../../src/cli/installer-digest.ts";
+
+test(
+  "install dry-run detects occupied destinations and Codex conflicts without writing",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "git-relay-install-preview-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const bin = join(dir, "bin"),
+      home = join(dir, "codex"),
+      config = join(dir, "config"),
+      data = join(dir, "data");
+    await mkdir(bin);
+    await mkdir(home);
+    const codex = join(bin, "codex"),
+      opencode = join(bin, "opencode");
+    await writeFile(
+      codex,
+      '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "codex-cli 0.164.0"; else echo \'{"installed":[]}\'; fi\n',
+      { mode: 0o755 },
+    );
+    await writeFile(opencode, '#!/bin/sh\necho "opencode v2.1.2"\n', { mode: 0o755 });
+    const env = {
+      ...process.env,
+      PATH: `${bin}:${process.env.PATH ?? ""}`,
+      CODEX_HOME: home,
+      XDG_CONFIG_HOME: config,
+      XDG_DATA_HOME: data,
+    };
+    const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
+    const run = promisify(execFile);
+    const preview = async (platform: string) => {
+      const result = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", platform, "--dry-run"],
+        { env },
+      ).then(
+        () => null,
+        (error) => error,
+      );
+      assert.ok(result, "preview should reject the conflict");
+      return JSON.parse(result.stdout).results.find((item: { platform: string }) => item.platform === platform).reason;
+    };
+    for (const platform of ["codex", "opencode"]) {
+      const output = await run(
+        process.execPath,
+        ["--experimental-strip-types", cli, "install", "--platform", platform, "--dry-run"],
+        { env },
+      );
+      assert.equal(JSON.parse(output.stdout).failed, false);
+      await assert.rejects(lstat(join(data, "git-relay")), { code: "ENOENT" });
+    }
+    const hook = join(home, "hooks.json");
+    await writeFile(hook, '{"user":true}');
+    assert.match(await preview("codex"), /not owned/);
+    assert.equal(await readFile(hook, "utf8"), '{"user":true}');
+    await rm(hook);
+    await writeFile(
+      codex,
+      '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "codex-cli 0.164.0"; else echo \'{"installed":[{"name":"git-relay"}]}\'; fi\n',
+      { mode: 0o755 },
+    );
+    assert.match(await preview("codex"), /compatible Codex plugin/);
+    await writeFile(
+      codex,
+      '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "codex-cli 0.164.0"; else echo \'{"installed":[]}\'; fi\n',
+      { mode: 0o755 },
+    );
+    await writeFile(
+      join(home, "config.toml"),
+      '[[hooks.SessionStart]]\n[[hooks.SessionStart.hooks]]\ntype = "command"\ncommand = "git-relay hook codex"\n',
+    );
+    assert.match(await preview("codex"), /inline hooks.*already contain GitRelay/);
+    const entry = join(config, "opencode", "plugins", "git-relay.js");
+    await mkdir(join(config, "opencode", "plugins"), { recursive: true });
+    await writeFile(entry, "user plugin\n");
+    assert.match(await preview("opencode"), /not owned/);
+    assert.equal(await readFile(entry, "utf8"), "user plugin\n");
+    await assert.rejects(lstat(join(data, "git-relay")), { code: "ENOENT" });
+    await rm(entry);
+    await rm(join(home, "config.toml"));
+    for (const platform of ["codex", "opencode"]) {
+      await run(process.execPath, ["--experimental-strip-types", cli, "install", "--platform", platform], { env });
+    }
+    const workspace = join(data, "git-relay");
+    for (const platform of ["codex", "opencode"]) {
+      const revisions = join(workspace, `${platform}-revisions`);
+      const invalid = join(revisions, "unexpected");
+      await writeFile(invalid, "keep");
+      assert.match(await preview(platform), /Unexpected .* revision/);
+      assert.equal(await readFile(invalid, "utf8"), "keep");
+      await rm(invalid);
+      const record = JSON.parse(
+        await readFile(join(workspace, platform === "codex" ? "codex-hooks.json" : "opencode.json"), "utf8"),
+      );
+      const runtimePackage = join(workspace, "runtimes", record.current.slice(21), "package.json");
+      const original = await readFile(runtimePackage, "utf8");
+      await writeFile(runtimePackage, "changed");
+      assert.match(await preview(platform), /runtime was modified/);
+      assert.equal(await readFile(runtimePackage, "utf8"), "changed");
+      await writeFile(runtimePackage, original);
+    }
+  },
+);
+
+test(
+  "install dry-run does not establish destination write permission",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "git-relay-install-permission-"));
+    const bin = join(dir, "bin"),
+      plugins = join(dir, "config", "opencode", "plugins");
+    await mkdir(bin);
+    await mkdir(plugins, { recursive: true });
+    t.after(async () => {
+      await chmod(plugins, 0o755);
+      await rm(dir, { recursive: true, force: true });
+    });
+    await writeFile(join(bin, "opencode"), '#!/bin/sh\necho "opencode v2.1.2"\n', { mode: 0o755 });
+    await chmod(plugins, 0o555);
+    if (
+      await access(plugins, constants.W_OK).then(
+        () => true,
+        () => false,
+      )
+    ) {
+      t.skip("filesystem permissions do not restrict this process");
+      return;
+    }
+    const env = {
+      ...process.env,
+      PATH: `${bin}:${process.env.PATH ?? ""}`,
+      XDG_CONFIG_HOME: join(dir, "config"),
+      XDG_DATA_HOME: join(dir, "data"),
+    };
+    const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
+    const run = promisify(execFile);
+    const args = ["--experimental-strip-types", cli, "install", "--platform", "opencode"];
+    const preview = await run(process.execPath, [...args, "--dry-run"], { env });
+    assert.equal(JSON.parse(preview.stdout).failed, false);
+    const failure = await run(process.execPath, args, { env }).then(
+      () => null,
+      (error) => error,
+    );
+    assert.ok(failure);
+    assert.match(
+      JSON.parse(failure.stdout).results.find((item: { platform: string }) => item.platform === "opencode").reason,
+      /EACCES|EPERM/,
+    );
+    await assert.rejects(lstat(join(plugins, "git-relay.js")), { code: "ENOENT" });
+  },
+);
 
 test("OpenCode upgrades legacy digests and rejects a modified runtime", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-opencode-legacy-digest-"));
