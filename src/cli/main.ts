@@ -56,7 +56,10 @@ function reportDiagnostic(message: string): void {
   const high = message.charCodeAt(4095),
     low = message.charCodeAt(4096);
   const end = high >= 0xd800 && high <= 0xdbff && low >= 0xdc00 && low <= 0xdfff ? 4095 : 4096;
-  const bounded = message.length > 4096 ? `${message.slice(0, end)} [diagnostic truncated]` : message;
+  const bounded = (message.length > 4096 ? `${message.slice(0, end)} [diagnostic truncated]` : message).replace(
+    /[\x00-\x08\x0b-\x1f\x7f-\x9f]/g,
+    " ",
+  );
   try {
     if (!process.stderr.write(`${bounded}\n`)) {
       diagnosticBlocked = true;
@@ -270,9 +273,12 @@ async function main() {
           ...(await branchStatus({ cwd, branch, github: values.github, repo: values.repo, signal: abort.signal })),
           ...(sync ? { sync } : {}),
         };
-        const encoded = JSON.stringify(snapshot);
+        const encoded = JSON.stringify(snapshot).replace(
+          /[\x7f-\x9f]/g,
+          (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
+        );
         if (encoded !== previous) {
-          const rendered = values.format === "markdown" ? formatBranchStatus(snapshot) : snapshot;
+          const rendered = values.format === "markdown" ? formatBranchStatus(snapshot) : `${encoded}\n`;
           const tooLargeToBroadcast =
             previous !== undefined && !!values.session && !messagePayloadWithinLimit(encoded, []);
           const broadcastAttempted = previous !== undefined && !!values.session && !tooLargeToBroadcast;
