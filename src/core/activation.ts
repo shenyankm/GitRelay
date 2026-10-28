@@ -13,36 +13,59 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
   if (typeof prompt !== "string") return;
   let fence: string | undefined;
   let fenceIndent = 0;
+  let inlineCode = false;
+  const indented = new Set<number>();
   const columns = (value: string) =>
     [...value].reduce((width, char) => width + (char === "\t" ? 4 - (width % 4) : 1), 0);
-  const text = prompt
-    .split("\n")
-    .map((line) => {
-      if (fence && fenceIndent && line.trim() && columns(line.match(/^[ \t]*/)![0]) < fenceIndent) fence = undefined;
-      if (fence) {
-        const closing = line.match(/^([ \t]*)(`{3,}|~{3,})(.*)$/);
-        if (
-          closing &&
-          columns(closing[1]) <= fenceIndent + 3 &&
-          closing[2][0] === fence[0] &&
-          closing[2].length >= fence.length &&
-          !closing[3].trim()
-        )
-          fence = undefined;
-        return "";
+  const lines = prompt.split("\n").map((line, index) => {
+    if (fence && fenceIndent && line.trim() && columns(line.match(/^[ \t]*/)![0]) < fenceIndent) fence = undefined;
+    if (fence) {
+      const closing = line.match(/^([ \t]*)(`{3,}|~{3,})(.*)$/);
+      if (
+        closing &&
+        columns(closing[1]) <= fenceIndent + 3 &&
+        closing[2][0] === fence[0] &&
+        closing[2].length >= fence.length &&
+        !closing[3].trim()
+      )
+        fence = undefined;
+      return "";
+    }
+    const marker = line.match(/^( {0,3})((?:[-+*]|\d{1,9}[.)])[ \t]+)?(`{3,}|~{3,})(.*)$/);
+    if (marker && (marker[3][0] !== "`" || !marker[4].includes("`"))) {
+      fence = marker[3];
+      fenceIndent = marker[2] ? columns(marker[1] + marker[2]) : 0;
+      return "";
+    }
+    if (columns(line.match(/^[ \t]*/)![0]) >= 4) {
+      indented.add(index);
+      // Keep single backticks and quote marks around multiline examples.
+      return line.replace(/`+|[^“”「」`]/g, (part) => {
+        if (!part.startsWith("`")) return "";
+        if (part.length > 1 && !inlineCode) return "";
+        inlineCode = !inlineCode;
+        return "`";
+      });
+    }
+    for (const char of line) if (char === "`") inlineCode = !inlineCode;
+    return line;
+  });
+  let opening: { line: number; offset: number } | undefined;
+  for (const [line, text] of lines.entries()) {
+    for (const match of text.matchAll(/`+/g)) {
+      if (match[0].length !== 1) continue;
+      if (!opening) opening = { line, offset: match.index };
+      else {
+        if (indented.has(opening.line) && indented.has(line)) {
+          lines[opening.line] =
+            lines[opening.line].slice(0, opening.offset) + " " + lines[opening.line].slice(opening.offset + 1);
+          lines[line] = lines[line].slice(0, match.index) + " " + lines[line].slice(match.index + 1);
+        }
+        opening = undefined;
       }
-      const marker = line.match(/^( {0,3})((?:[-+*]|\d{1,9}[.)])[ \t]+)?(`{3,}|~{3,})(.*)$/);
-      if (marker && (marker[3][0] !== "`" || !marker[4].includes("`"))) {
-        fence = marker[3];
-        fenceIndent = marker[2] ? columns(marker[1] + marker[2]) : 0;
-        return "";
-      }
-      if (columns(line.match(/^[ \t]*/)![0]) >= 4) {
-        // Keep single backticks and quote marks around multiline examples.
-        return line.replace(/`+|[^“”「」`]/g, (part) => (part === "`" ? part : ""));
-      }
-      return line;
-    })
+    }
+  }
+  const text = lines
     .join("\n")
     .replace(/```[^]*?(?:```|$)/g, "")
     .replace(/`[^`]*`|"[^"\n]*"|“[^”]*”|「[^」]*」/g, "");
