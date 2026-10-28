@@ -162,6 +162,16 @@ test("status handles unborn branches", async (t) => {
   assert.equal(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, null);
 });
 
+test("status handles a non-commit upstream", async (t) => {
+  const f = await fixture(t);
+  git(f.b, "config", "branch.feature/b.remote", "origin");
+  git(f.b, "config", "branch.feature/b.merge", "refs/heads/main");
+  git(f.b, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*");
+  git(f.b, "update-ref", "refs/remotes/origin/main", git(f.b, "rev-parse", "HEAD^{tree}").trim());
+  const status = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+  assert.deepEqual(status.local.tracking, { ref: "refs/remotes/origin/main", commit: null, ahead: null, behind: null });
+});
+
 test("explicit empty CLI options are rejected", async (t) => {
   const f = await fixture(t);
   for (const [args, message] of [
@@ -221,6 +231,8 @@ fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + '\\n');
 fs.appendFileSync(${JSON.stringify(hosts)}, (process.env.GH_HOST || '') + '\\n');
 const fixture = JSON.parse(fs.readFileSync(${JSON.stringify(response)}, 'utf8'));
 if (fixture.fail) { process.stderr.write('HTTP 403: denied'); process.exit(1); }
+if (fixture.conflict && args[0] === 'api') { process.stderr.write('gh: Other conflict (HTTP 409)'); process.exit(1); }
+if (fixture.empty && args[0] === 'api') { process.stderr.write('gh: Git Repository is empty. (HTTP 409)'); process.exit(1); }
 if (args[0] === 'repo') console.log(JSON.stringify({ nameWithOwner: 'owner/repo', url: fixture.url || 'https://github.example.com/owner/repo' }));
 else console.log(JSON.stringify(fixture.pages));
 `,
@@ -253,13 +265,22 @@ else console.log(JSON.stringify(fixture.pages));
     assert.equal(JSON.parse((await invoke()).stdout).github.matchesLocal, false);
     await writeFile(response, JSON.stringify({ pages: [[ref("feature/b-other")]] }));
     assert.equal(JSON.parse((await invoke()).stdout).github.commit, null);
-    for (const invalid of [{ fail: true }, { pages: [[ref("feature/b", "invalid")]] }, { pages: {} }]) {
+    await writeFile(response, JSON.stringify({ empty: true }));
+    status = JSON.parse((await invoke()).stdout);
+    assert.equal(status.github.commit, null);
+    assert.equal(status.github.matchesLocal, null);
+    for (const invalid of [
+      { fail: true },
+      { conflict: true },
+      { pages: [[ref("feature/b", "invalid")]] },
+      { pages: {} },
+    ]) {
       await writeFile(response, JSON.stringify(invalid));
       await assert.rejects(invoke(), (error: Error & { stdout?: string; code?: number }) => {
         status = JSON.parse(error.stdout!);
         assert.equal(error.code, 1);
         assert.equal(status.local.commit, f.initial);
-        assert.match(status.github.error, /denied|Invalid GitHub/);
+        assert.match(status.github.error, /denied|Other conflict|Invalid GitHub/);
         return true;
       });
     }

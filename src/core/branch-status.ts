@@ -166,10 +166,15 @@ export async function branchStatus(options: BranchStatusOptions) {
   let tracking: { ref: string; commit: string | null; ahead: number | null; behind: number | null } | null = null;
   if (upstream) {
     const upstreamRows = gitRefLines(
-      await git(cwd, ["for-each-ref", "--format=%(refname)%00%(objectname)", "--", upstream], signal, "paths"),
+      await git(
+        cwd,
+        ["for-each-ref", "--format=%(refname)%00%(objectname)%00%(objecttype)", "--", upstream],
+        signal,
+        "paths",
+      ),
     );
-    const upstreamCommit =
-      upstreamRows.map((line) => line.split("\0")).find(([name]) => name === upstream)?.[1] ?? null;
+    const upstreamRow = upstreamRows.map((line) => line.split("\0")).find(([name]) => name === upstream);
+    const upstreamCommit = upstreamRow?.[2] === "commit" ? upstreamRow[1] : null;
     tracking = { ref: upstream, commit: upstreamCommit, ahead: null, behind: null };
     if (upstreamCommit && commit) {
       const counts = (
@@ -217,7 +222,12 @@ export async function branchStatus(options: BranchStatusOptions) {
         ],
         signal,
         url.port ? url.host : undefined,
-      );
+      ).catch((error: Error & { cause?: { code?: unknown; stderr?: string } }) => {
+        signal?.throwIfAborted();
+        if (error.cause?.code === 1 && error.cause.stderr?.trim() === "gh: Git Repository is empty. (HTTP 409)")
+          return [];
+        throw error;
+      });
       if (!Array.isArray(pages) || !pages.every(Array.isArray)) throw new Error("Invalid GitHub references response.");
       const refs = pages.flat();
       if (
