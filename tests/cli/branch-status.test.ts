@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
 import { once } from "node:events";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -181,6 +181,23 @@ test("status compares an annotated tag upstream that points to a commit", async 
   await f.commit(f.b, "tag-test.txt", "local\n");
   const status = JSON.parse((await run("status", "--cwd", f.b)).stdout);
   assert.deepEqual(status.local.tracking, { ref: "refs/tags/upstream", commit: tag, ahead: 1, behind: 0 });
+  git(f.b, "tag", "-a", "outer", "-m", "outer", "upstream");
+  const outer = git(f.b, "rev-parse", "refs/tags/outer").trim();
+  git(f.b, "config", "branch.feature/b.merge", "refs/tags/outer");
+  const nested = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+  assert.deepEqual(nested.local.tracking, { ref: "refs/tags/outer", commit: outer, ahead: 1, behind: 0 });
+  git(f.b, "config", "branch.feature/b.merge", "refs/tags/upstream");
+  for (const object of ["HEAD^{tree}", "HEAD:shared.txt"]) {
+    git(f.b, "tag", "-f", "-a", "upstream", "-m", "upstream", object);
+    const nonCommit = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+    assert.deepEqual(nonCommit.local.tracking, { ref: "refs/tags/upstream", commit: null, ahead: null, behind: null });
+  }
+  const file = join(f.root, "orphan-blob");
+  await writeFile(file, "unique blob for missing object test\n");
+  const blob = git(f.b, "hash-object", "-w", file).trim();
+  git(f.b, "tag", "-f", "-a", "upstream", "-m", "upstream", blob);
+  await rm(join(f.main, ".git", "objects", blob.slice(0, 2), blob.slice(2)));
+  await assert.rejects(run("status", "--cwd", f.b));
 });
 
 test("explicit empty CLI options are rejected", async (t) => {

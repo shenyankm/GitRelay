@@ -168,23 +168,16 @@ export async function branchStatus(options: BranchStatusOptions) {
     const upstreamRows = gitRefLines(
       await git(
         cwd,
-        ["for-each-ref", "--format=%(refname)%00%(objectname)%00%(objecttype)", "--", upstream],
+        ["for-each-ref", "--format=%(refname)%00%(objectname)%00%(objecttype)%00%(*objecttype)", "--", upstream],
         signal,
         "paths",
       ),
     );
     const upstreamRow = upstreamRows.map((line) => line.split("\0")).find(([name]) => name === upstream);
-    let upstreamCommit = upstreamRow?.[2] === "commit" ? upstreamRow[1] : null;
-    if (upstreamRow?.[2] === "tag") {
-      try {
-        await git(cwd, ["rev-parse", "--verify", "--quiet", "--end-of-options", `${upstreamRow[1]}^{commit}`], signal);
-        upstreamCommit = upstreamRow[1];
-      } catch (error) {
-        signal?.throwIfAborted();
-        const cause = (error as Error & { cause?: { code?: unknown; stderr?: Buffer | string } }).cause;
-        if (cause?.code !== 1 || cause.stderr?.toString()) throw error;
-      }
-    }
+    const upstreamCommit =
+      upstreamRow?.[2] === "commit" || (upstreamRow?.[2] === "tag" && upstreamRow[3] === "commit")
+        ? upstreamRow[1]
+        : null;
     tracking = { ref: upstream, commit: upstreamCommit, ahead: null, behind: null };
     if (upstreamCommit && commit) {
       const counts = (
