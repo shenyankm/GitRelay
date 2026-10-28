@@ -85,14 +85,19 @@ export async function checkInlineHooks(home: string, signal?: AbortSignal, clien
       if (!Array.isArray(groups))
         throw new Error(`Cannot interpret Codex inline hooks; existing file was preserved: ${path}`);
       for (const group of groups) {
-        if (!group || typeof group !== "object" || !Array.isArray((group as { hooks?: unknown }).hooks))
+        if (
+          !group ||
+          typeof group !== "object" ||
+          Array.isArray(group) ||
+          ((group as { hooks?: unknown }).hooks !== undefined && !Array.isArray((group as { hooks?: unknown }).hooks))
+        )
           throw new Error(`Cannot interpret Codex inline hooks; existing file was preserved: ${path}`);
         if (
           (group as { matcher?: unknown }).matcher !== undefined &&
           typeof (group as { matcher?: unknown }).matcher !== "string"
         )
           throw new Error(`Cannot interpret Codex inline hooks; existing file was preserved: ${path}`);
-        for (const handler of (group as { hooks: unknown[] }).hooks) {
+        for (const handler of (group as { hooks?: unknown[] }).hooks ?? []) {
           if (!handler || typeof handler !== "object" || Array.isArray(handler))
             throw new Error(`Cannot interpret Codex inline hooks; existing file was preserved: ${path}`);
           const type = (handler as { type?: unknown }).type;
