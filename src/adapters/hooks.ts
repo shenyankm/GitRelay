@@ -80,11 +80,12 @@ export async function runHook(
     let joined: Awaited<ReturnType<typeof joinSession>> | undefined;
     await sessionActivation(options, true, undefined, { token, phase: "begin", priorEnabled: wasEnabled });
     try {
-      await joinSession(options, async (register, repositoryId) => {
+      await joinSession(options, async (register, repositoryId, subscriptionKey) => {
         const prepared = await sessionActivation(options, true, undefined, {
           token,
           phase: "prepare",
           repositoryId,
+          subscriptionKey,
           run: async () => {
             joined = await register(token);
           },

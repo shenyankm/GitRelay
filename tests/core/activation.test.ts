@@ -246,6 +246,17 @@ test("invalid activation state and managed symlinks fail closed", { skip: proces
     JSON.stringify({ key, enabled: false, prepared: [{ token: "a", repositoryId: "a".repeat(64) }] }),
   );
   await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
+  await writeFile(
+    path,
+    JSON.stringify({
+      key,
+      enabled: false,
+      committed: false,
+      pending: ["a"],
+      prepared: [{ token: "a", repositoryId: "a".repeat(64), subscriptionKey: "../outside" }],
+    }),
+  );
+  await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
   const other = { ...options, session: "symlink" };
   await symlink(path, join(directory, `${sessionKey({ root: f.b }, other, other.ref)}.json`));
   await assert.rejects(sessionActivation(other), /not a regular file/);

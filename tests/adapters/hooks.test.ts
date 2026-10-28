@@ -76,7 +76,7 @@ test("a killed enable after join leaves the subscription active", { skip: proces
     cwd = f.b;
   const activation = new URL("../../src/core/activation.ts", import.meta.url).href;
   const sessions = new URL("../../src/core/sessions.ts", import.meta.url).href;
-  const script = `const { sessionActivation } = await import(${JSON.stringify(activation)}); const { joinSession } = await import(${JSON.stringify(sessions)}); const options = { cwd: ${JSON.stringify(cwd)}, ref: ${JSON.stringify(ref)}, adapter: 'codex', session: 'receiver' }; await sessionActivation(options, true, undefined, { token: 'interrupted', phase: 'begin' }); await joinSession(options, async (register, repositoryId) => { await sessionActivation(options, true, undefined, { token: 'interrupted', phase: 'prepare', repositoryId, run: async () => { await register('interrupted'); process.kill(process.pid, 'SIGKILL'); } }); });`;
+  const script = `const { sessionActivation } = await import(${JSON.stringify(activation)}); const { joinSession } = await import(${JSON.stringify(sessions)}); const options = { cwd: ${JSON.stringify(cwd)}, ref: ${JSON.stringify(ref)}, adapter: 'codex', session: 'receiver' }; await sessionActivation(options, true, undefined, { token: 'interrupted', phase: 'begin' }); await joinSession(options, async (register, repositoryId, subscriptionKey) => { await sessionActivation(options, true, undefined, { token: 'interrupted', phase: 'prepare', repositoryId, subscriptionKey, run: async () => { await register('interrupted'); process.kill(process.pid, 'SIGKILL'); } }); });`;
   const result = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script], {
     env: process.env,
   });
@@ -270,6 +270,57 @@ test("a committed subscription recovers activation when its final write fails", 
   });
   assert.equal(result.status, 0, result.stderr);
 });
+
+test(
+  "activation recovery uses Git's subscription key when root spelling differs",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      bin = join(f.root, "git-shim");
+    await mkdir(bin);
+    const realGit = spawnSync("which", ["git"], { encoding: "utf8" }).stdout.trim();
+    assert.ok(realGit);
+    await writeFile(
+      join(bin, "git"),
+      '#!/bin/sh\nif [ "$3" = rev-parse ] && [ "$4" = --show-toplevel ]; then "$GIT_RELAY_TEST_GIT" "$@" | sed "s|^/|//|"; else exec "$GIT_RELAY_TEST_GIT" "$@"; fi\n',
+      { mode: 0o755 },
+    );
+    const hooks = new URL("../../src/adapters/hooks.ts", import.meta.url).href;
+    const activation = new URL("../../src/core/activation.ts", import.meta.url).href;
+    const script = `
+    import assert from 'node:assert/strict';
+    import fs from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const { runHook } = await import(${JSON.stringify(hooks)});
+    const { sessionActivation } = await import(${JSON.stringify(activation)});
+    const options = { cwd: process.argv[1], ref: 'refs/heads/main', adapter: 'codex', session: 'receiver' };
+    const input = { cwd: options.cwd, session_id: options.session, hook_event_name: 'UserPromptSubmit', prompt: 'Enable GitRelay' };
+    const open = fs.promises.open; let registered = false;
+    fs.promises.open = async (...args) => {
+      const path = String(args[0]);
+      if (/\\/sessions\\/[a-f0-9]{64}\\.json\\..*\\.tmp$/.test(path)) registered = true;
+      if (registered && /\\/activations\\/[a-f0-9]{64}\\.json\\..*\\.tmp$/.test(path))
+        throw Object.assign(new Error('injected ENOSPC'), { code: 'ENOSPC' });
+      return open(...args);
+    };
+    syncBuiltinESMExports();
+    try { await assert.rejects(runHook(input, options.ref, async () => {}), /ENOSPC/); }
+    finally { fs.promises.open = open; syncBuiltinESMExports(); }
+    assert.equal(registered, true);
+    assert.equal(await sessionActivation(options), true);
+  `;
+    const result = spawnSync(
+      process.execPath,
+      ["--experimental-strip-types", "--input-type=module", "-e", script, f.b],
+      {
+        env: { ...process.env, PATH: `${bin}:${process.env.PATH ?? ""}`, GIT_RELAY_TEST_GIT: realGit },
+        encoding: "utf8",
+        timeout: 20000,
+      },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  },
+);
 
 test("changed subscription is detected before disabling activation", async (t) => {
   const f = await fixture(t),

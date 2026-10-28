@@ -362,7 +362,11 @@ export async function leaveSessionIfRepository(
 /** Explicit rejoin keeps old inbox/receipts, but does not replay publications while closed. */
 export async function joinSession(
   options: SessionOptions,
-  registerWith?: (register: (token?: string) => Promise<Session>, repositoryId: string) => Promise<Session>,
+  registerWith?: (
+    register: (token?: string) => Promise<Session>,
+    repositoryId: string,
+    subscriptionKey: string,
+  ) => Promise<Session>,
 ): Promise<Session> {
   const identity = snapshotIdentity(options);
   const cwd = options.cwd;
@@ -390,7 +394,7 @@ export async function joinSession(
               token,
             );
           };
-          return registerWith ? registerWith(register, repo.id) : register();
+          return registerWith ? registerWith(register, repo.id, key) : register();
         },
         { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN },
       ),

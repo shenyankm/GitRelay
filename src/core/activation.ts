@@ -7,7 +7,7 @@ import { GitPathOutputError } from "./git.ts";
 import { preflightLeaveSession } from "./sessions.ts";
 
 type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSignal };
-type Prepared = { token: string; repositoryId: string };
+type Prepared = { token: string; repositoryId: string; subscriptionKey?: string };
 
 /** Conservative request matching: quoted examples and questions are not opt-ins. */
 export function requestedActivation(prompt: unknown): boolean | undefined {
@@ -62,6 +62,7 @@ export async function sessionActivation(
     phase: "begin" | "prepare" | "failure";
     priorEnabled?: boolean;
     repositoryId?: string;
+    subscriptionKey?: string;
     run?: () => Promise<void>;
   },
 ): Promise<boolean> {
@@ -87,7 +88,8 @@ export async function sessionActivation(
                 item &&
                 typeof item.token === "string" &&
                 (current.pending as string[]).includes(item.token) &&
-                isId(item.repositoryId),
+                isId(item.repositoryId) &&
+                (item.subscriptionKey === undefined || isId(item.subscriptionKey)),
             ))) ||
         typeof current.committed !== "boolean")
     )
@@ -96,24 +98,34 @@ export async function sessionActivation(
   };
   // The subscription's token is the commit point for an interrupted enable.
   const matchingRepository = async (root: string, current: Awaited<ReturnType<typeof read>>["current"]) => {
-    const key = sessionKey({ root }, options, options.ref);
     const prepared = (current?.prepared as Prepared[] | undefined) ?? [];
     if (prepared.length) await checkStateDirectory(join(stateDirectory(), "repos"), true);
     for (const item of prepared) {
+      const key = item.subscriptionKey ?? sessionKey({ root }, options, options.ref);
       const directory = join(stateDirectory(), "repos", item.repositoryId);
       await checkStateDirectory(directory, true);
       await checkStateDirectory(join(directory, "sessions"), true);
       const value = await readJson(join(directory, "sessions", `${key}.json`), true);
       if (value === undefined) continue;
       const session = validateSession(value, key);
-      if (session.closedAt || session.activationToken !== item.token) continue;
-      return item.repositoryId;
+      if (
+        session.closedAt ||
+        session.activationToken !== item.token ||
+        session.adapter !== options.adapter ||
+        session.session !== options.session ||
+        session.instance !== options.instance ||
+        session.ref !== options.ref
+      )
+        continue;
+      return { repositoryId: item.repositoryId, subscriptionKey: key };
     }
   };
   const enabledAt = async (root: string, current: Awaited<ReturnType<typeof read>>["current"]) => {
     if (current?.enabled === true) return true;
     const matched = await matchingRepository(root, current);
-    return matched !== undefined && (await repository(root, options.signal, false)).id === matched;
+    if (matched === undefined) return false;
+    const repo = await repository(root, options.signal, false);
+    return repo.id === matched.repositoryId && sessionKey(repo, options, options.ref) === matched.subscriptionKey;
   };
   let missing = false;
   const cwd = await realpath(resolve(options.cwd)).catch((error: NodeJS.ErrnoException) => {
@@ -221,8 +233,17 @@ export async function sessionActivation(
       } else if (operation?.phase === "prepare") {
         if (!pending.includes(operation.token)) return false;
         if (!isId(operation.repositoryId)) throw new Error("Invalid activation repository ID.");
+        if (operation.subscriptionKey !== undefined && !isId(operation.subscriptionKey))
+          throw new Error("Invalid activation subscription key.");
         nextPending = pending;
-        nextPrepared = [...prepared, { token: operation.token, repositoryId: operation.repositoryId }];
+        nextPrepared = [
+          ...prepared,
+          {
+            token: operation.token,
+            repositoryId: operation.repositoryId,
+            ...(operation.subscriptionKey ? { subscriptionKey: operation.subscriptionKey } : {}),
+          },
+        ];
         nextEnabled = committed;
       } else if (operation) {
         if (!pending.includes(operation.token)) return current?.enabled === true;
