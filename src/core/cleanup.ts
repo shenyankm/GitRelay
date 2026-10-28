@@ -89,7 +89,7 @@ export async function collectRepository(repo: Repository, options: CleanupOption
       const cutoff = Date.now() - days * 86_400_000;
       eventLoop: for (const event of [...approved, ...events]) {
         options.signal?.throwIfAborted();
-        const committed = approved.includes(event);
+        const committed = trashIds.has(event.id);
         if (event.kind === "upstream") {
           const cursor = cursors.get(event.ref);
           if (
@@ -103,9 +103,20 @@ export async function collectRepository(repo: Repository, options: CleanupOption
         }
         try {
           // Existing consumers hold session locks; new consumers cannot pass the publication lock held by GC.
-          for (const key of [...new Set(event.recipients)].sort()) {
+          const keys = [...new Set(event.recipients)].sort();
+          for (let offset = 0; offset < keys.length; offset += 32) {
             options.signal?.throwIfAborted();
-            await withLock(join(repo.directory, "sessions", `${key}.lock`), async () => {}, { signal: options.signal });
+            // Drain every lock operation before proceeding or releasing publish.lock on failure.
+            const checks = await Promise.allSettled(
+              keys.slice(offset, offset + 32).map((key) =>
+                withLock(join(repo.directory, "sessions", `${key}.lock`), async () => {}, {
+                  signal: options.signal,
+                }),
+              ),
+            );
+            const failures = checks.filter((check) => check.status === "rejected");
+            const failure = failures.find(({ reason }) => !(reason instanceof BusyError)) ?? failures[0];
+            if (failure) throw failure.reason;
           }
           if (!committed) {
             let latest = Date.parse(event.createdAt);

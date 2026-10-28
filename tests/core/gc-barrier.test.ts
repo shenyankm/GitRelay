@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
+import fs from "node:fs";
 import { mkdir, open, readFile, rm, stat } from "node:fs/promises";
+import { syncBuiltinESMExports } from "node:module";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -106,6 +108,66 @@ test("GC keeps events while a receiver is still delivering after publication", a
   } finally {
     release.resolve();
     await consumer;
+  }
+});
+
+test("GC drains recipient locks and reports failures even when another recipient is busy", async (t) => {
+  const f = await fixture(t);
+  const receivers = ["a", "b", "c"].map((session) => ({
+    cwd: f.b,
+    ref,
+    adapter: "test",
+    session,
+    async deliver() {},
+  }));
+  for (const receiver of receivers) await consumeMailbox(receiver);
+  const event = await sendMessage({ cwd: f.a, adapter: "sender", session: "sender", text: "confirmed" });
+  for (const receiver of receivers) await consumeMailbox(receiver);
+  const repo = await repository(f.a);
+  const locks = [...event.recipients].sort().map((key) => join(repo.directory, "sessions", `${key}.lock`));
+  await writeJson(locks[0], { pid: process.pid });
+  const entered = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  const original = fs.promises.rm;
+  const mocked = t.mock.method(
+    fs.promises,
+    "rm",
+    async (path: Parameters<typeof original>[0], options?: Parameters<typeof original>[1]) => {
+      if (path === locks[2]) throw new Error("injected recipient unlock failure");
+      if (path === locks[1]) {
+        entered.resolve();
+        await release.promise;
+      }
+      return original(path, options);
+    },
+  );
+  syncBuiltinESMExports();
+  let finished = false;
+  const rejected = assert.rejects(
+    collectGarbage(f.a, { apply: true, retentionDays: 0 }).finally(() => {
+      finished = true;
+    }),
+    /injected recipient unlock failure/,
+  );
+  try {
+    await bounded(entered.promise);
+    await delay(25);
+    assert.equal(finished, false);
+    await stat(join(repo.directory, "publish.lock"));
+    release.resolve();
+    await rejected;
+    for (const path of [join(repo.directory, "publish.lock"), locks[1]])
+      await assert.rejects(stat(path), { code: "ENOENT" });
+    assert.equal(JSON.parse(await readFile(locks[0], "utf8")).pid, process.pid);
+    assert.ok(await readFile(join(repo.directory, "events", `${event.id}.json`)));
+    for (const key of event.recipients) assert.equal((await readReceipt(repo, key, event.id))?.status, "delivered");
+  } finally {
+    release.resolve();
+    await rejected;
+    mocked.mock.restore();
+    syncBuiltinESMExports();
+    await rm(locks[0], { force: true });
+    await rm(locks[2], { force: true });
   }
 });
 

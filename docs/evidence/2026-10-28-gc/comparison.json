@@ -1,0 +1,199 @@
+{
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "source": {
+    "baseline": {
+      "commit": "e47078289a35de7d5f2bc5cbb18b6bba7f1e5a67",
+      "dirty": false,
+      "sha256": "e3ea59b418676013f603a14c019c1b24e7456f2e11d2e5b5ae49e62d32c815ba",
+      "buildSha256": "8bf25884779ce2f43ac5b50b6188c207ab21dd0dc635daa82be3f37a128530f4"
+    },
+    "candidate": {
+      "commit": "e47078289a35de7d5f2bc5cbb18b6bba7f1e5a67",
+      "dirty": true,
+      "sha256": "53781a60edd1796fe27d84bdfbbafece99e82e9fbae0045e843261615c1face2",
+      "buildSha256": "fa0acbbe5cd416aeaa1da7a28956b40a0aac1542143f53a794c347f5972fe3d1"
+    }
+  },
+  "commands": {
+    "baseline": "node /absolute/baseline/scripts/benchmark-maintenance.mjs",
+    "candidate": "node scripts/benchmark-maintenance.mjs"
+  },
+  "workload": "100 and 1,000 retained events, three recipients, 100 and 1,000 registered sessions; setup excluded; warm local caches; no daemon",
+  "sampling": "Six sequential runs in baseline/candidate/candidate/baseline/baseline/candidate order. Each result is the median of three calls. Table reports the median of three per-variant results.",
+  "checks": "All six scripts completed successfully: exact session discovery; all recent events retained; an unconfirmed event preserved during zero-retention collection; fully acknowledged events and receipts removed; trash empty.",
+  "medians": [
+    {
+      "events": 100,
+      "recipients": 3,
+      "beforeMs": 70.5,
+      "afterMs": 45.6,
+      "reductionPercent": 35.3
+    },
+    {
+      "events": 1000,
+      "recipients": 3,
+      "beforeMs": 646.7,
+      "afterMs": 426.7,
+      "reductionPercent": 34
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "trial": 1,
+      "results": [
+        {
+          "node": "v22.23.2",
+          "git": "git version 2.54.0 (Apple Git-157)",
+          "samples": 3,
+          "recipients": 3,
+          "workload": "session discovery and retained-event GC; setup excluded; warm filesystem cache"
+        },
+        {
+          "sessions": 100,
+          "events": 100,
+          "sessionScanMs": 2.4,
+          "retainedGcMs": 70.5
+        },
+        {
+          "sessions": 1000,
+          "events": 1000,
+          "sessionScanMs": 23.2,
+          "retainedGcMs": 646.7
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "trial": 1,
+      "results": [
+        {
+          "node": "v22.23.2",
+          "git": "git version 2.54.0 (Apple Git-157)",
+          "samples": 3,
+          "recipients": 3,
+          "workload": "session discovery and retained-event GC; setup excluded; warm filesystem cache"
+        },
+        {
+          "sessions": 100,
+          "events": 100,
+          "sessionScanMs": 2.3,
+          "retainedGcMs": 45.6
+        },
+        {
+          "sessions": 1000,
+          "events": 1000,
+          "sessionScanMs": 23.2,
+          "retainedGcMs": 436.5
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "trial": 2,
+      "results": [
+        {
+          "node": "v22.23.2",
+          "git": "git version 2.54.0 (Apple Git-157)",
+          "samples": 3,
+          "recipients": 3,
+          "workload": "session discovery and retained-event GC; setup excluded; warm filesystem cache"
+        },
+        {
+          "sessions": 100,
+          "events": 100,
+          "sessionScanMs": 2.4,
+          "retainedGcMs": 46.3
+        },
+        {
+          "sessions": 1000,
+          "events": 1000,
+          "sessionScanMs": 23.5,
+          "retainedGcMs": 418.5
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "trial": 2,
+      "results": [
+        {
+          "node": "v22.23.2",
+          "git": "git version 2.54.0 (Apple Git-157)",
+          "samples": 3,
+          "recipients": 3,
+          "workload": "session discovery and retained-event GC; setup excluded; warm filesystem cache"
+        },
+        {
+          "sessions": 100,
+          "events": 100,
+          "sessionScanMs": 2.3,
+          "retainedGcMs": 69.2
+        },
+        {
+          "sessions": 1000,
+          "events": 1000,
+          "sessionScanMs": 23,
+          "retainedGcMs": 645.8
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "trial": 3,
+      "results": [
+        {
+          "node": "v22.23.2",
+          "git": "git version 2.54.0 (Apple Git-157)",
+          "samples": 3,
+          "recipients": 3,
+          "workload": "session discovery and retained-event GC; setup excluded; warm filesystem cache"
+        },
+        {
+          "sessions": 100,
+          "events": 100,
+          "sessionScanMs": 2.6,
+          "retainedGcMs": 76.1
+        },
+        {
+          "sessions": 1000,
+          "events": 1000,
+          "sessionScanMs": 23.5,
+          "retainedGcMs": 648.6
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "trial": 3,
+      "results": [
+        {
+          "node": "v22.23.2",
+          "git": "git version 2.54.0 (Apple Git-157)",
+          "samples": 3,
+          "recipients": 3,
+          "workload": "session discovery and retained-event GC; setup excluded; warm filesystem cache"
+        },
+        {
+          "sessions": 100,
+          "events": 100,
+          "sessionScanMs": 2.4,
+          "retainedGcMs": 45.5
+        },
+        {
+          "sessions": 1000,
+          "events": 1000,
+          "sessionScanMs": 23.5,
+          "retainedGcMs": 426.7
+        }
+      ]
+    }
+  ],
+  "limitations": "Small local macOS sample with uncontrolled external load. No CPU, peak RSS, physical I/O, cold-cache, network filesystem, Windows, lock-contention throughput or real-agent latency comparison. The Set lookup change is not isolated by this workload."
+}

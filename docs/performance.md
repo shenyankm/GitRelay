@@ -1,8 +1,52 @@
 # GitRelay performance benchmarks
 
-The latest hook comparison is below. Other sections retain measurements for
+The latest cleanup and hook comparisons are below. Other sections retain measurements for
 named historical source snapshots; retired-client results are not current
 support claims.
+
+## Bounded GC recipient checks: 2026-10-28
+
+GC now checks recipient session locks in batches of at most 32, rather than
+serially. Each batch settles before receipt inspection or publication-lock
+release. A non-contention failure takes precedence over a busy recipient so
+concurrency cannot hide an unlock failure. Receipt validation, migration
+checks, retention and deletion journaling remain in place. Trash membership
+also reuses the existing ID set instead of scanning an array per event.
+
+[The comparison](evidence/2026-10-28-gc/comparison.json) uses the unchanged
+`benchmark-maintenance.mjs` against a saved build of `e470782` and the candidate
+on macOS arm64, Node 22.23.2 and Git 2.54.0. Six sequential runs used
+baseline/candidate/candidate/baseline/baseline/candidate order, with warm local
+filesystem caches and no daemon. Each script reports a median of three calls;
+the table takes the median of the three results per variant. Events have three
+recipients, with 100 and 1,000 registered sessions respectively.
+
+| Retained events |   Before |    After | Observed reduction |
+| --------------: | -------: | -------: | -----------------: |
+|             100 |  70.5 ms |  45.6 ms |              35.3% |
+|           1,000 | 646.7 ms | 426.7 ms |              34.0% |
+
+All six runs passed exact session discovery, retention, unread-event
+preservation, acknowledged-event deletion, receipt cleanup and empty-trash
+assertions. Separate [baseline](evidence/2026-10-28-gc/baseline.json) and
+[candidate](evidence/2026-10-28-gc/candidate.json) recorder runs retain source
+and build fingerprints; their individual timings are outside the comparison.
+Reproduce with a prebuilt baseline source snapshot and the candidate, running
+the following pair, its reverse, then the pair again, without concurrent builds
+or tests:
+
+```sh
+node /absolute/baseline/scripts/benchmark-maintenance.mjs
+node scripts/benchmark-maintenance.mjs
+```
+
+This is a small local sample with uncontrolled external load. CPU, peak RSS,
+physical I/O, cold caches, network filesystems, Windows, lock-contention
+throughput and real-agent latency were not compared. The trash ID lookup
+improvement is not isolated by this workload. Regression coverage includes
+90 recipients under a 64-descriptor limit, busy receivers, cancellation,
+interrupted deletion recovery, and draining outstanding lock operations when
+another recipient fails.
 
 ## Codex hook overhead: 2026-10-28
 
