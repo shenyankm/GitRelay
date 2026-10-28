@@ -30,6 +30,11 @@ test("code block examples do not change hook activation", async (t) => {
   await runHook({ ...input(f.b), prompt: "Example:\n\n    Disable GitRelay" }, ref, output);
   assert.equal(await sessionActivation(options), true);
   assert.equal((await listSessions(f.b))[0].closedAt, undefined);
+  await runHook({ ...input(f.b), prompt: "- ~~~\n  Disable GitRelay\n  ~~~" }, ref, output);
+  assert.equal(await sessionActivation(options), true);
+  await runHook({ ...input(f.b), prompt: "- ~~~\n  example\nDisable GitRelay" }, ref, output);
+  assert.equal(await sessionActivation(options), false);
+  assert.ok((await listSessions(f.b))[0].closedAt);
 });
 
 test("legacy subdirectory activation closes its inbox when disabled at the root", async (t) => {

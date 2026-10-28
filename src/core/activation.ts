@@ -18,6 +18,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
   const text = prompt
     .split("\n")
     .filter((line) => {
+      if (fence && fenceIndent && line.trim() && columns(line.match(/^[ \t]*/)![0]) < fenceIndent) fence = undefined;
       if (fence) {
         const closing = line.match(/^([ \t]*)(`{3,}|~{3,})(.*)$/);
         if (
