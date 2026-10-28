@@ -37,6 +37,8 @@ test("only direct coordination requests opt a session in or out", () => {
     "请别继续使用 GitRelay",
     "别再继续使用 GitRelay",
     "无需使用多工作树开发",
+    "不要用多工作树之外的方式，停止并行开发",
+    "不要用多工作树以外的方法，关闭 GitRelay",
     "停止多工作树开发",
     "Disable GitRelay",
     "Please do not use multiple worktrees",
@@ -72,6 +74,8 @@ test("only direct coordination requests opt a session in or out", () => {
     "不要忘记启用 GitRelay",
     "请不要忘记启用 GitRelay",
     "别担心，请启用 GitRelay",
+    "别用多工作树之外的方式开发",
+    "不要用多工作树以外的方法开发",
     "不要紧，启用 GitRelay",
     "别急，先启用 GitRelay",
   ])
