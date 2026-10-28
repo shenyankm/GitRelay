@@ -95,9 +95,15 @@ export async function detectPlatform(
         "gim",
       ),
     );
+    const activeClaims = stderr.matchAll(
+      new RegExp(
+        `^[\\t ]*(?:warning|info):[\\t ]*${command}(?:-cli)?[\\t ]+(?:version[\\t ]+)?v?(\\d+\\.\\d+\\.\\d+[\\w.+-]*)[\\t ]+is[\\t ]+(?:active|running)\\b`,
+        "gim",
+      ),
+    );
     const allVersions = new Set([
       ...[...stdout.matchAll(/v?(\d+\.\d+\.\d+[\w.+-]*)/g)].map((match) => match[1]),
-      ...[...stderrClaims].map((match) => match[1]).filter((candidate) => semver.test(candidate)),
+      ...[...stderrClaims, ...activeClaims].map((match) => match[1]).filter((candidate) => semver.test(candidate)),
     ]);
     const matches = [...stdout.matchAll(/(?:^|[^\w.+-])(v?)(\d+\.\d+\.\d+[\w.+-]*)/g)];
     const versions = new Set(matches.map((match) => match[2]));
