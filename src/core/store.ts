@@ -454,20 +454,23 @@ export async function readJson(path: string, noFollow = false): Promise<unknown 
     if (!info.isFile() || (named && (named.dev !== info.dev || named.ino !== info.ino)))
       throw new Error(`State path is not a regular file or changed during inspection: ${path}`);
     if (info.size > MAX_STATE_BYTES) throw new Error(`State file exceeds 2 MiB: ${path}`);
-    const chunks: Buffer[] = [];
+    // Leave room to probe EOF in the same buffer; grow only if the file changes.
+    let buffer = Buffer.allocUnsafe(Math.max(256, info.size + 1));
     let size = 0;
     for (;;) {
-      const chunkSize = size ? 64 * 1024 : Math.min(64 * 1024, Math.max(256, info.size + 1));
-      const buffer = Buffer.allocUnsafe(Math.min(chunkSize, MAX_STATE_BYTES + 1 - size));
-      const { bytesRead } = await file.read(buffer, 0, buffer.length, null);
+      const { bytesRead } = await file.read(buffer, size, buffer.length - size, null);
       if (!bytesRead) break;
       size += bytesRead;
       if (size > MAX_STATE_BYTES) throw new Error(`State file exceeds 2 MiB: ${path}`);
-      chunks.push(buffer.subarray(0, bytesRead));
+      if (size === buffer.length) {
+        const next = Buffer.allocUnsafe(Math.min(MAX_STATE_BYTES + 1, buffer.length * 2));
+        buffer.copy(next);
+        buffer = next;
+      }
     }
     let text: string;
     try {
-      text = stateDecoder.decode(Buffer.concat(chunks, size));
+      text = stateDecoder.decode(buffer.subarray(0, size));
     } catch (error) {
       throw new Error(`Invalid UTF-8 in state file: ${path}`, { cause: error });
     }

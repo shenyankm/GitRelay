@@ -1,0 +1,499 @@
+{
+  "baseline": {
+    "commit": "ab9c407b8b2568c4712d49e91bcb0266df60cf7d",
+    "buildSha256": "fa0acbbe5cd416aeaa1da7a28956b40a0aac1542143f53a794c347f5972fe3d1",
+    "stateReaderSourceSha256": "a98e43f59d43af614d477f82c99eb7afeeb83ea9d734be07801d2d4b82f89bde"
+  },
+  "candidate": {
+    "commit": "ab9c407b8b2568c4712d49e91bcb0266df60cf7d",
+    "dirty": true,
+    "sha256": "af663393f19585f7e228b3706cff8c6c769866c20c1096104d26926bce9650a0",
+    "buildSha256": "1fd8b5133165713c3e142b7550d71e41eb5520e685cd5cd1492bf57d2257de60",
+    "stateReaderSourceSha256": "a4803157b4b990c1735be4ec20242b1d61ac58733c59c342ff7c9b8bdc73f739"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "changedBuildModules": [
+    "dist/core/store.js"
+  ],
+  "command": "node scripts/benchmark.mjs",
+  "workload": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sessions": 3,
+    "samples": 3,
+    "offlineBacklog": 32,
+    "workload": "retained broadcast messages; setup excluded; warm filesystem cache"
+  },
+  "aggregation": "Each run reports the median of three idle-poll samples and one 32-message recovery. Summary takes the median across three runs per variant. All six benchmark processes passed their assertions.",
+  "order": [
+    "baseline",
+    "candidate",
+    "candidate",
+    "baseline",
+    "baseline",
+    "candidate"
+  ],
+  "summary": [
+    {
+      "events": 100,
+      "daemon": false,
+      "idle": {
+        "beforeMs": 115,
+        "afterMs": 107.7,
+        "reductionPercent": 6.3,
+        "beforeSamplesMs": [
+          107.9,
+          115,
+          115.8
+        ],
+        "afterSamplesMs": [
+          106.4,
+          107.7,
+          112.1
+        ]
+      },
+      "recovery32": {
+        "beforeMs": 162.6,
+        "afterMs": 154.2,
+        "reductionPercent": 5.2,
+        "beforeSamplesMs": [
+          162.5,
+          167.1,
+          162.6
+        ],
+        "afterSamplesMs": [
+          149.4,
+          187.9,
+          154.2
+        ]
+      }
+    },
+    {
+      "events": 100,
+      "daemon": true,
+      "idle": {
+        "beforeMs": 106.2,
+        "afterMs": 108.5,
+        "reductionPercent": -2.2,
+        "beforeSamplesMs": [
+          103.9,
+          106.2,
+          115.4
+        ],
+        "afterSamplesMs": [
+          103.6,
+          137,
+          108.5
+        ]
+      },
+      "recovery32": {
+        "beforeMs": 152,
+        "afterMs": 153.6,
+        "reductionPercent": -1.1,
+        "beforeSamplesMs": [
+          146,
+          152,
+          156.9
+        ],
+        "afterSamplesMs": [
+          144.5,
+          207.8,
+          153.6
+        ]
+      }
+    },
+    {
+      "events": 1000,
+      "daemon": false,
+      "idle": {
+        "beforeMs": 215.8,
+        "afterMs": 207.3,
+        "reductionPercent": 3.9,
+        "beforeSamplesMs": [
+          213.4,
+          215.8,
+          215.9
+        ],
+        "afterSamplesMs": [
+          207.3,
+          226.1,
+          207.3
+        ]
+      },
+      "recovery32": {
+        "beforeMs": 294,
+        "afterMs": 284.1,
+        "reductionPercent": 3.4,
+        "beforeSamplesMs": [
+          286.5,
+          294,
+          316.8
+        ],
+        "afterSamplesMs": [
+          284.1,
+          361.5,
+          280.6
+        ]
+      }
+    },
+    {
+      "events": 1000,
+      "daemon": true,
+      "idle": {
+        "beforeMs": 220.8,
+        "afterMs": 214,
+        "reductionPercent": 3.1,
+        "beforeSamplesMs": [
+          218.1,
+          228,
+          220.8
+        ],
+        "afterSamplesMs": [
+          214,
+          228.6,
+          207.3
+        ]
+      },
+      "recovery32": {
+        "beforeMs": 292.4,
+        "afterMs": 282.6,
+        "reductionPercent": 3.4,
+        "beforeSamplesMs": [
+          287.6,
+          294.7,
+          292.4
+        ],
+        "afterSamplesMs": [
+          282.6,
+          307.6,
+          282.3
+        ]
+      }
+    },
+    {
+      "events": 10000,
+      "daemon": false,
+      "idle": {
+        "beforeMs": 1841.1,
+        "afterMs": 1684,
+        "reductionPercent": 8.5,
+        "beforeSamplesMs": [
+          1813.5,
+          1841.1,
+          2128.2
+        ],
+        "afterSamplesMs": [
+          1684,
+          1811.4,
+          1680.5
+        ]
+      },
+      "recovery32": {
+        "beforeMs": 2467.4,
+        "afterMs": 2175.3,
+        "reductionPercent": 11.8,
+        "beforeSamplesMs": [
+          2467.4,
+          2989.4,
+          2348
+        ],
+        "afterSamplesMs": [
+          2153.1,
+          2348.8,
+          2175.3
+        ]
+      }
+    },
+    {
+      "events": 10000,
+      "daemon": true,
+      "idle": {
+        "beforeMs": 1924.5,
+        "afterMs": 1679.3,
+        "reductionPercent": 12.7,
+        "beforeSamplesMs": [
+          1904.1,
+          2167.4,
+          1924.5
+        ],
+        "afterSamplesMs": [
+          1655.8,
+          1773.1,
+          1679.3
+        ]
+      },
+      "recovery32": {
+        "beforeMs": 2445.5,
+        "afterMs": 2222.6,
+        "reductionPercent": 9.1,
+        "beforeSamplesMs": [
+          2402.7,
+          3001.9,
+          2445.5
+        ],
+        "afterSamplesMs": [
+          2222.6,
+          2290.6,
+          2105.8
+        ]
+      }
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "results": [
+        {
+          "events": 100,
+          "daemon": false,
+          "idleThreeSessionsMs": 107.9,
+          "offlineRecovery32Ms": 162.5
+        },
+        {
+          "events": 100,
+          "daemon": true,
+          "idleThreeSessionsMs": 103.9,
+          "offlineRecovery32Ms": 146
+        },
+        {
+          "events": 1000,
+          "daemon": false,
+          "idleThreeSessionsMs": 213.4,
+          "offlineRecovery32Ms": 286.5
+        },
+        {
+          "events": 1000,
+          "daemon": true,
+          "idleThreeSessionsMs": 218.1,
+          "offlineRecovery32Ms": 287.6
+        },
+        {
+          "events": 10000,
+          "daemon": false,
+          "idleThreeSessionsMs": 1813.5,
+          "offlineRecovery32Ms": 2467.4
+        },
+        {
+          "events": 10000,
+          "daemon": true,
+          "idleThreeSessionsMs": 1904.1,
+          "offlineRecovery32Ms": 2402.7
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "results": [
+        {
+          "events": 100,
+          "daemon": false,
+          "idleThreeSessionsMs": 106.4,
+          "offlineRecovery32Ms": 149.4
+        },
+        {
+          "events": 100,
+          "daemon": true,
+          "idleThreeSessionsMs": 103.6,
+          "offlineRecovery32Ms": 144.5
+        },
+        {
+          "events": 1000,
+          "daemon": false,
+          "idleThreeSessionsMs": 207.3,
+          "offlineRecovery32Ms": 284.1
+        },
+        {
+          "events": 1000,
+          "daemon": true,
+          "idleThreeSessionsMs": 214,
+          "offlineRecovery32Ms": 282.6
+        },
+        {
+          "events": 10000,
+          "daemon": false,
+          "idleThreeSessionsMs": 1684,
+          "offlineRecovery32Ms": 2153.1
+        },
+        {
+          "events": 10000,
+          "daemon": true,
+          "idleThreeSessionsMs": 1655.8,
+          "offlineRecovery32Ms": 2222.6
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "results": [
+        {
+          "events": 100,
+          "daemon": false,
+          "idleThreeSessionsMs": 107.7,
+          "offlineRecovery32Ms": 187.9
+        },
+        {
+          "events": 100,
+          "daemon": true,
+          "idleThreeSessionsMs": 137,
+          "offlineRecovery32Ms": 207.8
+        },
+        {
+          "events": 1000,
+          "daemon": false,
+          "idleThreeSessionsMs": 226.1,
+          "offlineRecovery32Ms": 361.5
+        },
+        {
+          "events": 1000,
+          "daemon": true,
+          "idleThreeSessionsMs": 228.6,
+          "offlineRecovery32Ms": 307.6
+        },
+        {
+          "events": 10000,
+          "daemon": false,
+          "idleThreeSessionsMs": 1811.4,
+          "offlineRecovery32Ms": 2348.8
+        },
+        {
+          "events": 10000,
+          "daemon": true,
+          "idleThreeSessionsMs": 1773.1,
+          "offlineRecovery32Ms": 2290.6
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "results": [
+        {
+          "events": 100,
+          "daemon": false,
+          "idleThreeSessionsMs": 115,
+          "offlineRecovery32Ms": 167.1
+        },
+        {
+          "events": 100,
+          "daemon": true,
+          "idleThreeSessionsMs": 106.2,
+          "offlineRecovery32Ms": 152
+        },
+        {
+          "events": 1000,
+          "daemon": false,
+          "idleThreeSessionsMs": 215.8,
+          "offlineRecovery32Ms": 294
+        },
+        {
+          "events": 1000,
+          "daemon": true,
+          "idleThreeSessionsMs": 228,
+          "offlineRecovery32Ms": 294.7
+        },
+        {
+          "events": 10000,
+          "daemon": false,
+          "idleThreeSessionsMs": 1841.1,
+          "offlineRecovery32Ms": 2989.4
+        },
+        {
+          "events": 10000,
+          "daemon": true,
+          "idleThreeSessionsMs": 2167.4,
+          "offlineRecovery32Ms": 3001.9
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "results": [
+        {
+          "events": 100,
+          "daemon": false,
+          "idleThreeSessionsMs": 115.8,
+          "offlineRecovery32Ms": 162.6
+        },
+        {
+          "events": 100,
+          "daemon": true,
+          "idleThreeSessionsMs": 115.4,
+          "offlineRecovery32Ms": 156.9
+        },
+        {
+          "events": 1000,
+          "daemon": false,
+          "idleThreeSessionsMs": 215.9,
+          "offlineRecovery32Ms": 316.8
+        },
+        {
+          "events": 1000,
+          "daemon": true,
+          "idleThreeSessionsMs": 220.8,
+          "offlineRecovery32Ms": 292.4
+        },
+        {
+          "events": 10000,
+          "daemon": false,
+          "idleThreeSessionsMs": 2128.2,
+          "offlineRecovery32Ms": 2348
+        },
+        {
+          "events": 10000,
+          "daemon": true,
+          "idleThreeSessionsMs": 1924.5,
+          "offlineRecovery32Ms": 2445.5
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "results": [
+        {
+          "events": 100,
+          "daemon": false,
+          "idleThreeSessionsMs": 112.1,
+          "offlineRecovery32Ms": 154.2
+        },
+        {
+          "events": 100,
+          "daemon": true,
+          "idleThreeSessionsMs": 108.5,
+          "offlineRecovery32Ms": 153.6
+        },
+        {
+          "events": 1000,
+          "daemon": false,
+          "idleThreeSessionsMs": 207.3,
+          "offlineRecovery32Ms": 280.6
+        },
+        {
+          "events": 1000,
+          "daemon": true,
+          "idleThreeSessionsMs": 207.3,
+          "offlineRecovery32Ms": 282.3
+        },
+        {
+          "events": 10000,
+          "daemon": false,
+          "idleThreeSessionsMs": 1680.5,
+          "offlineRecovery32Ms": 2175.3
+        },
+        {
+          "events": 10000,
+          "daemon": true,
+          "idleThreeSessionsMs": 1679.3,
+          "offlineRecovery32Ms": 2105.8
+        }
+      ]
+    }
+  ],
+  "limitations": "Small sequential warm-local sample with uncontrolled external load. No comparison of process CPU, peak RSS, physical disk I/O, cold caches, network filesystems, Windows, lock-contention throughput or native agent latency. Small workloads include timing regressions; this is not a general speedup guarantee."
+}

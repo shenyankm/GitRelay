@@ -326,6 +326,60 @@ test("JSON reads preserve UTF-8, size boundaries, missing files and parse errors
   await assert.rejects(readJson(join(path, "child.json")), { code: "ENOTDIR" });
 });
 
+test("JSON reads reuse the small-file buffer when probing EOF", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-buffer-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const path = join(directory, "state.json"),
+    value = { text: "跨工作区消息 🚀" };
+  await writeFile(path, JSON.stringify(value));
+  const probe = await open(path, "r"),
+    prototype = Object.getPrototypeOf(probe),
+    original = prototype.read;
+  await probe.close();
+  const buffers: Buffer[] = [];
+  prototype.read = async function (buffer: Buffer, ...args: unknown[]) {
+    buffers.push(buffer);
+    return original.call(this, buffer, ...args);
+  };
+  try {
+    assert.deepEqual(await readJson(path), value);
+  } finally {
+    prototype.read = original;
+  }
+  assert.ok(buffers.length >= 2);
+  assert.equal(new Set(buffers).size, 1);
+  assert.ok(buffers[0].length < 1024);
+});
+
+for (const mode of ["short", "grow", "shrink"] as const)
+  test(`JSON reads preserve bytes through ${mode} reads`, async (t) => {
+    const directory = await mkdtemp(join(tmpdir(), "git-relay-json-read-"));
+    t.after(() => rm(directory, { recursive: true, force: true }));
+    const path = join(directory, "state.json"),
+      large = { text: "更新🚀".repeat(8192) },
+      small = { text: "short 🚀" },
+      value = mode === "shrink" ? small : large;
+    await writeFile(path, mode === "grow" ? '{"text":"' : JSON.stringify(large));
+    const probe = await open(path, "r"),
+      prototype = Object.getPrototypeOf(probe),
+      original = prototype.read;
+    await probe.close();
+    let reads = 0;
+    prototype.read = async function (buffer: Buffer, offset: number, length: number, position: number | null) {
+      if (++reads === 1) {
+        if (mode === "grow") await appendFile(path, JSON.stringify(large).slice(9));
+        if (mode === "shrink") await writeFile(path, JSON.stringify(small));
+      }
+      return original.call(this, buffer, offset, Math.min(length, 113), position);
+    };
+    try {
+      assert.deepEqual(await readJson(path), value);
+    } finally {
+      prototype.read = original;
+    }
+    assert.ok(reads >= 2);
+  });
+
 test(
   "JSON reads retry a path published after open reported ENOENT",
   { skip: process.platform === "win32" },
@@ -414,30 +468,33 @@ test(
   },
 );
 
-test("JSON reads reject files that grow past the limit after inspection", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-growth-"));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  const path = join(directory, "state.json");
-  await writeFile(path, '"small"');
-  const probe = await open(path, "r");
-  const prototype = Object.getPrototypeOf(probe);
-  await probe.close();
-  const original = prototype.read;
-  let grown = false;
-  prototype.read = async function (...args: unknown[]) {
-    if (!grown) {
-      grown = true;
-      await appendFile(path, Buffer.alloc(2 * 1024 * 1024));
+for (const oversized of [false, true])
+  test(`JSON reads enforce the limit after file growth (oversized=${oversized})`, async (t) => {
+    const directory = await mkdtemp(join(tmpdir(), "git-relay-json-growth-"));
+    t.after(() => rm(directory, { recursive: true, force: true }));
+    const path = join(directory, "state.json"),
+      value = "x".repeat(2 * 1024 * 1024 - 2 + Number(oversized));
+    await writeFile(path, '"');
+    const probe = await open(path, "r");
+    const prototype = Object.getPrototypeOf(probe);
+    await probe.close();
+    const original = prototype.read;
+    let grown = false;
+    prototype.read = async function (...args: unknown[]) {
+      if (!grown) {
+        grown = true;
+        await appendFile(path, `${value}"`);
+      }
+      return original.apply(this, args);
+    };
+    try {
+      if (oversized) await assert.rejects(readJson(path), /State file exceeds 2 MiB/);
+      else assert.equal(await readJson(path), value);
+    } finally {
+      prototype.read = original;
     }
-    return original.apply(this, args);
-  };
-  try {
-    await assert.rejects(readJson(path), /State file exceeds 2 MiB/);
-  } finally {
-    prototype.read = original;
-  }
-  assert.ok(grown);
-});
+    assert.ok(grown);
+  });
 
 test("dangling state links are not mistaken for missing data", { skip: process.platform === "win32" }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), "git-relay-json-link-"));

@@ -1,8 +1,56 @@
 # GitRelay performance benchmarks
 
-The latest cleanup and hook comparisons are below. Other sections retain measurements for
-named historical source snapshots; retired-client results are not current
-support claims.
+The latest state-reader, cleanup and hook comparisons are below. Other sections retain
+measurements for named historical source snapshots; retired-client results are not
+current support claims.
+
+## Reusable state-read buffers: 2026-10-28
+
+The shared JSON reader now reads into one buffer sized from the inspected file,
+with one extra byte to probe EOF. This avoids allocating another 64 KiB buffer
+at EOF for every non-empty small file and copying chunks into a final buffer.
+If the file grows, the buffer grows geometrically, capped at 2 MiB plus one
+byte. The reader still reads through EOF and checks the actual byte count;
+strict UTF-8, regular-file checks, symlink handling and descriptor cleanup are
+unchanged. This is not a total-memory bound: old and new buffers can coexist
+during growth, and decoding and parsing allocate separately.
+
+[The comparison](evidence/2026-10-28-state-reader/comparison.json) uses the
+unchanged mailbox benchmark against a saved build of `ab9c407` and the
+candidate. Only `dist/core/store.js` differs between the two builds. Six
+sequential runs used baseline/candidate/candidate/baseline/baseline/candidate
+order on macOS arm64, Node 22.23.2 and Git 2.54.0, with three receiving sessions
+and warm local filesystem caches. Each idle result is the median of three
+samples; the table takes the median across three runs per variant. Recovery
+means consuming and acknowledging a 32-message backlog.
+
+| Events | Daemon | Idle before | Idle after | Recovery before | Recovery after |
+| -----: | :----- | ----------: | ---------: | --------------: | -------------: |
+|    100 | Off    |    115.0 ms |   107.7 ms |        162.6 ms |       154.2 ms |
+|    100 | On     |    106.2 ms |   108.5 ms |        152.0 ms |       153.6 ms |
+|  1,000 | Off    |    215.8 ms |   207.3 ms |        294.0 ms |       284.1 ms |
+|  1,000 | On     |    220.8 ms |   214.0 ms |        292.4 ms |       282.6 ms |
+| 10,000 | Off    |  1,841.1 ms | 1,684.0 ms |      2,467.4 ms |     2,175.3 ms |
+| 10,000 | On     |  1,924.5 ms | 1,679.3 ms |      2,445.5 ms |     2,222.6 ms |
+
+At 10,000 events, observed idle-time reductions were 8.5–12.7%, and recovery
+reductions were 9.1–11.8%. Small workloads include regressions; these are not
+general speedup guarantees. All six runs passed delivery, receipt,
+deduplication and daemon-liveness assertions. The included
+[recorder run](evidence/2026-10-28-state-reader/candidate.json) retains source
+and build fingerprints. Reproduce with prebuilt baseline and candidate copies,
+running the following pair, its reverse, then the pair again:
+
+```sh
+node /absolute/baseline/scripts/benchmark.mjs
+node scripts/benchmark.mjs
+```
+
+Regression tests cover buffer reuse, partial reads splitting UTF-8 sequences,
+file shrinkage and growth to exactly 2 MiB or one byte beyond it. External load
+was uncontrolled. Process CPU, peak RSS, physical I/O, cold caches, network
+filesystems, Windows, lock-contention throughput and native-agent latency were
+not compared. No dependencies, public APIs or state formats changed.
 
 ## Bounded GC recipient checks: 2026-10-28
 
