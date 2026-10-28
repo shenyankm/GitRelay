@@ -63,6 +63,7 @@ for (const transition of ["repeat", "upgrade", "reinstall"] as const)
         const f = await fixture(t),
           abort = new AbortController();
         const first = installCodex({ ...f.a, signal: abort.signal });
+        void first.catch(() => {});
         // Ensure a failed setup cannot leave a held fake postcheck process.
         t.after(async () => {
           abort.abort();
@@ -255,6 +256,7 @@ for (const mutation of ["missing-record", "recreated-entry"] as const) {
       const f = await fixture(t),
         abort = new AbortController();
       const first = installCodex({ ...f.a, signal: abort.signal });
+      void first.catch(() => {});
       t.after(async () => {
         abort.abort();
         await writeFile(f.ready, "go").catch(() => {});
