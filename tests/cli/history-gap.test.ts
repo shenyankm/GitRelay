@@ -51,12 +51,12 @@ test("CLI can explicitly acknowledge a missing blob in the patch stage", async (
   assert.ok(events.length);
   for (const event of events) assert.equal(await readReceipt(repo, key, event.id), undefined);
   const { stdout } = await exec(process.execPath, [...args, "--acknowledge-history-gap", "--apply"]);
-  assert.ok(
-    stdout
-      .split("\n")
-      .filter(Boolean)
-      .every((line) => JSON.parse(line).unavailable === true),
-  );
+  const notifications = stdout
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  assert.ok(notifications.length > 0);
+  assert.ok(notifications.every((item) => item.unavailable === true));
   for (const event of events) assert.equal((await readReceipt(repo, key, event.id))?.status, "delivered");
 });
 
