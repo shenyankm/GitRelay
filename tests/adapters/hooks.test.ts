@@ -35,6 +35,21 @@ test("failed enable leaves unborn and missing monitored branches disabled", asyn
   }
 });
 
+test("a failed enable preserves a legacy subdirectory opt-in", async (t) => {
+  const f = await fixture(t),
+    cwd = join(f.b, "sub"),
+    missingRef = "refs/heads/missing";
+  const options = { cwd, ref: missingRef, adapter: "codex", session: "receiver" };
+  await mkdir(cwd);
+  const directory = join(f.root, "state", "activations"),
+    key = sessionKey({ root: cwd }, options, missingRef);
+  await mkdir(directory, { recursive: true });
+  await writeFile(join(directory, `${key}.json`), JSON.stringify({ key, enabled: true }));
+  assert.equal(await sessionActivation(options), true);
+  await assert.rejects(runHook({ ...input(cwd), prompt: "Enable GitRelay" }, missingRef, async () => {}));
+  assert.equal(await sessionActivation(options), true);
+});
+
 test(
   "a killed enable attempt does not activate subsequent hooks",
   { skip: process.platform === "win32" },
@@ -55,6 +70,30 @@ test(
     assert.equal(await sessionActivation({ cwd, ref, adapter: "codex", session: "receiver" }), false);
   },
 );
+
+test("a killed enable after join leaves the subscription active", { skip: process.platform === "win32" }, async (t) => {
+  const f = await fixture(t),
+    cwd = f.b;
+  const activation = new URL("../../src/core/activation.ts", import.meta.url).href;
+  const sessions = new URL("../../src/core/sessions.ts", import.meta.url).href;
+  const script = `const { sessionActivation } = await import(${JSON.stringify(activation)}); const { joinSession } = await import(${JSON.stringify(sessions)}); const options = { cwd: ${JSON.stringify(cwd)}, ref: ${JSON.stringify(ref)}, adapter: 'codex', session: 'receiver' }; await sessionActivation(options, true, undefined, { token: 'interrupted', phase: 'begin' }); await joinSession(options, async (register, repositoryId) => { await sessionActivation(options, true, undefined, { token: 'interrupted', phase: 'prepare', repositoryId, run: async () => { await register('interrupted'); process.kill(process.pid, 'SIGKILL'); } }); });`;
+  const result = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script], {
+    env: process.env,
+  });
+  assert.equal(result.signal, "SIGKILL");
+  assert.equal(await sessionActivation({ cwd, ref, adapter: "codex", session: "receiver" }), true);
+  await assert.rejects(
+    runHook({ ...input(cwd), hook_event_name: "SessionStart" }, ref, async () => {}),
+    /Stale git-relay lock/,
+  );
+  const repo = await repository(cwd),
+    key = sessionKey(repo, { adapter: "codex", session: "receiver" }, ref);
+  await rm(join(repo.directory, "sessions", `${key}.lock`));
+  await rm(join(repo.directory, "publish.lock"));
+  await rm(join(f.root, "state", "activations", `${key}.json.lock`));
+  await runHook({ ...input(cwd), hook_event_name: "SessionStart" }, ref, async (value) => assert.deepEqual(value, {}));
+  assert.equal((await listSessions(cwd))[0].closedAt, undefined);
+});
 
 test("failed activation cleanup waits for the activation lock", async (t) => {
   const f = await fixture(t),
@@ -77,6 +116,170 @@ test("failed activation cleanup waits for the activation lock", async (t) => {
   }
   await Promise.all([lock, cleanup]);
   assert.equal(await sessionActivation(options), false);
+});
+
+test("registration failure rolls back before a competing activation lock", async (t) => {
+  const f = await fixture(t),
+    options = { cwd: f.b, ref, adapter: "codex", session: "receiver" };
+  const path = join(f.root, "state", "activations", `${sessionKey({ root: f.b }, options, ref)}.json.lock`);
+  await sessionActivation(options, true, undefined, { token: "registration", phase: "begin" });
+  let competing: Promise<void> | undefined;
+  await assert.rejects(
+    sessionActivation(options, true, undefined, {
+      token: "registration",
+      repositoryId: "a".repeat(64),
+      phase: "prepare",
+      run: async () => {
+        competing = withLock(path, async () => {}, { waitMs: 5000 });
+        await delay(50);
+        throw new Error("registration failed");
+      },
+    }),
+    /registration failed/,
+  );
+  await competing;
+  assert.equal(await sessionActivation(options), false);
+});
+
+test("hook registration failure stays disabled under lock contention", async (t) => {
+  const f = await fixture(t);
+  const hooks = new URL("../../src/adapters/hooks.ts", import.meta.url).href;
+  const activation = new URL("../../src/core/activation.ts", import.meta.url).href;
+  const mailbox = new URL("../../src/core/mailbox.ts", import.meta.url).href;
+  const store = new URL("../../src/core/store.ts", import.meta.url).href;
+  const script = `
+    import assert from 'node:assert/strict';
+    import fs from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    import { join } from 'node:path';
+    const { runHook } = await import(${JSON.stringify(hooks)});
+    const { sessionActivation } = await import(${JSON.stringify(activation)});
+    const { sessionKey } = await import(${JSON.stringify(mailbox)});
+    const { withLock } = await import(${JSON.stringify(store)});
+    const options = { cwd: process.argv[1], ref: 'refs/heads/main', adapter: 'codex', session: 'receiver' };
+    const lock = join(process.env.WORKTREE_SYNC_STATE_DIR, 'activations', sessionKey({ root: options.cwd }, options, options.ref) + '.json.lock');
+    const original = fs.promises.open;
+    let competing, fired = false;
+    fs.promises.open = async (...args) => {
+      if (!fired && typeof args[0] === 'string' && /[\\/]sessions[\\/][a-f0-9]{64}\\.json\\..*\\.tmp$/.test(args[0])) {
+        fired = true;
+        competing = withLock(lock, async () => new Promise(resolve => setTimeout(resolve, 100)), { waitMs: 5000 });
+        throw new Error('injected registration failure');
+      }
+      return original(...args);
+    };
+    syncBuiltinESMExports();
+    try {
+      await assert.rejects(runHook({ cwd: options.cwd, session_id: options.session, hook_event_name: 'UserPromptSubmit', prompt: 'Enable GitRelay' }, options.ref, async () => {}), /injected registration failure/);
+      await competing;
+      assert.equal(fired, true);
+      assert.equal(await sessionActivation(options), false);
+    } finally { fs.promises.open = original; syncBuiltinESMExports(); }
+  `;
+  const result = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script, f.b], {
+    env: process.env,
+    encoding: "utf8",
+    timeout: 20000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("hook remains disabled when registration and rollback both run out of space", async (t) => {
+  const f = await fixture(t);
+  const hooks = new URL("../../src/adapters/hooks.ts", import.meta.url).href;
+  const script = `
+    import assert from 'node:assert/strict';
+    import fs from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const { runHook } = await import(${JSON.stringify(hooks)});
+    const input = { cwd: process.argv[1], session_id: 'receiver', hook_event_name: 'UserPromptSubmit', prompt: 'Enable GitRelay' };
+    const open = fs.promises.open, originalPath = process.env.PATH;
+    let full = false;
+    fs.promises.open = async (...args) => {
+      const path = String(args[0]);
+      if (/[\\/]sessions[\\/][a-f0-9]{64}\\.json\\..*\\.tmp$/.test(path)) full = true;
+      if (full && /[\\/](?:sessions|activations)[\\/][a-f0-9]{64}\\.json\\..*\\.tmp$/.test(path))
+        throw Object.assign(new Error('injected ENOSPC'), { code: 'ENOSPC' });
+      return open(...args);
+    };
+    syncBuiltinESMExports();
+    try {
+      await assert.rejects(runHook(input, 'refs/heads/main', async () => {}), /ENOSPC/);
+      assert.equal(full, true);
+      process.env.PATH = '';
+      await runHook({ ...input, hook_event_name: 'SessionStart' }, 'refs/heads/main', async value => assert.deepEqual(value, {}));
+    } finally { fs.promises.open = open; process.env.PATH = originalPath; syncBuiltinESMExports(); }
+    await runHook(input, 'refs/heads/main', async () => {});
+    const names = await fs.promises.readdir(process.env.WORKTREE_SYNC_STATE_DIR + '/activations');
+    const state = JSON.parse(await fs.promises.readFile(process.env.WORKTREE_SYNC_STATE_DIR + '/activations/' + names.find(name => name.endsWith('.json')), 'utf8'));
+    assert.equal(state.enabled, true);
+    assert.equal(state.pending, undefined);
+  `;
+  const result = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script, f.b], {
+    env: process.env,
+    encoding: "utf8",
+    timeout: 20000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("a committed subscription recovers activation when its final write fails", async (t) => {
+  const f = await fixture(t);
+  const hooks = new URL("../../src/adapters/hooks.ts", import.meta.url).href;
+  const activation = new URL("../../src/core/activation.ts", import.meta.url).href;
+  const mailbox = new URL("../../src/core/mailbox.ts", import.meta.url).href;
+  const script = `
+    import assert from 'node:assert/strict';
+    import fs from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const { runHook } = await import(${JSON.stringify(hooks)});
+    const { sessionActivation } = await import(${JSON.stringify(activation)});
+    const { listSessions } = await import(${JSON.stringify(mailbox)});
+    const options = { cwd: process.argv[1], ref: 'refs/heads/main', adapter: 'codex', session: 'receiver' };
+    const input = { cwd: options.cwd, session_id: options.session, hook_event_name: 'UserPromptSubmit', prompt: 'Enable GitRelay' };
+    const open = fs.promises.open; let registered = false, failed = false;
+    fs.promises.open = async (...args) => {
+      const path = String(args[0]);
+      if (/[\\/]sessions[\\/][a-f0-9]{64}\\.json\\..*\\.tmp$/.test(path)) registered = true;
+      if (registered && /[\\/]activations[\\/][a-f0-9]{64}\\.json\\..*\\.tmp$/.test(path)) {
+        failed = true; throw Object.assign(new Error('injected ENOSPC'), { code: 'ENOSPC' });
+      }
+      return open(...args);
+    };
+    syncBuiltinESMExports();
+    try { await assert.rejects(runHook(input, options.ref, async () => {}), /ENOSPC/); }
+    finally { fs.promises.open = open; syncBuiltinESMExports(); }
+    assert.equal(failed, true);
+    assert.equal(await sessionActivation(options), true);
+    assert.equal(await sessionActivation({ ...options, session: 'other' }), false);
+    const token = (await listSessions(options.cwd))[0].activationToken;
+    await runHook({ ...input, hook_event_name: 'SessionStart' }, options.ref, async () => {});
+    assert.equal((await listSessions(options.cwd))[0].activationToken, token);
+    await runHook(input, options.ref, async () => {});
+    const names = await fs.promises.readdir(process.env.WORKTREE_SYNC_STATE_DIR + '/activations');
+    const state = JSON.parse(await fs.promises.readFile(process.env.WORKTREE_SYNC_STATE_DIR + '/activations/' + names.find(name => name.endsWith('.json')), 'utf8'));
+    assert.equal(state.pending, undefined);
+    await runHook({ ...input, prompt: 'Disable GitRelay' }, options.ref, async () => {});
+    assert.equal(await sessionActivation(options), false);
+    assert.ok((await listSessions(options.cwd))[0].closedAt);
+  `;
+  const result = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script, f.b], {
+    env: process.env,
+    encoding: "utf8",
+    timeout: 20000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("changed subscription is detected before disabling activation", async (t) => {
+  const f = await fixture(t),
+    options = { cwd: f.b, ref, adapter: "codex", session: "receiver" };
+  const checked = await preflightLeaveSession(options);
+  await joinSession(options);
+  await sessionActivation(options, true);
+  await assert.rejects(sessionActivation(options, false, checked), /subscription changed during opt-out/);
+  assert.equal(await sessionActivation(options), true);
+  assert.equal((await listSessions(f.b))[0].closedAt, undefined);
 });
 
 test("legacy subdirectory activation closes its inbox when disabled at the root", async (t) => {

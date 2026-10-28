@@ -1,12 +1,13 @@
 import { lstat, mkdir, realpath } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { sessionKey, type Identity } from "./mailbox.ts";
-import { checkStateDirectory, readJson, stateDirectory, withLock, writeJson } from "./store.ts";
+import { sessionKey, validateSession, type Identity } from "./mailbox.ts";
+import { checkStateDirectory, isId, readJson, repository, stateDirectory, withLock, writeJson } from "./store.ts";
 import { watchRoot } from "./changes.ts";
 import { GitPathOutputError } from "./git.ts";
 import { preflightLeaveSession } from "./sessions.ts";
 
 type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSignal };
+type Prepared = { token: string; repositoryId: string };
 
 /** Conservative request matching: quoted examples and questions are not opt-ins. */
 export function requestedActivation(prompt: unknown): boolean | undefined {
@@ -56,7 +57,13 @@ export async function sessionActivation(
   options: ActivationOptions,
   enabled?: boolean,
   checked?: Awaited<ReturnType<typeof preflightLeaveSession>>,
-  operation?: { token: string; phase: "begin" | "success" | "failure" },
+  operation?: {
+    token: string;
+    phase: "begin" | "prepare" | "failure";
+    priorEnabled?: boolean;
+    repositoryId?: string;
+    run?: () => Promise<void>;
+  },
 ): Promise<boolean> {
   options.signal?.throwIfAborted();
   const optOut = enabled === false ? (checked ?? (await preflightLeaveSession(options))) : undefined;
@@ -66,17 +73,47 @@ export async function sessionActivation(
     const key = sessionKey({ root }, options, options.ref);
     const path = join(directory, `${key}.json`);
     const current = (await readJson(path, true)) as
-      { key?: unknown; enabled?: unknown; pending?: unknown; committed?: unknown } | undefined;
+      { key?: unknown; enabled?: unknown; pending?: unknown; prepared?: unknown; committed?: unknown } | undefined;
     if (current !== undefined && (!current || current.key !== key || typeof current.enabled !== "boolean"))
       throw new Error(`Invalid GitRelay activation: ${path}; preserve it for inspection.`);
     if (
-      current?.pending !== undefined &&
+      (current?.pending !== undefined || current?.prepared !== undefined || current?.committed !== undefined) &&
       (!Array.isArray(current.pending) ||
         !current.pending.every((token) => typeof token === "string") ||
+        (current.prepared !== undefined &&
+          (!Array.isArray(current.prepared) ||
+            !current.prepared.every(
+              (item: Prepared) =>
+                item &&
+                typeof item.token === "string" &&
+                (current.pending as string[]).includes(item.token) &&
+                isId(item.repositoryId),
+            ))) ||
         typeof current.committed !== "boolean")
     )
       throw new Error(`Invalid GitRelay activation: ${path}; preserve it for inspection.`);
     return { key, path, current };
+  };
+  // The subscription's token is the commit point for an interrupted enable.
+  const matchingRepository = async (root: string, current: Awaited<ReturnType<typeof read>>["current"]) => {
+    const key = sessionKey({ root }, options, options.ref);
+    const prepared = (current?.prepared as Prepared[] | undefined) ?? [];
+    if (prepared.length) await checkStateDirectory(join(stateDirectory(), "repos"), true);
+    for (const item of prepared) {
+      const directory = join(stateDirectory(), "repos", item.repositoryId);
+      await checkStateDirectory(directory, true);
+      await checkStateDirectory(join(directory, "sessions"), true);
+      const value = await readJson(join(directory, "sessions", `${key}.json`), true);
+      if (value === undefined) continue;
+      const session = validateSession(value, key);
+      if (session.closedAt || session.activationToken !== item.token) continue;
+      return item.repositoryId;
+    }
+  };
+  const enabledAt = async (root: string, current: Awaited<ReturnType<typeof read>>["current"]) => {
+    if (current?.enabled === true) return true;
+    const matched = await matchingRepository(root, current);
+    return matched !== undefined && (await repository(root, options.signal, false)).id === matched;
   };
   const cwd = await realpath(resolve(options.cwd)).catch((error: NodeJS.ErrnoException) => {
     if (error.code === "ENOENT") return resolve(options.cwd);
@@ -109,19 +146,24 @@ export async function sessionActivation(
       });
   if (enabled === undefined) {
     if (process.env.GIT_WORK_TREE) {
-      if (selected && (await read(selected)).current?.enabled === true) {
+      const selectedState = selected ? (await read(selected)).current : undefined;
+      if (selected && (selectedState?.enabled === true || (await matchingRepository(selected, selectedState)))) {
         const root = await worktreeRoot();
-        return root === selected && (await read(root)).current?.enabled === true;
+        return root === selected && (await enabledAt(root, (await read(root)).current));
       }
-      if (!(await read(cwd)).current?.enabled) return false;
+      const cwdState = (await read(cwd)).current;
+      if (!cwdState?.enabled && !(await matchingRepository(cwd, cwdState))) return false;
     }
     let candidate = cwd;
     while (true) {
       options.signal?.throwIfAborted();
-      if ((await read(candidate)).current?.enabled === true) {
+      const candidateState = (await read(candidate)).current;
+      if (candidateState?.enabled === true || (await matchingRepository(candidate, candidateState))) {
         const root = await worktreeRoot();
         const canonical = (await read(root)).current;
-        return canonical !== undefined ? canonical.enabled === true : candidate === cwd;
+        return canonical !== undefined
+          ? enabledAt(root, canonical)
+          : candidate === cwd && candidateState?.enabled === true;
       }
       const marker = await lstat(join(candidate, ".git")).catch((error: NodeJS.ErrnoException) => {
         if (error.code === "ENOENT" || error.code === "ENOTDIR") return undefined;
@@ -148,26 +190,66 @@ export async function sessionActivation(
   return withLock(
     `${path}.lock`,
     async () => {
+      if (optOut?.root) {
+        const current = await preflightLeaveSession(options);
+        if (
+          !current.root ||
+          (await realpath(resolve(current.root))) !== root ||
+          current.repositoryId !== optOut.repositoryId
+        )
+          throw new Error("GitRelay subscription changed during opt-out; preserve it and retry.");
+      }
       const { current } = await read(root);
       const pending = (current?.pending as string[] | undefined) ?? [];
-      let committed = pending.length ? current?.committed === true : current?.enabled === true;
+      const prepared = (current?.prepared as Prepared[] | undefined) ?? [];
+      let committed = pending.length
+        ? current?.committed === true || (await enabledAt(root, current))
+        : current?.enabled === true ||
+          (current === undefined && operation?.phase === "begin" && operation.priorEnabled === true);
       let nextPending: string[] = [];
+      let nextPrepared: Prepared[] = [];
       let nextEnabled = enabled;
       if (operation?.phase === "begin") {
         nextPending = [...pending, operation.token];
+        nextPrepared = prepared;
+        nextEnabled = committed;
+      } else if (operation?.phase === "prepare") {
+        if (!pending.includes(operation.token)) return false;
+        if (!isId(operation.repositoryId)) throw new Error("Invalid activation repository ID.");
+        nextPending = pending;
+        nextPrepared = [...prepared, { token: operation.token, repositoryId: operation.repositoryId }];
         nextEnabled = committed;
       } else if (operation) {
         if (!pending.includes(operation.token)) return current?.enabled === true;
         nextPending = pending.filter((token) => token !== operation.token);
-        if (operation.phase === "success") committed = true;
+        nextPrepared = prepared.filter((item) => item.token !== operation.token);
         nextEnabled = committed;
       } else if (current?.enabled === enabled && !pending.length) return enabled;
       await writeJson(
         path,
-        { key, enabled: nextEnabled, ...(nextPending.length ? { pending: nextPending, committed } : {}) },
+        {
+          key,
+          enabled: nextEnabled,
+          ...(nextPending.length ? { pending: nextPending, prepared: nextPrepared, committed } : {}),
+        },
         () => options.signal?.throwIfAborted(),
       );
-      return nextEnabled;
+      if (operation?.phase === "prepare" && operation.run) {
+        try {
+          await operation.run();
+        } catch (error) {
+          const remaining = nextPending.filter((token) => token !== operation.token);
+          const ready = nextPrepared.filter((item) => item.token !== operation.token);
+          await writeJson(path, {
+            key,
+            enabled: committed,
+            ...(remaining.length ? { pending: remaining, prepared: ready, committed } : {}),
+          });
+          throw error;
+        }
+        await writeJson(path, { key, enabled: true });
+      }
+      return operation?.phase === "prepare" && operation.run ? true : nextEnabled;
     },
     { signal: options.signal, waitMs: 5000 },
   );

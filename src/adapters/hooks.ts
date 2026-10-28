@@ -76,14 +76,32 @@ export async function runHook(
   }
   if (request === true) {
     const token = randomUUID();
-    await sessionActivation(options, true, undefined, { token, phase: "begin" });
+    const disabled = Symbol();
+    let joined: Awaited<ReturnType<typeof joinSession>> | undefined;
+    await sessionActivation(options, true, undefined, { token, phase: "begin", priorEnabled: wasEnabled });
     try {
-      await joinSession(options);
+      await joinSession(options, async (register, repositoryId) => {
+        const prepared = await sessionActivation(options, true, undefined, {
+          token,
+          phase: "prepare",
+          repositoryId,
+          run: async () => {
+            joined = await register(token);
+          },
+        });
+        if (!prepared) throw disabled;
+        if (!joined) throw new Error("GitRelay subscription was not registered.");
+        return joined;
+      });
     } catch (error) {
-      await sessionActivation({ ...options, signal: undefined }, true, undefined, { token, phase: "failure" });
+      if (!joined)
+        await sessionActivation({ ...options, signal: undefined }, true, undefined, { token, phase: "failure" });
+      if (error === disabled) {
+        await output({});
+        return;
+      }
       throw error;
     }
-    await sessionActivation({ ...options, signal: undefined }, true, undefined, { token, phase: "success" });
     if (!(await sessionActivation(options))) {
       await leaveSession(options);
       await output({});
