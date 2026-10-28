@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Consolidate plugin guidance into one GitRelay skill.
+- Reuse healthy daemon status, remove redundant hook discovery, and load CLI maintenance/install modules only when needed.
+
 - Automatically enroll native Codex and OpenCode v2 root sessions; retain explicit opt-out and preserve unread messages.
 - Start a shared daemon from native clients on macOS/Linux and stop it after the last client process exits.
 - Keep automatic branch synchronization blocked pending safe worktree binding.

@@ -1,8 +1,51 @@
 # GitRelay performance benchmarks
 
-These are historical measurements of the named source snapshots. The current
-Codex/OpenCode-only, default-off refactor has not been benchmarked on real hosts.
-Retired-client results are not current support claims.
+The latest hook comparison is below. Other sections retain measurements for
+named historical source snapshots; retired-client results are not current
+support claims.
+
+## Codex hook overhead: 2026-10-28
+
+[The alternating comparison](evidence/2026-10-28-hook-overhead/comparison.json)
+compares a saved build of `7afbf93` with the optimized runtime on macOS arm64,
+Node 22.23.2 and Git 2.54.0. Each variant ran 15 full CLI `PostToolUse` samples
+in alternating order, using one session, warm filesystem caches and a healthy
+synthetic daemon. Both builds have content fingerprints. OS resource accounting
+and command-count wrappers were enabled equally for both variants.
+
+| Median per idle hook   |     Before |      After |
+| ---------------------- | ---------: | ---------: |
+| Wall time              |   122.1 ms |    87.9 ms |
+| Node process CPU time  |    50.8 ms |    44.4 ms |
+| Node process peak RSS  | 55,472 KiB | 53,760 KiB |
+| Git subprocesses       |          6 |          5 |
+| Process-table scans    |          1 |          0 |
+| Git root probes        |          3 |          2 |
+| Loaded runtime modules |         36 |         14 |
+
+The measured wall-time reduction is about 28%; it is not a guarantee for another
+machine or workload. External load was uncontrolled. CPU/RSS describe the hook's
+Node process, not its complete subprocess tree. OS block counters were zero in
+this warm-cache run and do not establish physical disk I/O. Cold caches, native
+host latency and model work were not measured. Node still starts for each hook.
+
+The healthy daemon is checked under the existing startup lock so last-client
+shutdown cannot race a new launch. Ordinary hooks reuse only the Git discovery
+already performed in the same call; repository identity, publication recovery,
+mailbox scans and delivery-time activation checks remain fresh. No hook or
+mailbox poll is throttled. Installation, cleanup and other command-specific
+modules are loaded only when requested.
+
+The benchmark asserts immediate message delivery, Stop continuation and
+receipt-based deduplication. [The recorded candidate run](evidence/2026-10-28-hook-overhead/candidate.json)
+provides an additional current-build sample, not another baseline comparison.
+To reproduce the comparison, retain a prebuilt baseline and run sequentially:
+
+```sh
+npm run build
+node scripts/benchmark-hooks.mjs /absolute/baseline/dist/cli/main.js
+node scripts/record-benchmark.mjs hooks /absolute/new-hook-result.json
+```
 
 ## Record a reproducible run
 
@@ -15,7 +58,7 @@ node scripts/record-benchmark.mjs mailbox /absolute/new-mailbox-result.json
 ```
 
 The recorder supports `delivery`, `mailbox`, `history`, `maintenance` and
-`concurrency`. It records the source commit, dirty status, a content fingerprint,
+`concurrency` and `hooks`. It records the source commit, dirty status, a content fingerprint,
 OS/Node/Git versions, workload records and raw stdout/stderr. Existing benchmark
 assertions must pass, and the source fingerprint must remain unchanged. Build
 immediately before recording and do not run another build or test concurrently.

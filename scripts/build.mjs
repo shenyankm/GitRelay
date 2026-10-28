@@ -18,7 +18,7 @@ async function build(relative = "") {
     if (!entry.name.endsWith(".ts")) continue;
     const source = await readFile(join(root, "src", path), "utf8");
     // Node does not strip TypeScript inside node_modules, so ship runnable JS for CLI/SDK hosts.
-    let code = stripTypeScriptTypes(source).replace(/(from\s+["']\.[^"']*)\.ts(["'])/g, "$1.js$2");
+    let code = stripTypeScriptTypes(source).replace(/((?:from\s+|import\s*\(\s*)["']\.[^"']*)\.ts(["'])/g, "$1.js$2");
     if (path === join("cli", "codex-config.ts")) {
       const bundled = code.replace('from "../../vendor/smol-toml/index.js"', 'from "../vendor/smol-toml/index.js"');
       if (bundled === code) throw new Error("Codex TOML parser import was not bundled.");

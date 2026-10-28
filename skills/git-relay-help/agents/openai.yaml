@@ -1,4 +1,0 @@
-interface:
-  display_name: "GitRelay Help"
-  short_description: "Explain commands, setup, and monitoring modes"
-  default_prompt: "Use $git-relay-help to explain the available commands and Codex integration."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "GitRelay Sync"
-  short_description: "Explain unavailable automatic synchronization"
-  default_prompt: "Use $git-relay-sync to explain the current synchronization limitation."

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { test } from "node:test";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -27,8 +27,8 @@ test("package exposes the CLI and only Codex and OpenCode adapters", async () =>
   assert.equal(manifest.pi, undefined);
   assert.equal(manifest.devDependencies["@earendil-works/pi-coding-agent"], undefined);
   assert.ok(await read("src/adapters/opencode/index.ts"));
-  const skill = await read("skills/worktree-coordination/SKILL.md");
-  assert.match(skill, /^---\nname: worktree-coordination\ndescription:/);
+  const skill = await read("skills/git-relay/SKILL.md");
+  assert.match(skill, /^---\nname: git-relay\ndescription:/);
   assert.match(skill, /first check establishes a baseline/);
   for (const agent of ["codex"]) {
     const hooks = JSON.parse(await read(`src/adapters/${agent}/hooks.json`));
@@ -36,6 +36,36 @@ test("package exposes the CLI and only Codex and OpenCode adapters", async () =>
     assert.ok(JSON.stringify(hooks).includes(`git-relay hook ${agent}`));
   }
 });
+
+test(
+  "ordinary hooks do not load installer, cleanup or synchronization modules",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    const coverage = join(f.root, "coverage");
+    const cli = fileURLToPath(new URL("../../dist/cli/main.js", import.meta.url));
+    const child = exec(process.execPath, [cli, "hook", "codex"], {
+      cwd: f.b,
+      env: { ...process.env, NODE_V8_COVERAGE: coverage },
+    });
+    child.child.stdin!.end(JSON.stringify({ hook_event_name: "PostToolUse", session_id: "lazy-hook", cwd: f.b }));
+    assert.deepEqual(JSON.parse((await child).stdout), {});
+    const modules = [];
+    for (const name of await readdir(coverage))
+      modules.push(
+        ...JSON.parse(await readFile(join(coverage, name), "utf8")).result.map((item: { url: string }) => item.url),
+      );
+    assert.ok(modules.some((path: string) => path.endsWith("/adapters/hooks.js")));
+    for (const path of [
+      "/cli/install.js",
+      "/core/cleanup.js",
+      "/core/branch-sync.js",
+      "/core/identity-migration.js",
+      "/core/daemon.js",
+    ])
+      assert.ok(!modules.some((url: string) => url.endsWith(path)), `${path} loaded on hook path`);
+  },
+);
 
 test(
   "Codex plugin bundles its runtime and runs hooks from an installed path containing spaces",
@@ -66,7 +96,8 @@ test(
       assert.match(asset, /<svg\b/);
       assert.match(asset, /viewBox="0 0 128 128"/);
     }
-    for (const name of ["git-relay", "git-relay-sync", "git-relay-help", "worktree-coordination"]) {
+    assert.deepEqual(await readdir(join(installed, plugin.skills)), ["git-relay"]);
+    for (const name of ["git-relay"]) {
       await access(join(installed, plugin.skills, name, "SKILL.md"));
       await access(join(installed, plugin.skills, name, "agents/openai.yaml"));
     }

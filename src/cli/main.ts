@@ -12,17 +12,13 @@ import {
 import { runHook } from "../adapters/hooks.ts";
 import { joinSession, leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../core/sessions.ts";
 import { sessionActivation } from "../core/activation.ts";
-import { collectGarbage } from "../core/cleanup.ts";
-import { runDaemon } from "../core/daemon.ts";
 import { daemonStatus } from "../core/daemon-state.ts";
 import { ensureAutomaticDaemon, runAutomaticDaemon } from "../core/automatic-daemon.ts";
 import { branchStatus, validateGitHubRepository } from "../core/branch-status.ts";
-import { syncBranch } from "../core/branch-sync.ts";
 import { git, gitRefLine } from "../core/git.ts";
 import { stat, writeFile } from "node:fs/promises";
 import { writeSync } from "node:fs";
 import { formatBranchStatus } from "../core/status-format.ts";
-import { install } from "./install.ts";
 import {
   chooseFreshRepository,
   hash,
@@ -31,7 +27,6 @@ import {
   stateDirectory,
   withRepositoryIdentity,
 } from "../core/store.ts";
-import { migrateLegacyState } from "../core/identity-migration.ts";
 import { join, parse } from "node:path";
 
 const abort = new AbortController();
@@ -204,6 +199,7 @@ async function main() {
     installationCommand = true;
     if (positionals.length !== 1) throw new Error("Unexpected positional arguments.");
     if (command === "uninstall" && values["allow-unverified"]) throw new Error("--allow-unverified requires install.");
+    const { install } = await import("./install.ts");
     const result = await install(
       command,
       values.platform,
@@ -227,6 +223,7 @@ async function main() {
     else
       await output(
         await withRepositoryIdentity(cwd, abort.signal, async (repo) => {
+          const { migrateLegacyState } = await import("../core/identity-migration.ts");
           await recordRepositoryIdentity(repo);
           return migrateLegacyState({
             common: repo.common,
@@ -292,7 +289,9 @@ async function main() {
       }
       if (!branchValidated) branchValidated = await validateWatchRef(`refs/heads/${values.branch}`);
       try {
-        const sync = values["auto-sync"] ? await syncBranch(cwd, branch!, abort.signal) : undefined;
+        const sync = values["auto-sync"]
+          ? await (await import("../core/branch-sync.ts")).syncBranch(cwd, branch!, abort.signal)
+          : undefined;
         const snapshot = {
           ...(await branchStatus({ cwd, branch, github: values.github, repo: values.repo, signal: abort.signal })),
           ...(sync ? { sync } : {}),
@@ -410,6 +409,7 @@ async function main() {
   }
   if (command === "gc") {
     if (values.apply && values["dry-run"]) throw new Error("Choose --apply or --dry-run, not both.");
+    const { collectGarbage } = await import("../core/cleanup.ts");
     await output(
       await collectGarbage(cwd(), { apply: values.apply === true, retentionDays: days, signal: abort.signal }),
     );
@@ -489,6 +489,7 @@ async function main() {
       },
     });
   if (command === "daemon") {
+    const { runDaemon } = await import("../core/daemon.ts");
     await (values.automatic ? runAutomaticDaemon : runDaemon)({
       signal: abort.signal,
       intervalMs: Number(values["interval-ms"] ?? "5000"),

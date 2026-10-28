@@ -51,7 +51,13 @@ export async function runHook(
   }
   const options = { cwd: cwd as string, ref, adapter: "codex", session, signal, defaultEnabled: true };
   const request = event === "UserPromptSubmit" ? requestedActivation(input.prompt) : undefined;
-  const wasEnabled = await sessionActivation(options);
+  let rootChecked = false;
+  const wasEnabled = await sessionActivation({
+    ...options,
+    onRoot: () => {
+      rootChecked = true;
+    },
+  });
   if (ref !== "refs/heads/main" && (request !== undefined || wasEnabled)) {
     if (!ref.startsWith("refs/heads/") && !ref.startsWith("refs/remotes/"))
       throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
@@ -68,17 +74,19 @@ export async function runHook(
     await output({});
     return;
   }
-  try {
-    await watchRoot(cwd as string, signal);
-  } catch (error) {
-    signal?.throwIfAborted();
-    if (error instanceof GitPathOutputError) throw error;
-    const failure = (error as Error)?.cause as
-      { code?: unknown; signal?: NodeJS.Signals | null; killed?: boolean } | undefined;
-    if (failure?.code !== 128 || failure.signal || failure.killed) throw error;
-    // shortcut: Git exit 128 also covers damaged repositories; improve when discovery can distinguish them reliably.
-    await output({});
-    return;
+  if (!rootChecked || request === true) {
+    try {
+      await watchRoot(cwd as string, signal);
+    } catch (error) {
+      signal?.throwIfAborted();
+      if (error instanceof GitPathOutputError) throw error;
+      const failure = (error as Error)?.cause as
+        { code?: unknown; signal?: NodeJS.Signals | null; killed?: boolean } | undefined;
+      if (failure?.code !== 128 || failure.signal || failure.killed) throw error;
+      // shortcut: Git exit 128 also covers damaged repositories; improve when discovery can distinguish them reliably.
+      await output({});
+      return;
+    }
   }
   if (request === true) {
     const token = randomUUID();

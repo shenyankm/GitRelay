@@ -6,7 +6,13 @@ import { watchRoot } from "./changes.ts";
 import { GitPathOutputError } from "./git.ts";
 import { preflightLeaveSession } from "./sessions.ts";
 
-type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSignal; defaultEnabled?: boolean };
+type ActivationOptions = Identity & {
+  cwd: string;
+  ref: string;
+  signal?: AbortSignal;
+  defaultEnabled?: boolean;
+  onRoot?(root: string): void;
+};
 type Prepared = { token: string; repositoryId: string; subscriptionKey?: string };
 
 /** Conservative request matching: quoted examples and questions are not opt-ins. */
@@ -201,11 +207,20 @@ export async function sessionActivation(
     : undefined;
   const worktreeRoot = async () =>
     watchRoot(cwd, options.signal)
-      .then((root) => realpath(resolve(root)))
-      .catch(async (error: Error & { cause?: { code?: number } }) => {
+      .then(async (root) => {
+        const canonical = await realpath(resolve(root));
+        options.onRoot?.(canonical);
+        return canonical;
+      })
+      .catch(async (error: Error & { cause?: { code?: number; signal?: NodeJS.Signals | null; killed?: boolean } }) => {
         options.signal?.throwIfAborted();
         // shortcut: Git exit 128 also covers damaged repositories; distinguish discovery failures when Git can do so reliably.
-        if (!(error instanceof GitPathOutputError) && error.cause?.code === 128) {
+        if (
+          !(error instanceof GitPathOutputError) &&
+          error.cause?.code === 128 &&
+          !error.cause.signal &&
+          !error.cause.killed
+        ) {
           if (selected && selected !== cwd && (await read(selected)).current?.enabled === true) throw error;
           let parent = dirname(cwd);
           while (parent !== cwd) {

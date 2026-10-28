@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir, readFile, symlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { test, type TestContext } from "node:test";
-import { runAutomaticDaemon } from "../../src/core/automatic-daemon.ts";
+import { ensureAutomaticDaemon, runAutomaticDaemon } from "../../src/core/automatic-daemon.ts";
 import { daemonStatus } from "../../src/core/daemon-state.ts";
-import { stateDirectory } from "../../src/core/store.ts";
+import { hash, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
 import { fixture } from "../helpers.ts";
 
 async function waitFor(check: () => Promise<boolean>) {
@@ -33,6 +33,70 @@ async function processTable(t: TestContext) {
   });
   return { ...f, table, bin };
 }
+
+test(
+  "a healthy daemon avoids process-table scans while retaining startup serialization",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await processTable(t);
+    await mkdir(stateDirectory(), { recursive: true });
+    const token = hash("healthy-daemon");
+    await writeJson(join(stateDirectory(), "daemon.lock"), { pid: process.pid, token });
+    await writeJson(join(stateDirectory(), "daemon.json"), {
+      pid: process.pid,
+      token,
+      intervalMs: 5000,
+      heartbeatAt: new Date().toISOString(),
+    });
+    await writeFile(join(f.bin, "ps"), "#!/bin/sh\nexit 99\n", { mode: 0o755 });
+    await ensureAutomaticDaemon("codex");
+    assert.equal((await daemonStatus()).state?.token, token);
+    await assert.rejects(readFile(join(stateDirectory(), "daemon-start.lock")), { code: "ENOENT" });
+  },
+);
+
+test(
+  "a healthy-daemon fast path retries native startup if shutdown wins the lock",
+  { skip: process.platform === "win32", timeout: 20_000 },
+  async (t) => {
+    let f: Awaited<ReturnType<typeof processTable>>;
+    const release = Promise.withResolvers<void>();
+    let shutdown: Promise<void> | undefined;
+    t.after(async () => {
+      release.resolve();
+      await shutdown;
+      if (f) {
+        await writeFile(f.table, "");
+        await waitFor(async () => !(await daemonStatus()).running);
+      }
+    });
+    f = await processTable(t);
+    await mkdir(stateDirectory(), { recursive: true });
+    await writeFile(f.table, `${process.pid} 1 /app/codex\n`);
+    const token = hash("exiting-daemon");
+    await writeJson(join(stateDirectory(), "daemon.lock"), { pid: process.pid, token });
+    await writeJson(join(stateDirectory(), "daemon.json"), {
+      pid: process.pid,
+      token,
+      intervalMs: 5000,
+      heartbeatAt: new Date().toISOString(),
+    });
+    const acquired = Promise.withResolvers<void>();
+    shutdown = withLock(join(stateDirectory(), "daemon-start.lock"), async () => {
+      acquired.resolve();
+      await release.promise;
+      await rm(join(stateDirectory(), "daemon.json"));
+      await rm(join(stateDirectory(), "daemon.lock"));
+    });
+    await acquired.promise;
+    const starting = ensureAutomaticDaemon("codex");
+    await delay(50);
+    release.resolve();
+    await Promise.all([shutdown, starting]);
+    assert.equal((await daemonStatus()).running, true);
+    assert.notEqual((await daemonStatus()).state?.token, token);
+  },
+);
 
 test(
   "automatic daemon stays for either client and stops after the last exits",

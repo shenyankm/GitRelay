@@ -79,7 +79,7 @@ codex plugin add git-relay@git-relay-local
 codex plugin list --marketplace git-relay-local --json
 ```
 
-插件携带 CLI、技能、hooks、文档及许可证。重新打开聊天并检查 `/hooks` 后，会话自动参与。避免插件 hooks 与用户 hooks 重复。插件卡片或配置文件存在不代表宿主已加载或
+插件携带 CLI、一个 `git-relay` 技能、四个 hook 事件、文档及许可证。重新打开聊天并检查 `/hooks` 后，会话自动参与。避免插件 hooks 与用户 hooks 重复。插件卡片或配置文件存在不代表宿主已加载或
 信任；更新源码后需要重新构建并刷新已安装副本。
 
 插件通过本地或仓库 marketplace 分发。Codex 公开目录不接受带生命周期 hooks 的插件。

@@ -5,11 +5,23 @@ import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { daemonStatus } from "./daemon-state.ts";
-import { runDaemon, type DaemonOptions } from "./daemon.ts";
+import type { DaemonOptions } from "./daemon.ts";
 import { checkManagedRoot, stateDirectory, withLock } from "./store.ts";
 
 const exec = promisify(execFile);
 const startupLock = () => join(stateDirectory(), "daemon-start.lock");
+
+async function nativeClient(adapter: "codex" | "opencode", signal?: AbortSignal): Promise<boolean> {
+  const processes = await clientProcesses(signal);
+  let current = processes.find((item) => item.pid === process.pid);
+  if (current?.name !== adapter) current = processes.find((item) => item.pid === process.ppid);
+  const visited = new Set<number>();
+  while (current && !visited.has(current.pid) && /^(?:sh|bash|zsh|dash|fish|env)$/.test(current.name)) {
+    visited.add(current.pid);
+    current = processes.find((item) => item.pid === current!.parent);
+  }
+  return current?.name === adapter;
+}
 
 async function clientProcesses(signal?: AbortSignal) {
   if (process.platform === "win32") throw new Error("Automatic daemon lifecycle requires macOS or Linux.");
@@ -27,21 +39,19 @@ async function clientProcesses(signal?: AbortSignal) {
 /** Hooks can pass through a shell; do not mistake test runners or tool subprocesses for native hosts. */
 export async function ensureAutomaticDaemon(adapter: "codex" | "opencode", signal?: AbortSignal): Promise<void> {
   if (adapter === "opencode" && !process.versions.bun && basename(process.execPath) !== "opencode") return;
-  const processes = await clientProcesses(signal);
-  let current = processes.find((item) => item.pid === process.pid);
-  if (current?.name !== adapter) current = processes.find((item) => item.pid === process.ppid);
-  const visited = new Set<number>();
-  while (current && !visited.has(current.pid) && /^(?:sh|bash|zsh|dash|fish|env)$/.test(current.name)) {
-    visited.add(current.pid);
-    current = processes.find((item) => item.pid === current!.parent);
+  let native = false;
+  if (!(await daemonStatus()).running) {
+    native = await nativeClient(adapter, signal);
+    if (!native) return;
   }
-  if (current?.name !== adapter) return;
   await checkManagedRoot();
   await mkdir(stateDirectory(), { recursive: true, mode: 0o700 });
   await withLock(
     startupLock(),
     async () => {
       if ((await daemonStatus()).running) return;
+      // Recheck under the startup lock: a healthy daemon may have exited while we waited.
+      if (!native && !(await nativeClient(adapter, signal))) return;
       const source = import.meta.url.endsWith(".ts");
       const cli = fileURLToPath(new URL(`../cli/main.${source ? "ts" : "js"}`, import.meta.url));
       const child = spawn(
@@ -71,9 +81,11 @@ export async function ensureAutomaticDaemon(adapter: "codex" | "opencode", signa
 export async function runAutomaticDaemon(options: DaemonOptions): Promise<void> {
   const stop = new AbortController();
   const signal = AbortSignal.any([options.signal, stop.signal]);
-  const running = runDaemon({ ...options, signal }).catch((error) => {
-    if (!signal.aborted) throw error;
-  });
+  const running = import("./daemon.ts")
+    .then(({ runDaemon }) => runDaemon({ ...options, signal }))
+    .catch((error) => {
+      if (!signal.aborted) throw error;
+    });
   const watching = (async () => {
     while (!signal.aborted) {
       await delay(options.intervalMs ?? 5000, undefined, { signal }).catch(() => {});

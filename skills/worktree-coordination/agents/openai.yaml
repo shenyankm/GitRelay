@@ -1,4 +1,0 @@
-interface:
-  display_name: "GitRelay Coordination"
-  short_description: "Handle upstream changes and agent messages"
-  default_prompt: "Use $worktree-coordination to assess incoming changes for my current task."

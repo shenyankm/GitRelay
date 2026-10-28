@@ -12,11 +12,10 @@ import { installerDigest } from "../../src/cli/installer-digest.ts";
 async function fixture(t: { after(fn: () => Promise<void>): void }) {
   const root = await mkdtemp(join(tmpdir(), "git-relay-installer-digest-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  for (const path of ["dist", "src", "skills/worktree-coordination", "docs"])
-    await mkdir(join(root, path), { recursive: true });
+  for (const path of ["dist", "src", "skills/git-relay", "docs"]) await mkdir(join(root, path), { recursive: true });
   await writeFile(join(root, "package.json"), "{}");
   await writeFile(join(root, "src", "a"), Buffer.from([0, 255]));
-  await writeFile(join(root, "skills/worktree-coordination/SKILL.md"), "skill");
+  await writeFile(join(root, "skills/git-relay/SKILL.md"), "skill");
   await writeFile(join(root, "dist", "中"), Buffer.alloc(8 * 1024 * 1024, 137));
   await writeFile(join(root, "docs", "a"), "");
   return root;

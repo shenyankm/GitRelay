@@ -1,4 +1,4 @@
 interface:
   display_name: "GitRelay"
-  short_description: "Inspect branches, worktrees, and GitHub status"
-  default_prompt: "Use $git-relay to check my worktrees and local and GitHub branch status."
+  short_description: "Coordinate sessions, inspect status, and troubleshoot"
+  default_prompt: "Use $git-relay to inspect my branch and session status and assess incoming coordination messages."

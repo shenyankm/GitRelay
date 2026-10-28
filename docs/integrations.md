@@ -124,6 +124,8 @@ Project `.codex/hooks.json` discovery also requires the host to enable that conf
 
 A shared app-server daemon must inherit the required CLI PATH and state environment. Isolated tests can use `codex --no-daemon exec ...` without stopping an existing user daemon.
 
+Healthy daemon checks reuse its validated state under the startup lock without a process-table scan. Hooks reuse Git discovery within a call and load command-specific modules lazily; they do not cache mailbox contents or throttle receiving. See [hook measurements](performance.md#codex-hook-overhead-2026-10-28).
+
 The configured events are `SessionStart`, `UserPromptSubmit`, `PostToolUse`, and `Stop`. Prompt/tool hooks provide `additionalContext`; a new event at Stop can return `decision: block` to request continuation. `stop_hook_active` prevents another continuation request. Old outbound-only `notify` support cannot inject into the original session. Upgrade, read CLI output at task checkpoints, or implement an App Server host consuming NDJSON and calling `turn/start` / `turn/steer`. GitRelay does not manage App Server connections.
 
 ### Codex App status and actions
@@ -210,7 +212,7 @@ Load an entrypoint in each receiving worktree. Local acceptance used an isolated
 
 ## Bundled skills
 
-The plugin includes `git-relay`, `git-relay-sync`, `git-relay-help`, and [`worktree-coordination`](../skills/worktree-coordination/SKILL.md). The coordination skill covers event handling, full diffs, current local state, authorization boundaries, and integration checks.
+The plugin includes one [`git-relay`](../skills/git-relay/SKILL.md) skill for status, session controls, notifications, messages, setup and troubleshooting. It links to the detailed guides rather than loading separate help, synchronization and coordination skills.
 
 Codex can discover skills through its plugin or `.agents/skills/`; OpenCode can
 load `.opencode/skills/` in versions supporting skills. Skills provide guidance;

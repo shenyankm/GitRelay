@@ -61,6 +61,8 @@ codex plugin list --json
 
 After confirming the new plugin is installed, remove the old `worktree-relay` plugin if present, using the exact installed identity shown by `codex plugin list`. Disable duplicate manually configured hooks. Reopen the chat and inspect `/hooks`; installation does not grant hook trust. Review and trust hooks through Codex's normal flow.
 
+The former help, synchronization and coordination skills are consolidated into the single `git-relay` skill. Old chat menus may retain previous entries until the client reloads.
+
 After changing bundled code, documentation, or skills, rebuild and repeat `codex plugin add git-relay@git-relay-local --json` to refresh the installed copy. CLI installation/enabled status and actual App rendering are separate checks. See [integration details](integrations.md#codex-app-status-and-actions).
 
 ## Repository identity and existing state

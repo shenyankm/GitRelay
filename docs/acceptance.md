@@ -36,6 +36,28 @@ npm pack --dry-run
 CI is configured for macOS/Linux on Node.js 22.19.0 and 24. A local pass does not
 establish hosted CI status or actual hook discovery/trust in a client.
 
+## Single skill and hook overhead: 2026-10-28
+
+The plugin now packages only the `git-relay` skill; its four Codex hook events
+remain unchanged. The merged skill covers status, session controls, messages,
+notification handling, installation, maintenance and synchronization limits.
+
+`npm run check` passed with 705 passed, zero failed, one skipped and 14 existing
+automatic-synchronization TODOs. New regression checks cover avoiding process
+scans for a healthy daemon, retrying native startup when shutdown wins the lock,
+and excluding installer/maintenance modules from the hook path. Existing Git
+error, recovery, message delivery and opt-out checks remain covered.
+
+Real Codex CLI 0.164.0 and OpenCode 2.1.2 lifecycle smoke checks were rerun with
+the optimized runtime. Automatic enrollment, daemon startup and last-test-client
+shutdown passed in isolated process scopes, as described below. Successful model
+completion was not tested.
+
+The [hook benchmark](performance.md#codex-hook-overhead-2026-10-28) retains all
+polling and delivery checks, verifies immediate messages and Stop continuation,
+and records the measured scope and limits. This local validation is separate
+from hosted CI and model-task acceptance.
+
 ## Automatic lifecycle acceptance: 2026-10-28
 
 On macOS arm64, `npm run check` passed with 702 passed, zero failed, one skipped

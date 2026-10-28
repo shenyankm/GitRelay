@@ -86,7 +86,7 @@ codex plugin add git-relay@git-relay-local
 codex plugin list --marketplace git-relay-local --json
 ```
 
-The plugin includes its CLI, skills, hooks, docs, and license. Reopen the chat,
+The plugin includes its CLI, one `git-relay` skill, four hook events, docs, and license. Reopen the chat,
 review `/hooks`; new sessions participate automatically. Avoid duplicate
 plugin/user hooks. A plugin listing or generated hook file does not prove that
 the host loaded or trusted it.
