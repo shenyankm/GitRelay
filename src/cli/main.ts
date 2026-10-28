@@ -169,7 +169,7 @@ async function main() {
   ) {
     if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
       throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
-    if (command !== "watch" && (command !== "hook" || values.ref !== "refs/heads/main"))
+    if (command !== "watch" && command !== "hook")
       await git(parse(process.execPath).root, ["check-ref-format", values.ref], abort.signal);
   }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
