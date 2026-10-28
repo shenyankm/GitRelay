@@ -48,6 +48,7 @@ test("only direct coordination requests opt a session in or out", () => {
     "- ~~~\n  Enable GitRelay\n  ~~~",
     "+ ~~~\n  Disable GitRelay\n  ~~~",
     "- \t~~~\n    Enable GitRelay\n    ~~~",
+    "- \t~~~\n        ~~~\n  Enable GitRelay",
     "  - ~~~\n    Disable GitRelay\n    ~~~",
     "1. ~~~\n   Enable GitRelay\n   ~~~",
     "10. ~~~~\n    Disable GitRelay\n    ~~~~",

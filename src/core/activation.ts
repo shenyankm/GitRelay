@@ -13,6 +13,8 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
   if (typeof prompt !== "string") return;
   let fence: string | undefined;
   let fenceIndent = 0;
+  const columns = (value: string) =>
+    [...value].reduce((width, char) => width + (char === "\t" ? 4 - (width % 4) : 1), 0);
   const text = prompt
     .split("\n")
     .filter((line) => {
@@ -20,7 +22,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
         const closing = line.match(/^([ \t]*)(`{3,}|~{3,})(.*)$/);
         if (
           closing &&
-          closing[1].replaceAll("\t", "    ").length <= fenceIndent + 3 &&
+          columns(closing[1]) <= fenceIndent + 3 &&
           closing[2][0] === fence[0] &&
           closing[2].length >= fence.length &&
           !closing[3].trim()
@@ -31,7 +33,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
       const marker = line.match(/^( {0,3})((?:[-+*]|\d{1,9}[.)])[ \t]+)?(`{3,}|~{3,})(.*)$/);
       if (marker && (marker[3][0] !== "`" || !marker[4].includes("`"))) {
         fence = marker[3];
-        fenceIndent = marker[2] ? marker[1].length + marker[2].replaceAll("\t", "    ").length : 0;
+        fenceIndent = marker[2] ? columns(marker[1] + marker[2]) : 0;
         return false;
       }
       return !/^(?: {4}|\t)/.test(line);
