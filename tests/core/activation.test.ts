@@ -23,6 +23,9 @@ test("only direct coordination requests opt a session in or out", () => {
   for (const text of [
     "关闭 GitRelay",
     "请不要并行开发",
+    "不要使用 GitRelay",
+    "别用 GitRelay",
+    "无需使用多工作树开发",
     "停止多工作树开发",
     "Disable GitRelay",
     "Please do not use multiple worktrees",
@@ -52,6 +55,12 @@ test("only direct coordination requests opt a session in or out", () => {
     "Please don't forget to use GitRelay",
     "Don't skip using GitRelay",
     "Do not forget to enable GitRelay",
+    "别忘记启用 GitRelay",
+    "不要忘记启用 GitRelay",
+    "请不要忘记启用 GitRelay",
+    "别担心，请启用 GitRelay",
+    "不要紧，启用 GitRelay",
+    "别急，先启用 GitRelay",
   ])
     assert.equal(requestedActivation(text), undefined, String(text));
   for (const text of ["不要关闭 GitRelay", "Don't disable GitRelay", "```text\nEnable GitRelay"])
