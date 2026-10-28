@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
 import { once } from "node:events";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -162,6 +162,44 @@ test("status handles unborn branches", async (t) => {
   assert.equal(JSON.parse((await run("status", "--cwd", empty)).stdout).local.tracking, null);
 });
 
+test("status handles a non-commit upstream", async (t) => {
+  const f = await fixture(t);
+  git(f.b, "config", "branch.feature/b.remote", "origin");
+  git(f.b, "config", "branch.feature/b.merge", "refs/heads/main");
+  git(f.b, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*");
+  git(f.b, "update-ref", "refs/remotes/origin/main", git(f.b, "rev-parse", "HEAD^{tree}").trim());
+  const status = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+  assert.deepEqual(status.local.tracking, { ref: "refs/remotes/origin/main", commit: null, ahead: null, behind: null });
+});
+
+test("status compares an annotated tag upstream that points to a commit", async (t) => {
+  const f = await fixture(t);
+  git(f.b, "tag", "-a", "upstream", "-m", "upstream");
+  const tag = git(f.b, "rev-parse", "refs/tags/upstream").trim();
+  git(f.b, "config", "branch.feature/b.remote", ".");
+  git(f.b, "config", "branch.feature/b.merge", "refs/tags/upstream");
+  await f.commit(f.b, "tag-test.txt", "local\n");
+  const status = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+  assert.deepEqual(status.local.tracking, { ref: "refs/tags/upstream", commit: tag, ahead: 1, behind: 0 });
+  git(f.b, "tag", "-a", "outer", "-m", "outer", "upstream");
+  const outer = git(f.b, "rev-parse", "refs/tags/outer").trim();
+  git(f.b, "config", "branch.feature/b.merge", "refs/tags/outer");
+  const nested = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+  assert.deepEqual(nested.local.tracking, { ref: "refs/tags/outer", commit: outer, ahead: 1, behind: 0 });
+  git(f.b, "config", "branch.feature/b.merge", "refs/tags/upstream");
+  for (const object of ["HEAD^{tree}", "HEAD:shared.txt"]) {
+    git(f.b, "tag", "-f", "-a", "upstream", "-m", "upstream", object);
+    const nonCommit = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+    assert.deepEqual(nonCommit.local.tracking, { ref: "refs/tags/upstream", commit: null, ahead: null, behind: null });
+  }
+  const file = join(f.root, "orphan-blob");
+  await writeFile(file, "unique blob for missing object test\n");
+  const blob = git(f.b, "hash-object", "-w", file).trim();
+  git(f.b, "tag", "-f", "-a", "upstream", "-m", "upstream", blob);
+  await rm(join(f.main, ".git", "objects", blob.slice(0, 2), blob.slice(2)));
+  await assert.rejects(run("status", "--cwd", f.b));
+});
+
 test("explicit empty CLI options are rejected", async (t) => {
   const f = await fixture(t);
   for (const [args, message] of [
@@ -202,6 +240,22 @@ test("status writes an App-readable Markdown snapshot and keeps JSON as the defa
   assert.match(JSON.parse((await call).stdout).systemMessage, /feature\/b/);
 });
 
+test("status escapes control characters without changing JSON branch names", async (t) => {
+  const f = await fixture(t);
+  const branch = "x\u009b2J";
+  git(f.b, "checkout", "-b", branch);
+  const json = (await run("status", "--cwd", f.b)).stdout;
+  assert.doesNotMatch(json, /[\x7f-\x9f]/);
+  assert.equal(JSON.parse(json).worktree.branch, branch);
+  const markdown = (await run("status", "--cwd", f.b, "--format", "markdown")).stdout;
+  assert.doesNotMatch(markdown, /[\x7f-\x9f]/);
+  assert.match(markdown, /x 2J/);
+  await assert.rejects(run("status", "--cwd", f.b, "--branch", "x\u001b[2J"), (error: Error & { stderr?: string }) => {
+    assert.doesNotMatch(error.stderr!, /\u001b/);
+    return true;
+  });
+});
+
 test(
   "GitHub status uses gh auth/host, encodes branches, handles absence and preserves local state on failure",
   { skip: process.platform === "win32" },
@@ -221,6 +275,8 @@ fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + '\\n');
 fs.appendFileSync(${JSON.stringify(hosts)}, (process.env.GH_HOST || '') + '\\n');
 const fixture = JSON.parse(fs.readFileSync(${JSON.stringify(response)}, 'utf8'));
 if (fixture.fail) { process.stderr.write('HTTP 403: denied'); process.exit(1); }
+if (fixture.conflict && args[0] === 'api') { process.stderr.write('gh: Other conflict (HTTP 409)'); process.exit(1); }
+if (fixture.empty && args[0] === 'api') { process.stderr.write('gh: Git Repository is empty. (HTTP 409)'); process.exit(1); }
 if (args[0] === 'repo') console.log(JSON.stringify({ nameWithOwner: 'owner/repo', url: fixture.url || 'https://github.example.com/owner/repo' }));
 else console.log(JSON.stringify(fixture.pages));
 `,
@@ -253,13 +309,22 @@ else console.log(JSON.stringify(fixture.pages));
     assert.equal(JSON.parse((await invoke()).stdout).github.matchesLocal, false);
     await writeFile(response, JSON.stringify({ pages: [[ref("feature/b-other")]] }));
     assert.equal(JSON.parse((await invoke()).stdout).github.commit, null);
-    for (const invalid of [{ fail: true }, { pages: [[ref("feature/b", "invalid")]] }, { pages: {} }]) {
+    await writeFile(response, JSON.stringify({ empty: true }));
+    status = JSON.parse((await invoke()).stdout);
+    assert.equal(status.github.commit, null);
+    assert.equal(status.github.matchesLocal, null);
+    for (const invalid of [
+      { fail: true },
+      { conflict: true },
+      { pages: [[ref("feature/b", "invalid")]] },
+      { pages: {} },
+    ]) {
       await writeFile(response, JSON.stringify(invalid));
       await assert.rejects(invoke(), (error: Error & { stdout?: string; code?: number }) => {
         status = JSON.parse(error.stdout!);
         assert.equal(error.code, 1);
         assert.equal(status.local.commit, f.initial);
-        assert.match(status.github.error, /denied|Invalid GitHub/);
+        assert.match(status.github.error, /denied|Other conflict|Invalid GitHub/);
         return true;
       });
     }
