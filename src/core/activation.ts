@@ -13,6 +13,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
   if (typeof prompt !== "string") return;
   let fence: string | undefined;
   let fenceIndent = 0;
+  let inlineCode = false;
   const columns = (value: string) =>
     [...value].reduce((width, char) => width + (char === "\t" ? 4 - (width % 4) : 1), 0);
   const text = prompt
@@ -37,8 +38,16 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
         fenceIndent = marker[2] ? columns(marker[1] + marker[2]) : 0;
         return "";
       }
-      // Keep quote marks so multiline examples remain quoted after indented code is removed.
-      return columns(line.match(/^[ \t]*/)![0]) >= 4 ? line.replace(/[^“”「」]/g, "") : line;
+      if (columns(line.match(/^[ \t]*/)![0]) >= 4) {
+        // Keep delimiters that close a multiline example.
+        return line.replace(/[^“”「」`]/g, "").replace(/`/g, () => {
+          if (!inlineCode) return "";
+          inlineCode = false;
+          return "`";
+        });
+      }
+      for (const char of line) if (char === "`") inlineCode = !inlineCode;
+      return line;
     })
     .join("\n")
     .replace(/```[^]*?(?:```|$)/g, "")
