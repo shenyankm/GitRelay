@@ -97,7 +97,6 @@ test(
 test(
   "invalid HEAD ref cannot auto-sync the U+FFFD branch, but valid ref can",
   {
-    todo: "Automatic synchronization temporarily disabled pending safe HEAD/worktree binding",
     skip: process.platform === "win32",
   },
   async (t) => {

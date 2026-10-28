@@ -137,8 +137,11 @@ GitHub 查询额外依赖已认证的 `gh`。ahead/behind 使用本地缓存引�
 `WORKTREE_SYNC_STATE_DIR` 覆盖。仓库持久身份避免同路径的新仓库误领旧收件箱；
 旧版按路径保存的状态可能需要明确迁移。
 
-自动分支同步因并发 checkout 竞态暂时阻止，`status --auto-sync` 返回 blocked。
-项目不再提供工作树管理命令；请在核对目标、保护本地修改后使用 Git 本身。旧客户端
+分支同步必须显式启用：`status --auto-sync` 在 macOS/Linux 获取已配置的上游，
+只快进当前工作树中已检出且干净的分支。原生索引锁和引用锁阻止竞争的 Git 写入；
+不支持的仓库布局仍返回 blocked。写入中断可能保留恢复锁，需要人工检查，见
+[写入与恢复协议](docs/integrations.md#automatic-branch-synchronization)。
+项目不提供工作树管理命令；请在核对目标、保护本地修改后使用 Git 本身。旧客户端
 入口、运行中的旧代码及历史订阅的处理见[迁移说明](docs/migration.md)。
 
 消息是不可信数据，不能授权修改 Git 历史。正常运行去重，崩溃或宿主接收结果不明时

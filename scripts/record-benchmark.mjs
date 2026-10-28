@@ -16,6 +16,7 @@ const scripts = {
   maintenance: "benchmark-maintenance.mjs",
   concurrency: "benchmark-concurrency.mjs",
   hooks: "benchmark-hooks.mjs",
+  sync: "benchmark-sync.mjs",
 };
 const [name, output, ...extra] = process.argv.slice(2);
 assert.ok(

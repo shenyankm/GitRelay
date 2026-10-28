@@ -22,7 +22,7 @@ identity only when retiring that subscription is intended. Unread events remain
 preserved; removing an adapter does not authorize acknowledging or deleting them.
 Legacy delivery-proof retention guards remain for this reason.
 
-GitRelay covers branch monitoring and worktree coordination. Automatic synchronization is temporarily unavailable.
+GitRelay covers branch monitoring and worktree coordination. Branch synchronization is available only through the explicitly requested protected write protocol described below.
 
 | Identity                  | Current value               | Compatibility                                           |
 | ------------------------- | --------------------------- | ------------------------------------------------------- |
@@ -138,7 +138,7 @@ Later upstream notifications wait for this range; independent messages can still
 
 `watch` receives coordination events. `daemon` centralizes monitored-ref checks and acknowledged-event cleanup. `status --watch` independently monitors branch state. None enables automatic synchronization by default.
 
-Automatic synchronization is temporarily unavailable: concurrent checkout between the final check and Git merge can update a different branch. `--auto-sync` now returns `blocked` before any fetch or worktree write. `--watch` continues read-only status. An upgrade does not stop old processes: stop each older `status --watch --auto-sync` terminal process with Ctrl+C. Starting a second monitor, stopping the daemon, or leaving a subscription does not stop it.
+Explicit `status --auto-sync` now uses native Git index/ref locks, a private detached checkout and expected-ID ref updates to prevent a competing checkout from redirecting a fast-forward. It supports ordinary indexes with Git's files backend on macOS/Linux; unsupported layouts stay blocked. `status --watch` without `--auto-sync` remains read-only. Interrupted writes can retain recovery guards and partially updated files/index/refs; follow the [write protocol and recovery guide](integrations.md#automatic-branch-synchronization) rather than retrying or rolling back blindly. An upgrade does not stop old processes: stop each older `status --watch --auto-sync` terminal process with Ctrl+C. Starting a second monitor, stopping the daemon, or leaving a subscription does not stop it.
 
 If you choose to update manually, stop concurrent Git operations in that worktree, inspect `git status --branch` and `git branch -vv`, and confirm the checked-out branch, upstream and local changes. Then, in that worktree, run `git fetch --no-tags --no-recurse-submodules` and inspect the resulting status before deciding whether to run `git -c submodule.recurse=false merge --ff-only --no-autostash --no-overwrite-ignore '@{upstream}'`. Fetch changes remote-tracking refs. Manual Git commands also race with concurrent checkout or writes; do not run them concurrently. A failed merge must be investigated without forcing, resetting or stashing user data. These commands are an interactive alternative, not an automatic recovery guarantee.
 

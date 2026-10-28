@@ -259,57 +259,121 @@ Status messages share the 64 KiB serialized message limit. An oversized snapshot
 
 Watch diagnostic content is capped at 4,096 UTF-16 code units, with a marker appended when truncated. While stderr is backpressured, additional diagnostics, including distinct errors and broadcast-outcome warnings, can be dropped until it drains. This limit does not truncate status output. Synchronous terminal or file writes can still block.
 
-Default GitHub queries neither update remote-tracking refs nor download objects. Fetch through an existing workflow for diffs and monitor the corresponding `refs/remotes/...` with check/watch. `--auto-sync` currently reports blocked and does not fetch. This feature does not merge PRs or monitor CI/review status.
+Default GitHub queries neither update remote-tracking refs nor download objects. Fetch through an existing workflow for diffs and monitor the corresponding `refs/remotes/...` with check/watch, or explicitly enable the protected `--auto-sync` flow below. This feature does not merge PRs or monitor CI/review status.
 
 ## Automatic branch synchronization
 
-Automatic branch synchronization is temporarily unavailable because concurrent checkout can redirect a merge to a different branch. `--auto-sync` returns `blocked` before fetching or changing the worktree. A one-shot invocation exits 1; watch continues monitoring without Git writes. The CLI can still write a requested `--output` file or publish status changes when `--session` is supplied. `--no-auto-sync` still selects read-only monitoring. Existing older processes continue running across upgrades and must be stopped in their own terminals. See [migration guidance](migration.md#monitoring-and-automatic-synchronization) for the manual alternative and its concurrency limits.
+Synchronization is opt-in and separate from notification delivery. Use
+`git-relay status --auto-sync --cwd /absolute/worktree` once, or add `--watch`
+to repeat. Hooks and plugins never opt in. `--no-auto-sync` remains read-only.
+Only the existing branch checked out in the selected worktree can be updated,
+and it must have exactly one configured remote branch upstream. No stash,
+reset, rebase, merge commit or forced local ref update is performed.
 
-The CLI reads the full symbolic HEAD and removes only `refs/heads/` when selecting
-the monitored branch. Git's abbreviated symbolic ref can include `heads/` if a
-tag shares the branch name. Unicode whitespace is preserved, invalid UTF-8 is
-rejected, and a symbolic HEAD outside local branches requires an explicit
-`--branch` for monitoring. Selecting a branch does not protect a future write.
+The CLI reads the full symbolic HEAD, preserving Unicode whitespace and
+rejecting invalid UTF-8. Dirty work, divergence, Git operation markers and
+existing locks block updates. Fetch may refresh the configured remote-tracking
+ref even when local dirtiness later blocks fast-forwarding. A blocked/error
+one-shot invocation exits 1; watch reports it and continues. The CLI can still
+write a requested `--output` file or publish status when `--session` is supplied.
 
-### Recovery gates
+### Native Git write protocol
 
-Read-only validation has ordinary tests for exact upstream selection, Unicode
-whitespace, invalid HEAD bytes, single-record configuration parsing, and operation
-path decoding. These tests exercise existing readers without enabling fetch or
-merge. The pending synchronization cases still require the complete writer:
+The writer supports macOS/Linux, Git's files ref backend and ordinary on-disk
+indexes. Windows, reftable, sparse/split indexes, assume-unchanged/skip-worktree
+entries, conditional Git includes, per-worktree config, branch-specific merge
+options, active post-merge/post-index-change hooks and repository/index override
+environment variables are rejected. These cases retain the previous
+blocked behavior rather than attempting an unprotected update.
 
-| Pending behavior                                                      | Required before enabling writes                                                                                                 |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Fetch and fast-forward, including Unicode refs                        | Bind the authorized repository, worktree, local ref, upstream and expected object IDs throughout the write                      |
-| Dirty and ignored data, divergence and Git operations                 | Preserve local data, forbid automatic stash/reset/rebase, and inspect all operation markers before fetch and again before merge |
-| Invalid refs, multiple config records and undecodable operation paths | Apply the validated readers in the writer before fetch; settle sibling Git processes before returning an error                  |
-| Concurrent checkout, commit or index modification                     | Demonstrate safety against external Git processes, with deterministic barriers around each write boundary                       |
-| Cancellation, partial failure and restart                             | Specify recovery without blind rollback or retry; retain user changes and report which writes completed                         |
+1. Hold the real `index.lock` throughout validation, fetch and publication.
+   For a linked worktree, also exclusively own its native `locked` file to
+   reject newly started ordinary worktree move/prune attempts. Existing locks
+   are never stolen.
+2. Fetch only objects and a private `FETCH_HEAD`, with no tags, recursive
+   submodules, opportunistic ref mappings or automatic maintenance. Publish
+   the exact configured tracking ref using `update-ref --no-deref` and its
+   expected old object ID. An upstream symref race cannot redirect a fetch
+   into a local branch; a concurrent tracking object-ID change fails
+   compare-and-swap.
+3. Prepare a Git `update-ref --stdin` transaction for HEAD's expected old/new
+   IDs and verify the fetched tracking ID. Git locks HEAD, its resolved local
+   branch and the tracking ref. Revalidate the full symbolic HEAD **after**
+   prepare; abort without applying files if it is not the authorized ref.
+4. Copy the original index and fast-forward a private detached HEAD/index,
+   sharing the object store but using the selected real worktree. Native
+   `merge --ff-only --no-autostash --no-overwrite-ignore` retains dirty and
+   ignored-file protection. The private merge disables hooks and submodule
+   recursion; no incoming commit is created. Actual tracking/HEAD updates honor
+   configured reference-transaction hooks. Unsupported post-mutation hooks and
+   branch merge options block before fetch rather than silently bypassing policy.
+5. Rename the prepared index over the real index while the original
+   `index.lock` still exists, then commit the prepared ref transaction.
+   Only confirmed success releases the owned index/worktree locks and private
+   directory. Cleanup verifies lock inode ownership before removing a lock.
 
-`tests/core/auto-sync-stopgap.test.ts` includes an isolated real-Git counterexample:
-after a worktree lock and final HEAD/ref checks, another checkout still succeeds,
-and merging a pinned incoming object ID advances the newly checked-out branch.
-The current blocked implementation leaves both branches unchanged at that point.
-A private GitRelay lock, another final check, or `git worktree lock` alone therefore
-does not satisfy the write boundary. A ref-only transaction also needs a protocol
-for the index and working files. An exclusively owned worktree would require an
-enforced ownership model; it cannot be assumed for a user's existing worktree.
+Competing checkout/switch (including force), commit, reset, restore and index
+updates cannot pass the real index lock. Symbolic HEAD/ref changes cannot
+pass the prepared reference locks. A change before prepare either fails
+expected-ID verification or the post-prepare symbolic-HEAD check. A private
+GitRelay lock, another final HEAD check, or `git worktree lock` alone would not
+provide this protection; the real-Git counterexample remains in
+`tests/core/auto-sync-stopgap.test.ts`.
 
-After a write protocol is implemented, remove TODOs only when their full integration
-assertions pass, add adversarial concurrency and interruption tests, and rerun
-the synchronization benchmark and relevant native-client acceptance. Passing the
-old TODO cases alone does not establish concurrency safety. Automatic fetch with
-notification would be a separate feature: it writes remote-tracking refs and
-does not restore automatic fast-forwarding.
+Read-only observers can see intermediate file/index/ref states: this is not an
+atomic filesystem snapshot. Keep worktree and Git-directory paths stable, and
+finish any in-flight relocation before starting synchronization: a lock cannot
+retroactively stop a move already past its own lock check. The protocol does not
+serialize arbitrary editor
+writes, configuration changes, raw metadata edits, explicit lock removal,
+forced worktree management that bypasses locks, or helpers that escape their
+process group. Coordinate those operations. Network filesystems and power-loss
+durability have not been validated.
+
+### Interrupted synchronization and recovery
+
+Before a worktree mutation, cancellation/error releases only owned guards.
+Once merge has been invoked, **any** error or cancellation conservatively
+retains the real index/worktree locks, even when Git reports a preflight
+collision. Mutating Git commands use bounded POSIX process groups; cancellation
+kills and settles that group before returning. The ref transaction is
+aborted/settled where possible. There is no automatic rollback or retry.
+
+Once initialized, the index lock contains a PID and a path to
+`<git-dir>/git-relay-sync-*/recovery.json`. This lock is JSON guard metadata,
+**not an index image**; never rename it over the real index. A crash during
+early preflight can leave an empty guard without a journal. For an attempted
+worktree update, the private directory retains `original-index`, the proposed
+`index` if it has not been renamed, and the expected repository/worktree, refs,
+remote/source and before/after IDs. Fetch-only initialization can have a journal
+without saved indexes. Its phase records an **attempted** boundary, not proof
+of completion. A lost commit acknowledgement can leave the real branch
+already advanced.
+
+Stop the auto-sync watch and identify/stop any remaining associated Git or
+filter processes before recovery; a saved PID alone does not establish
+ownership or liveness. Back up the entire worktree, including ignored files,
+the real index and private recovery directory. Inspect the actual symbolic
+HEAD, target ref, both indexes and working files against the recorded IDs.
+If the proposed index has been renamed, inspect the real index instead.
+Reconcile the observed state with explicit user authorization; do not blindly
+reset to the old ID, restore a saved index, delete locks or rerun synchronization.
+Release verified owned locks and remove recovery data only after reconciliation.
+Subsequent automatic attempts remain blocked while those guards are present.
+
+The restored integration cases and deterministic boundary/interruption checks
+are described in [acceptance](acceptance.md#protected-opt-in-synchronization-2026-10-28).
+Rebuild/reinstall updated runtime copies; stop older auto-sync processes in
+their own terminals before replacing them.
 
 ## State, recovery, and limitations
 
 - Shared state uses `worktree-agent-sync/repos/<repo-id>/`, with `XDG_STATE_HOME` / `WORKTREE_SYNC_STATE_DIR` overrides. Events are repository-wide; receipts are per session. Repository identity combines the canonical Git common-directory path with a persistent marker, or an explicit mapping for a read-only directory. Earlier path-keyed shared state needs an explicit migration or fresh-state choice; [see the migration procedure](migration.md#repository-identity-and-existing-state). Legacy Git-directory cursors are imported read-only.
-- Session locks prevent concurrent duplicate delivery; active contention skips a round. Publication locks retry with jitter for up to five seconds. Lock age does not prove a stalled holder. CLI operations honor SIGINT/SIGTERM and release locks, including under output backpressure; watch exits on EPIPE rather than retrying indefinitely. SIGKILL/power loss can leave locks. Verify ownership before removing one; PID reuse cannot be resolved by a PID file alone.
+- Session locks prevent concurrent duplicate delivery; active contention skips a round. Publication locks retry with jitter for up to five seconds. Lock age does not prove a stalled holder. Mailbox/status-output operations honor SIGINT/SIGTERM and release their locks, including under output backpressure; interrupted branch writes retain recovery guards as described above; watch exits on EPIPE rather than retrying indefinitely. SIGKILL/power loss can leave locks. Verify ownership before removing one; PID reuse cannot be resolved by a PID file alone.
 - Related-history reset/force-push updates are marked rewritten and compared as snapshots. If Git cannot compare the range, GitRelay reports its ref and commit IDs and retains the unread event: an error or a `cat-file` missing result can also reflect an inaccessible object store. Unlike earlier versions, newly uninspectable ranges are not automatically acknowledged as `unavailable: true`; such a range may block later messages in that session. [History-gap recovery](migration.md#history-gap-recovery) explains how to inspect and restore trusted history. Existing receipts are not revoked, and the legacy `unavailable` notification format remains readable.
 - Detection includes ignored local filenames, file/directory prefix overlap, and `core.ignorecase`. Git can report an untracked nested repository as an opaque directory; its contents are treated as potentially overlapping. Every tracked submodule path is also treated as a potential overlap, even when clean or uninitialized, because Git can hide its local contents. This can produce extra notifications. Older versions could incorrectly mark nested-repository or submodule events irrelevant; existing receipts are not revoked or replayed by this fix. Ignored file contents are not sent. A user's `diff.submodule` setting can cause committed submodule changes to appear in a bounded upstream diff. Large ignored trees and index scans can slow enumeration; Git output-limit failures retain unread events. Detection reflects current local files, not future edits. Cross-file semantic dependencies and cross-machine worktrees are outside scope.
 - Changes before registration are not replayed. `irrelevant` events are not redelivered if the session later edits the file. New sessions do not receive earlier broadcasts.
-- Automatic wake-up consumes model quota. Transport does not prove completed adaptation. Notification adapters do not mutate, stash, merge, rebase, or commit code; status auto-sync is temporarily blocked before writes. GC retains unread messages and closed markers, with no lastSeen expiry. See [maintenance](maintenance.md).
+- Automatic wake-up consumes model quota. Transport does not prove completed adaptation. Notification adapters do not mutate, stash, merge, rebase, or commit code; only an explicitly requested status auto-sync can fast-forward under the native Git write protocol. GC retains unread messages and closed markers, with no lastSeen expiry. See [maintenance](maintenance.md).
 
 ## Official interface references
 

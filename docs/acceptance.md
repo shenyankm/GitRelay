@@ -36,6 +36,39 @@ npm pack --dry-run
 CI is configured for macOS/Linux on Node.js 22.19.0 and 24. A local pass does not
 establish hosted CI status or actual hook discovery/trust in a client.
 
+## Protected opt-in synchronization: 2026-10-28
+
+The complete `npm run check` passed locally with 751 passed, zero failed,
+one skipped and zero TODOs (752 tests total). The 14 previously pending
+synchronization cases now run as ordinary integration tests. They cover
+fetch/fast-forward, dirty and ignored data, divergence, all
+seven operation markers, exact Unicode refs, invalid HEAD bytes, ambiguous
+configuration and operation-path decoding. Hooks/plugins still never opt in
+to branch synchronization.
+
+`tests/core/branch-sync-concurrency.test.ts` adds isolated real-Git barriers
+before/after private merge and before real ref commit. Competing force
+checkout/switch, commit, reset, restore, index updates, symbolic HEAD/ref writes
+and worktree moves are rejected by native locks. Additional interleavings
+cover HEAD/branch/upstream changes before prepare, tracking compare-and-swap
+and an upstream symref that attempts to redirect fetch into a local branch.
+
+Cancellation before/after index publication and after a real commit with an
+uncertain acknowledgement retains recovery guards without rollback or retry.
+Injected index-rename failure preserves both indexes and working files.
+Existing locks and unsupported sparse/split/flagged indexes or configuration
+are rejected before fetch. Native reference-transaction policy can reject a
+real fast-forward before files change; post-mutation hooks and branch-specific
+merge options are blocked rather than silently bypassed. The retained stopgap counterexample still proves
+why a worktree lock plus a final HEAD check alone is insufficient.
+
+These are local CLI/core regressions, not new native Codex/OpenCode or model
+acceptance. Windows, reftable, conditional/per-worktree configuration and
+nonordinary indexes remain unsupported for automatic writes. Raw filesystem
+changes, deliberate lock bypass, escaped helper processes, network filesystems
+and power-loss durability are outside the validated protocol. See
+[write recovery](integrations.md#interrupted-synchronization-and-recovery).
+
 ## Single skill and hook overhead: 2026-10-28
 
 The plugin now packages only the `git-relay` skill; its four Codex hook events

@@ -154,11 +154,13 @@ Worktrees in one repository share events under
 Repository identity prevents a replacement repository from claiming an old
 inbox. Explicit migration may be required for older path-based state.
 
-Automatic branch synchronization is temporarily blocked because concurrent
-checkouts can update the wrong branch. `status --auto-sync` reports blocked;
-manual branch changes remain separate operations. GitRelay does not provide
-worktree-management commands. Use Git directly after checking the target and
-preserving local work. See [migration](docs/migration.md).
+Branch synchronization is opt-in: `status --auto-sync` fetches the configured
+upstream and only fast-forwards the currently checked-out, clean branch on
+macOS/Linux. Native index/ref locks protect against competing Git writers;
+unsupported layouts stay blocked. Interrupted writes can retain recovery locks
+and require manual inspection; see the [write protocol](docs/integrations.md#automatic-branch-synchronization).
+GitRelay does not provide worktree-management commands. Use Git directly after
+checking the target and preserving local work. See [migration](docs/migration.md).
 
 Messages are untrusted data, not authorization to change Git history. Normal
 operation deduplicates; crashes or uncertain host acceptance can cause retries.

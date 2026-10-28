@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { realpath } from "node:fs/promises";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
@@ -17,21 +17,101 @@ export interface Worktree {
   prunable?: string;
 }
 
+// Mutators must settle their entire POSIX process group before a caller can release write guards.
+async function gitProcessGroup(
+  cwd: string,
+  args: string[],
+  env: NodeJS.ProcessEnv,
+  signal?: AbortSignal,
+): Promise<Buffer> {
+  signal?.throwIfAborted();
+  if (process.platform === "win32") throw new Error("Git process-group writes require POSIX.");
+  return new Promise((resolve, reject) => {
+    const child = spawn("git", ["-C", cwd, ...args], { env, detached: true, stdio: ["ignore", "pipe", "pipe"] });
+    const chunks: Buffer[][] = [[], []],
+      sizes = [0, 0];
+    let failure: unknown;
+    const stop = (error: unknown) => {
+      failure ??= error;
+      if (child.pid) {
+        try {
+          process.kill(-child.pid, "SIGKILL");
+        } catch {
+          child.kill("SIGKILL");
+        }
+      }
+    };
+    const timer = setTimeout(
+      () => stop(Object.assign(new Error("Git command timed out."), { code: "ETIMEDOUT", killed: true })),
+      30_000,
+    );
+    const abort = () => stop(signal?.reason);
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
+    for (const [stream, index] of [
+      [child.stdout, 0],
+      [child.stderr, 1],
+    ] as const) {
+      stream.on("data", (chunk: Buffer) => {
+        if (failure) return;
+        sizes[index] += chunk.length;
+        if (sizes[index] > 16 * 1024 * 1024) {
+          stop(Object.assign(new Error("Git output exceeds 16 MiB."), { code: "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" }));
+          return;
+        }
+        chunks[index].push(chunk);
+      });
+      stream.on("error", stop);
+    }
+    child.on("error", stop);
+    child.on("close", (code, terminationSignal) => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
+      if (signal?.aborted) return reject(signal.reason);
+      if (failure) return reject(failure);
+      const stdout = Buffer.concat(chunks[0]),
+        stderr = Buffer.concat(chunks[1]);
+      if (code !== 0)
+        return reject(
+          Object.assign(new Error(stderr.toString("utf8").trim() || `Git exited with ${code}.`), {
+            code,
+            signal: terminationSignal,
+            stdout,
+            stderr,
+          }),
+        );
+      resolve(stdout);
+    });
+  });
+}
+
 export async function git(
   cwd: string,
   args: string[],
   signal?: AbortSignal,
   paths?: "paths" | "worktree-records",
+  options?: { env?: NodeJS.ProcessEnv; processGroup?: boolean },
 ): Promise<string> {
   signal?.throwIfAborted();
   try {
-    const { stdout } = await exec("git", ["-C", cwd, ...args], {
-      encoding: "buffer",
-      maxBuffer: 16 * 1024 * 1024,
-      timeout: 30_000,
-      signal,
-      env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1", GIT_ALLOW_PROTOCOL: "" },
-    });
+    const env = {
+      ...process.env,
+      GIT_TERMINAL_PROMPT: "0",
+      GIT_NO_LAZY_FETCH: "1",
+      GIT_ALLOW_PROTOCOL: "",
+      ...options?.env,
+    };
+    const stdout = options?.processGroup
+      ? await gitProcessGroup(cwd, args, env, signal)
+      : (
+          await exec("git", ["-C", cwd, ...args], {
+            encoding: "buffer",
+            maxBuffer: 16 * 1024 * 1024,
+            timeout: 30_000,
+            signal,
+            env,
+          })
+        ).stdout;
     if (!paths) return stdout.toString("utf8");
     try {
       const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });

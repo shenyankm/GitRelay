@@ -6,7 +6,7 @@ These features share the existing user-level message store. Plugins, hooks, and 
 
 `git-relay daemon` serves registered message subscriptions; `git-relay status --watch` is a separate branch-monitoring process. Stopping the daemon or running `leave` does not stop a status monitor or auto-sync process in another terminal.
 
-To disable synchronization, press Ctrl+C in the terminal running `status --watch --auto-sync`, then restart with `status --watch --no-auto-sync` if needed. The switch is not persisted. Starting another read-only process does not stop the original writer. Current auto-sync returns `blocked` without fetching or changing files. Upgrading does not stop older running auto-sync processes; stop those processes in their own terminals. See [manual synchronization guidance](migration.md#monitoring-and-automatic-synchronization).
+To disable synchronization, press Ctrl+C in the terminal running `status --watch --auto-sync`, then restart with `status --watch --no-auto-sync` if needed. The switch is not persisted. Starting another read-only process does not stop the original writer. Explicit auto-sync can fetch and fast-forward supported clean worktrees. An interrupted branch write retains recovery guards and may have partially completed; stop its watch and follow the [write-recovery procedure](integrations.md#interrupted-synchronization-and-recovery) rather than deleting locks or retrying. Upgrading does not stop older running auto-sync processes; stop those processes in their own terminals. See [manual synchronization guidance](migration.md#monitoring-and-automatic-synchronization).
 
 Renaming or reinstalling the plugin does not clean up unread messages. See [migration](migration.md).
 

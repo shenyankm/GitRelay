@@ -1,8 +1,38 @@
 # GitRelay performance benchmarks
 
-The latest state-reader, cleanup and hook comparisons are below. Other sections retain
-measurements for named historical source snapshots; retired-client results are not
-current support claims.
+The latest synchronization, state-reader, cleanup and hook measurements are below.
+Other sections retain measurements for named historical source snapshots;
+retired-client results are not current support claims.
+
+## Protected opt-in synchronization: 2026-10-28
+
+Three sequential recorder runs exercised the protected writer on macOS arm64,
+Node 22.23.2 and Git 2.54.0 with a local-file remote and a linked worktree that
+was already up to date. Each run excludes setup and one warm-up, then reports
+the median of seven core calls with warm local caches.
+
+| Run | Median per call | Record                                                                    |
+| --- | --------------: | ------------------------------------------------------------------------- |
+| 1   |        381.7 ms | [Source/build and output](evidence/2026-10-28-protected-sync/sync-1.json) |
+| 2   |        471.6 ms | [Source/build and output](evidence/2026-10-28-protected-sync/sync-2.json) |
+| 3   |        520.5 ms | [Source/build and output](evidence/2026-10-28-protected-sync/sync-3.json) |
+
+All 24 calls, including warm-ups, passed result, HEAD, file-content and clean
+worktree assertions. The three records have identical source/build fingerprints.
+Reproduce after building, without concurrent builds or tests:
+
+```sh
+node scripts/record-benchmark.mjs sync /absolute/new-sync-result.json
+```
+
+These are current costs, not an old/new speedup comparison. The previous
+implementation was blocked; historical successful-writer timings describe a
+different, unsafe protocol. External load was uncontrolled. This workload does
+not time an actual fast-forward, network latency, cold caches, lock-contention
+throughput or client/model latency. The real index guard is held during fetch,
+so competing ordinary Git writers can be temporarily rejected. See the
+[write protocol](integrations.md#automatic-branch-synchronization) for supported
+layouts, policy checks and partial-write recovery.
 
 ## Reusable state-read buffers: 2026-10-28
 
@@ -149,8 +179,8 @@ node scripts/record-benchmark.mjs delivery /absolute/new-delivery-result.json
 node scripts/record-benchmark.mjs mailbox /absolute/new-mailbox-result.json
 ```
 
-The recorder supports `delivery`, `mailbox`, `history`, `maintenance` and
-`concurrency` and `hooks`. It records the source commit, dirty status, a content fingerprint,
+The recorder supports `delivery`, `mailbox`, `history`, `maintenance`,
+`concurrency`, `hooks` and `sync`. It records the source commit, dirty status, a content fingerprint,
 OS/Node/Git versions, workload records and raw stdout/stderr. Existing benchmark
 assertions must pass, and the source fingerprint must remain unchanged. Build
 immediately before recording and do not run another build or test concurrently.
@@ -533,7 +563,7 @@ With the preceding pi optimization already present, two subsequent native-histor
 
 ## Historical auto-sync operation checks (2026-10-27, Asia/Singapore)
 
-These measurements predate the temporary shutdown of automatic synchronization. The benchmark below expects the old successful sync and cannot pass while synchronization is blocked. Current code performs none of these operation-marker checks; the old tests are retained as TODO pending a safe implementation.
+These measurements predate the temporary shutdown and subsequent protected synchronization rewrite. The benchmark below runs against the new writer, but the historical timings and implementation details in this section do not describe its current cost. The new writer restores operation-marker checks and the former TODO integration cases under native Git locks.
 
 ```sh
 npm run build

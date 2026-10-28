@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { syncBranch } from "../../src/core/branch-sync.ts";
 import { fixture, git } from "../helpers.ts";
 
-test("disabled sync cannot fetch or merge after a competing checkout and preserves ignored data", async (t) => {
+test("sync refuses a different checked-out branch and preserves ignored data", async (t) => {
   const f = await fixture(t),
     bin = join(f.root, "fake-bin"),
     calls = join(f.root, "calls");
@@ -18,15 +18,15 @@ test("disabled sync cannot fetch or merge after a competing checkout and preserv
   git(f.a, "switch", "alternate");
   const before = git(f.a, "rev-parse", "HEAD").trim();
   await mkdir(bin);
-  await writeFile(join(bin, "git"), `#!/bin/sh\necho called >> ${JSON.stringify(calls)}\nexec /usr/bin/git "$@"\n`);
+  await writeFile(join(bin, "git"), `#!/bin/sh\necho "$*" >> ${JSON.stringify(calls)}\nexec /usr/bin/git "$@"\n`);
   await chmod(join(bin, "git"), 0o755);
   const oldPath = process.env.PATH;
   process.env.PATH = `${bin}:${oldPath ?? ""}`;
   try {
     const result = await syncBranch(f.a, "feature/a");
     assert.equal(result.state, "blocked");
-    assert.match(result.reason ?? "", /temporarily unavailable/);
-    await assert.rejects(readFile(calls), { code: "ENOENT" });
+    assert.match(result.reason ?? "", /checked out/);
+    assert.doesNotMatch(await readFile(calls, "utf8"), /\b(?:fetch|merge)\b/);
   } finally {
     if (oldPath === undefined) delete process.env.PATH;
     else process.env.PATH = oldPath;
@@ -36,7 +36,7 @@ test("disabled sync cannot fetch or merge after a competing checkout and preserv
   assert.equal(await readFile(join(f.a, "ignored-secret"), "utf8"), "local only\n");
 });
 
-test("disabled sync honors cancellation before returning", async () => {
+test("sync honors cancellation before querying Git", async () => {
   const controller = new AbortController();
   controller.abort();
   await assert.rejects(syncBranch("unused", "unused", controller.signal), { name: "AbortError" });

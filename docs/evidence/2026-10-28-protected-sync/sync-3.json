@@ -1,0 +1,33 @@
+{
+  "startedAt": "2026-10-28T12:01:47.578Z",
+  "completedAt": "2026-10-28T12:01:52.859Z",
+  "source": {
+    "commit": "e22e6fabe63058a708862a2dc91aea1351b40794",
+    "dirty": true,
+    "sha256": "771e5725dfc2ac1e8b4bcea7b95c71118252b0b22e4053bc46c190149ea470c7",
+    "buildSha256": "de2e638687debee1045352552eadad70af9615d2be3853234b1d4bcd4731c3ac"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "<node>",
+    "scripts/benchmark-sync.mjs"
+  ],
+  "results": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "samples": 7,
+      "medianMs": 520.533167,
+      "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+    }
+  ],
+  "stdout": "{\"node\":\"v22.23.2\",\"git\":\"git version 2.54.0 (Apple Git-157)\",\"samples\":7,\"medianMs\":520.533167,\"workload\":\"up-to-date linked worktree with local file remote; one warm-up and setup excluded\"}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

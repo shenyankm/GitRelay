@@ -92,7 +92,6 @@ test(
 test(
   "unrepresentable git-path fails before fetch and waits for sibling processes",
   {
-    todo: "Automatic synchronization temporarily disabled pending safe HEAD/worktree binding",
     skip: process.platform === "win32",
   },
   async (t) => {
@@ -117,7 +116,6 @@ test(
 test(
   "operation marker appearing during fetch blocks merge; valid state can then fast-forward",
   {
-    todo: "Automatic synchronization temporarily disabled pending safe HEAD/worktree binding",
     skip: process.platform === "win32",
   },
   async (t) => {

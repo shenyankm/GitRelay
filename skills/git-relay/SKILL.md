@@ -71,10 +71,14 @@ for manual receivers, relevance and receipt semantics.
 
 ## Synchronization, maintenance and help
 
-Automatic branch synchronization is unavailable: `--auto-sync` reports blocked
-without fetching or updating files. Preserve dirty work and diverged commits;
-never bypass it with reset, stash or rebase. Manual Git updates require user
-authorization and coordination with other Git writers.
+Branch synchronization requires explicit user authorization: `status --auto-sync`
+can fetch and fast-forward a supported, clean, currently checked-out branch on
+macOS/Linux under native Git locks. Hooks/plugins never opt in. Preserve dirty
+work and diverged commits; never bypass a blocked result with reset, stash or
+rebase. Interrupted writes retain locks and recovery data: stop the watch and
+follow [write recovery](../../docs/integrations.md#interrupted-synchronization-and-recovery),
+not automatic retry or rollback. Manual Git updates also require authorization
+and coordination with other Git writers.
 
 Stop an older monitor using its retained launcher handle before replacing it.
 Starting another monitor, running `leave`, or stopping the mailbox daemon does
