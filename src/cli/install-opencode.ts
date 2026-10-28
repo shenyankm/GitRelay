@@ -86,6 +86,11 @@ const bootstrap = legacyBootstrap
   )
   .replace("if (!revision", "if (state.removed || !revision");
 
+export function validateWorkspacePath(root: string): void {
+  if (process.platform !== "win32" && root.includes("\\"))
+    throw new Error("The data directory path contains a backslash; choose a different XDG_DATA_HOME.");
+}
+
 export async function checkWorkspace(root: string): Promise<void> {
   const info = await lstat(root);
   if (!info.isDirectory() && !info.isSymbolicLink()) throw new Error(`Not an owned GitRelay workspace: ${root}`);
@@ -96,6 +101,7 @@ export async function checkWorkspace(root: string): Promise<void> {
 }
 
 export async function ensureWorkspace(root: string): Promise<void> {
+  validateWorkspacePath(root);
   await mkdir(dirname(root), { recursive: true });
   let exists = false;
   try {
