@@ -107,6 +107,9 @@ test(
       (await detect("opencode 2.1.2", "WARNING: config /tmp/app-2.0.0/path; update 2.1.2 -> 2.2.0")).status,
       "installed",
     );
+    assert.equal((await detect("opencode 2.1.2", "opencode-2.0.0/cache: cannot open")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "opencode-2.0.0\\cache: cannot open")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "opencode 3.0.0, unsupported")).status, "unavailable");
     assert.equal((await detect("opencode 2.1.2", "opencode 3.0.0")).status, "unavailable");
     assert.equal((await detect("opencode 2.1.2", "opencode 2.1.2 update available: 3.0.0")).status, "installed");
     assert.equal((await detect("opencode 2.1.2", "opencode-v3.0.0")).status, "unavailable");

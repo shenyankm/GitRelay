@@ -88,7 +88,7 @@ export async function detectPlatform(
     const { stdout, stderr } = output;
     // A version attached to a wrapper name can still make stdout ambiguous.
     const stderrClaims = stderr.matchAll(
-      new RegExp(`^\\s*${command}(?:-cli)?(?:\\s+|-)v?(\\d+\\.\\d+\\.\\d+[\\w.+-]*)`, "gim"),
+      new RegExp(`^\\s*${command}(?:-cli)?(?:\\s+|-)v?(\\d+\\.\\d+\\.\\d+[\\w.+-]*)(?![\\w.+/\\\\-])`, "gim"),
     );
     const allVersions = new Set([
       ...[...stdout.matchAll(/v?(\d+\.\d+\.\d+[\w.+-]*)/g)].map((match) => match[1]),
