@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { constants } from "node:fs";
 import {
   access,
   chmod,
@@ -122,6 +123,54 @@ test(
       assert.equal(await readFile(runtimePackage, "utf8"), "changed");
       await writeFile(runtimePackage, original);
     }
+  },
+);
+
+test(
+  "install dry-run does not establish destination write permission",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "git-relay-install-permission-"));
+    const bin = join(dir, "bin"),
+      plugins = join(dir, "config", "opencode", "plugins");
+    await mkdir(bin);
+    await mkdir(plugins, { recursive: true });
+    t.after(async () => {
+      await chmod(plugins, 0o755);
+      await rm(dir, { recursive: true, force: true });
+    });
+    await writeFile(join(bin, "opencode"), '#!/bin/sh\necho "opencode v2.1.2"\n', { mode: 0o755 });
+    await chmod(plugins, 0o555);
+    if (
+      await access(plugins, constants.W_OK).then(
+        () => true,
+        () => false,
+      )
+    ) {
+      t.skip("filesystem permissions do not restrict this process");
+      return;
+    }
+    const env = {
+      ...process.env,
+      PATH: `${bin}:${process.env.PATH ?? ""}`,
+      XDG_CONFIG_HOME: join(dir, "config"),
+      XDG_DATA_HOME: join(dir, "data"),
+    };
+    const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
+    const run = promisify(execFile);
+    const args = ["--experimental-strip-types", cli, "install", "--platform", "opencode"];
+    const preview = await run(process.execPath, [...args, "--dry-run"], { env });
+    assert.equal(JSON.parse(preview.stdout).failed, false);
+    const failure = await run(process.execPath, args, { env }).then(
+      () => null,
+      (error) => error,
+    );
+    assert.ok(failure);
+    assert.match(
+      JSON.parse(failure.stdout).results.find((item: { platform: string }) => item.platform === "opencode").reason,
+      /EACCES|EPERM/,
+    );
+    await assert.rejects(lstat(join(plugins, "git-relay.js")), { code: "ENOENT" });
   },
 );
 

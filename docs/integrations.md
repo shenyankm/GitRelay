@@ -83,8 +83,10 @@ and unowned paths are preserved. OpenCode installs a global plugin entry;
 Codex installs user hooks only when no conflicting hook file or plugin exists.
 Codex trust through `/hooks` remains separate. An install dry run checks existing
 destinations, ownership, journals, runtimes and Codex conflicts without writing
-installation files. It does not stage or execute the new runtime, acquire an
-installation lock, or guarantee that files will remain unchanged before install.
+installation files. It does not check whether destinations are writable, stage
+or execute the new runtime, or acquire an installation lock. A successful
+preview cannot guarantee the install will succeed: permissions, ACLs, or files
+can change before publication.
 
 Uninstall only removes a verified owned entry, keeping archives, runtimes and
 shared message state. Inspect reported retained paths rather than deleting them
