@@ -6,7 +6,7 @@
       "name": "git-relay",
       "source": { "source": "local", "path": "./.codex/plugin-build" },
       "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
-      "category": "Developer tools"
+      "category": "Developer Tools"
     }
   ]
 }

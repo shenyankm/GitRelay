@@ -55,6 +55,12 @@ test(
     const catalog = JSON.parse(await read(".agents/plugins/marketplace.json"));
     assert.equal(catalog.plugins[0].name, plugin.name);
     assert.equal(plugin.interface.displayName, "GitRelay");
+    assert.equal(plugin.interface.category, "Developer Tools");
+    assert.equal(catalog.plugins[0].category, "Developer Tools");
+    assert.equal(plugin.license, "MIT");
+    assert.ok([...plugin.interface.shortDescription].length <= 30);
+    assert.ok(plugin.interface.defaultPrompt.length <= 3);
+    for (const prompt of plugin.interface.defaultPrompt) assert.ok([...prompt].length <= 128);
     for (const key of ["logo", "composerIcon"]) {
       const asset = await readFile(join(installed, plugin.interface[key]), "utf8");
       assert.match(asset, /<svg\b/);

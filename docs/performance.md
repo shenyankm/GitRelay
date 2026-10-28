@@ -565,7 +565,7 @@ and a preload that disables Node `rm` and `unlink`:
 env -i PATH=/usr/bin:/bin HOME=/tmp/gitrelay-ref-preserve.uqMhXX3k \
   TMPDIR=/tmp/gitrelay-ref-preserve.uqMhXX3k GIT_CONFIG_GLOBAL=/dev/null \
   GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 \
-  /Users/sheny/.nvm/versions/node/v22.23.2/bin/node \
+  <home>/.nvm/versions/node/v22.23.2/bin/node \
   --import /tmp/gitrelay-ref-preserve.uqMhXX3k/no-delete.mjs \
   --disable-warning=ExperimentalWarning --experimental-strip-types \
   /tmp/gitrelay-ref-preserve.uqMhXX3k/probe.mjs

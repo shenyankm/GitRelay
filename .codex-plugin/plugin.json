@@ -8,15 +8,16 @@
   },
   "homepage": "https://github.com/shenyankm/GitRelay",
   "repository": "https://github.com/shenyankm/GitRelay",
+  "license": "MIT",
   "skills": "./skills/",
   "hooks": "./src/adapters/codex/plugin-hooks.json",
   "requires_local_executor": true,
   "interface": {
     "displayName": "GitRelay",
-    "shortDescription": "Branch and worktree coordination",
+    "shortDescription": "Branch & worktree coordination",
     "longDescription": "Enable GitRelay for a requested parallel-development session, receive relevant changes and messages, and inspect branch status. Sessions default off; automatic branch synchronization is unavailable.",
     "developerName": "shenyankm",
-    "category": "Developer tools",
+    "category": "Developer Tools",
     "capabilities": ["Instructions", "Lifecycle hooks"],
     "websiteURL": "https://github.com/shenyankm/GitRelay",
     "defaultPrompt": [
