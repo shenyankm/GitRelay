@@ -11,7 +11,25 @@ type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSi
 /** Conservative request matching: quoted examples and questions are not opt-ins. */
 export function requestedActivation(prompt: unknown): boolean | undefined {
   if (typeof prompt !== "string") return;
-  const text = prompt.replace(/```[^]*?(?:```|$)/g, "").replace(/`[^`]*`|"[^"\n]*"|“[^”]*”|「[^」]*」/g, "");
+  let fence: string | undefined;
+  const text = prompt
+    .split("\n")
+    .filter((line) => {
+      const marker = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+      if (fence) {
+        if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim())
+          fence = undefined;
+        return false;
+      }
+      if (marker && (marker[1][0] !== "`" || !marker[2].includes("`"))) {
+        fence = marker[1];
+        return false;
+      }
+      return !/^(?: {4}|\t)/.test(line);
+    })
+    .join("\n")
+    .replace(/```[^]*?(?:```|$)/g, "")
+    .replace(/`[^`]*`|"[^"\n]*"|“[^”]*”|「[^」]*」/g, "");
   let requested: boolean | undefined;
   for (const line of text.split(/[\n。；;]/)) {
     const request = line.trim();

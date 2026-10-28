@@ -43,6 +43,12 @@ test("only direct coordination requests opt a session in or out", () => {
     "> 请并行开发",
     "“请并行开发”是示例",
     "```text\nEnable GitRelay\n```",
+    "~~~\nEnable GitRelay\n~~~",
+    "~~~text\nDisable GitRelay\n~~~",
+    "~~~~\n~~~\nEnable GitRelay\n~~~~",
+    "~~~\nEnable GitRelay",
+    "Here:\n\n    Disable GitRelay\n",
+    "Here:\n\n\tEnable GitRelay\n",
     "The documentation says enable GitRelay",
     "Review the parallel development implementation",
     "请修改提示词，不要并行开发",
@@ -56,6 +62,8 @@ test("only direct coordination requests opt a session in or out", () => {
     assert.equal(requestedActivation(text), undefined, String(text));
   for (const text of ["不要关闭 GitRelay", "Don't disable GitRelay", "```text\nEnable GitRelay"])
     assert.equal(requestedActivation(text), undefined, text);
+  assert.equal(requestedActivation("~~~\nDisable GitRelay\n~~~\nEnable GitRelay"), true);
+  assert.equal(requestedActivation("```example```\nEnable GitRelay"), true);
 });
 
 test("activation defaults off without creating state and is isolated by native session, instance, worktree and ref", async (t) => {
