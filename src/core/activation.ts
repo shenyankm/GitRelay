@@ -115,8 +115,12 @@ export async function sessionActivation(
     const matched = await matchingRepository(root, current);
     return matched !== undefined && (await repository(root, options.signal, false)).id === matched;
   };
+  let missing = false;
   const cwd = await realpath(resolve(options.cwd)).catch((error: NodeJS.ErrnoException) => {
-    if (error.code === "ENOENT") return resolve(options.cwd);
+    if (error.code === "ENOENT") {
+      missing = true;
+      return resolve(options.cwd);
+    }
     throw error;
   });
   const selected = process.env.GIT_WORK_TREE
@@ -178,7 +182,7 @@ export async function sessionActivation(
   let root: string;
   if (optOut?.root) root = await realpath(resolve(optOut.root));
   else if (optOut) {
-    await worktreeRoot();
+    if (!missing) await worktreeRoot();
     const current = await preflightLeaveSession(options);
     if (current.root || current.repositoryId !== optOut.repositoryId)
       throw new Error("GitRelay target changed during opt-out; preserve state and retry.");
@@ -202,10 +206,11 @@ export async function sessionActivation(
       const { current } = await read(root);
       const pending = (current?.pending as string[] | undefined) ?? [];
       const prepared = (current?.prepared as Prepared[] | undefined) ?? [];
-      let committed = pending.length
-        ? current?.committed === true || (await enabledAt(root, current))
-        : current?.enabled === true ||
-          (current === undefined && operation?.phase === "begin" && operation.priorEnabled === true);
+      let committed =
+        operation && pending.length
+          ? current?.committed === true || (await enabledAt(root, current))
+          : current?.enabled === true ||
+            (current === undefined && operation?.phase === "begin" && operation.priorEnabled === true);
       let nextPending: string[] = [];
       let nextPrepared: Prepared[] = [];
       let nextEnabled = enabled;
