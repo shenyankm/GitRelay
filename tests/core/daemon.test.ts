@@ -366,7 +366,10 @@ test("daemon retries a busy repository without delaying another or a new reposit
   let elapsed = performance.now();
   t.mock.method(performance, "now", () => elapsed);
   const reports: any[] = [];
-  let busyObserved = false;
+  let busyObserved = false,
+    addedBusyObserved = false,
+    addedDirectory = "";
+  const resume = Promise.withResolvers<void>();
   const open = fs.promises.open;
   const mocked = t.mock.method(fs.promises, "open", (async (...args: Parameters<typeof open>) => {
     try {
@@ -378,6 +381,13 @@ test("daemon retries a busy repository without delaying another or a new reposit
         (error as NodeJS.ErrnoException).code === "EEXIST"
       )
         busyObserved = true;
+      if (
+        addedDirectory &&
+        args[0] === join(addedDirectory, "publish.lock") &&
+        args[1] === "wx" &&
+        (error as NodeJS.ErrnoException).code === "EEXIST"
+      )
+        addedBusyObserved = true;
       throw error;
     }
   }) as typeof open);
@@ -391,8 +401,9 @@ test("daemon retries a busy repository without delaying another or a new reposit
       signal: abort.signal,
       intervalMs: 50,
       retentionDays: 0,
-      onEvent(value: any) {
+      async onEvent(value: any) {
         if (value.type === "daemon.cleanup") reports.push(value);
+        if (value.type === "daemon.cleanup" && value.repo === repo.id && value.removed === 1) await resume.promise;
       },
     });
     await waitFor(async () => busyObserved && reports.some((report) => report.repo === other.id));
@@ -407,6 +418,12 @@ test("daemon retries a busy repository without delaying another or a new reposit
   git(f.root, "clone", f.main, later);
   await consumeMailbox({ cwd: later, ref: "refs/heads/main", adapter: "test", session: "later", async deliver() {} });
   const added = await repository(later);
+  addedDirectory = added.directory;
+  await withLock(join(addedDirectory, "publish.lock"), async () => {
+    resume.resolve();
+    await waitFor(async () => addedBusyObserved);
+  });
+  elapsed += 5001;
   await waitFor(async () => reports.some((report) => report.repo === added.id));
   abort.abort();
   await running;
