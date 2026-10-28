@@ -18,7 +18,7 @@ import { daemonStatus } from "../core/daemon-state.ts";
 import { branchStatus, validateGitHubRepository } from "../core/branch-status.ts";
 import { syncBranch } from "../core/branch-sync.ts";
 import { git, gitRefLine } from "../core/git.ts";
-import { writeFile } from "node:fs/promises";
+import { stat, writeFile } from "node:fs/promises";
 import { writeSync } from "node:fs";
 import { formatBranchStatus } from "../core/status-format.ts";
 import { install } from "./install.ts";
@@ -407,7 +407,13 @@ async function main() {
     else if (options.repositoryId !== undefined) session = await leaveSession(options);
     else {
       session = await leaveSessionIfRepository(options, checked);
-      if (!checked.root && !session) throw new Error("Worktree is unavailable; select --repository-id if needed.");
+      if (!checked.root && !session) {
+        const exists = await stat(options.cwd).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === "ENOENT") return undefined;
+          throw error;
+        });
+        if (!exists) throw new Error("Worktree is unavailable; select --repository-id if needed.");
+      }
     }
     if (command === "join") await sessionActivation(options, true);
     await output({ session, left: command === "leave" && session !== undefined });
