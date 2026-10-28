@@ -30,7 +30,7 @@ export async function git(
       maxBuffer: 16 * 1024 * 1024,
       timeout: 30_000,
       signal,
-      env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+      env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1" },
     });
     if (!paths) return stdout.toString("utf8");
     try {

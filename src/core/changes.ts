@@ -67,10 +67,34 @@ async function patch(
       ],
       {
         stdio: ["ignore", "pipe", "pipe"],
-        timeout: 30_000,
-        signal,
+        detached: process.platform !== "win32",
+        env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1" },
       },
     );
+    let settled = false;
+    const cleanup = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
+    };
+    const stop = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (child.pid && process.platform !== "win32") {
+        try {
+          process.kill(-child.pid, "SIGKILL");
+        } catch {
+          child.kill("SIGKILL");
+        }
+      } else child.kill("SIGKILL");
+      child.stdout.destroy();
+      child.stderr.destroy();
+      reject(error);
+    };
+    const timer = setTimeout(() => stop(new Error("Git diff timed out.")), 30_000);
+    const abort = () => stop(signal?.reason);
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
     let output = "";
     let error = "";
     let truncated = false;
@@ -84,8 +108,11 @@ async function patch(
     child.stderr.on("data", (data: string) => {
       error = (error + data).slice(0, 4096);
     });
-    child.on("error", reject);
+    child.on("error", stop);
     child.on("close", (code) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
       if (code !== 0) reject(new Error(error || `git diff exited with ${code}`));
       else resolve(output + (truncated ? "\n[diff truncated; inspect commits locally]\n" : ""));
     });
