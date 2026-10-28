@@ -80,6 +80,7 @@ export async function migrateLegacyState(
   )
     throw new Error("Invalid legacy migration identity or directories.");
   signal?.throwIfAborted();
+  await checkStateDirectory(join(dirname(dirname(newDirectory)), "identity-migration-claims"), true);
   try {
     await checkStateDirectory(dirname(newDirectory));
     await directory(oldDirectory);
@@ -88,7 +89,6 @@ export async function migrateLegacyState(
       throw new Error("No path-keyed legacy state exists; use identity-fresh --apply to start a new inbox.");
     throw error;
   }
-  await checkStateDirectory(join(dirname(dirname(newDirectory)), "identity-migration-claims"), true);
   const alreadyMigrated = await withLock(
     join(oldDirectory, "publish.lock"),
     async () => {
