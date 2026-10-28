@@ -7,8 +7,9 @@ or create a GitHub release.
    compatibility changes, migration instructions and remaining limitations.
 2. Before a release, choose the version and update `package.json`, the root and
    package entries in `package-lock.json`, and `.codex-plugin/plugin.json`
-   together. Add `## [VERSION] - YYYY-MM-DD` notes and keep an empty Unreleased
-   section for subsequent work.
+   together. Keep the Codex category and subtitle within the listing limits. Add
+   `## [VERSION] - YYYY-MM-DD` notes and keep an empty Unreleased section for
+   subsequent work.
 3. Run `npm ci --ignore-scripts --omit=optional`, then `npm run check`. Checks
    run sequentially because both tests and packaging rebuild the shared `dist/`.
    Build the Codex plugin with `npm run build:codex-plugin` and complete the

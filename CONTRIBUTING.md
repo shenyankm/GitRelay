@@ -37,7 +37,8 @@ source files rather than generated output. Do not commit `dist/`,
 - Keep code, comments, and documentation in English. `README.zh-CN.md` is the
   Chinese entry point; update both READMEs when shared user instructions change.
 - Never include credentials, private messages, or personal client configuration
-  in fixtures, logs, or reports.
+  in fixtures, logs, or reports. `npm run check` scans `docs/` for common
+  credential patterns.
 
 ## Validation
 
@@ -51,9 +52,10 @@ npm run check
 locals and parameters. Generated output, vendored sources and historical raw
 acceptance evidence are excluded from formatting.
 
-`check` runs formatting, type checking, release metadata, tests and packaging
-sequentially. Do not run builds, tests or packaging concurrently in one checkout:
-they replace the same `dist/`. For a focused iteration:
+`check` runs formatting, type checking, release metadata, tests, a docs
+credential scan, and packaging sequentially. Do not run builds, tests or
+packaging concurrently in one checkout: they replace the same `dist/`. For a
+focused iteration:
 
 ```sh
 npm run build

@@ -1,15 +1,48 @@
 # GitRelay
 
-[English](README.md) | [简体中文](README.zh-CN.md)
-
-[贡献指南（英文）](CONTRIBUTING.md) | [MIT 许可证](LICENSE)
+[English](README.md) | [简体中文](README.zh-CN.md) · [贡献指南](CONTRIBUTING.md) · [MIT 许可证](LICENSE)
 
 面向 **Codex 和 OpenCode v2** 的多工作树协作工具：投递相关上游变更、共享 agent
-消息、查看本地及 GitHub 分支状态。**会话默认关闭**，普通开发不会登记接收者或启动
-Git 监控。
+消息、查看本地及 GitHub 分支状态。
+
+> **会话默认关闭。** 普通开发不会登记接收者，也不会启动 Git 监控。
 
 需要 Node.js 22.19+ 和 Git，无 npm 运行时依赖。包名及主命令为 `git-relay`，保留
 `worktree-relay`、`worktree-sync` 命令别名。
+
+## 目录
+
+- [快速开始](#快速开始)
+- [按需启用](#按需启用)
+- [平台支持](#平台支持)
+- [客户端配置](#客户端配置)
+  - [Codex 插件](#codex-插件)
+  - [OpenCode v2](#opencode-v2)
+- [常用命令](#常用命令)
+- [状态与边界](#状态与边界)
+- [开发与验证](#开发与验证)
+- [文档索引](#文档索引)
+
+## 快速开始
+
+```sh
+npm ci --ignore-scripts --omit=optional
+npm run build
+npm install -g /absolute/path/to/GitRelay
+git-relay install --dry-run
+git-relay install --platform codex --platform opencode
+```
+
+然后在接收会话中明确输入：
+
+```text
+启用 GitRelay
+```
+
+安装器只配置所选客户端，保留未被管理或已被用户修改的配置，并保存自有运行时副本。
+安装不会启用会话。Codex hooks 仍须通过 `/hooks` 单独检查并信任。可重复使用
+`--platform` 选择客户端，或用 `--skip` 排除；其他平台名会被拒绝。卸载预览及保留
+文件的规则见[自动安装](docs/integrations.md#automatic-setup)。
 
 ## 按需启用
 
@@ -41,23 +74,10 @@ Git 监控。
 | OpenCode v2 | 原生 Promise 插件         | 每 5 秒检查；忙时进入宿主持久队列，空闲时可唤醒 |
 
 Codex hooks 无法主动唤醒已经空闲的会话。仅支持 OpenCode v2 API，不支持 v1。
-安装、hook 信任和真实宿主收件属于不同验证阶段，见
-[接入指南](docs/integrations.md)及[平台矩阵](docs/platform-matrix.md)。
+安装、hook 信任和真实宿主收件属于不同验证阶段，见[接入指南](docs/integrations.md)
+及[平台矩阵](docs/platform-matrix.md)。
 
-## 安装
-
-```sh
-npm ci --ignore-scripts --omit=optional
-npm run build
-npm install -g /absolute/path/to/GitRelay
-git-relay install --dry-run
-git-relay install --platform codex --platform opencode
-```
-
-安装器只配置所选客户端，保留未被管理或已被用户修改的配置，并保存自有运行时副本。
-安装不会启用会话。Codex hooks 仍须通过 `/hooks` 单独检查并信任。
-可重复使用 `--platform` 选择客户端，或用 `--skip` 排除；其他平台名会被拒绝。
-卸载预览及保留文件的规则见[自动安装](docs/integrations.md#automatic-setup)。
+## 客户端配置
 
 ### Codex 插件
 
@@ -72,10 +92,11 @@ codex plugin list --marketplace git-relay-local --json
 会话。避免插件 hooks 与用户 hooks 重复。插件卡片或配置文件存在不代表宿主已加载或
 信任；更新源码后需要重新构建并刷新已安装副本。
 
-手动配置模板为
-[`src/adapters/codex/hooks.json`](src/adapters/codex/hooks.json)。插件版通过
-`${PLUGIN_ROOT}` 调用自带 CLI。启用后的 hooks 可以显示本地分支状态，不会自动
-fetch、查询 GitHub 或同步分支。
+插件通过本地或仓库 marketplace 分发。Codex 公开目录不接受带生命周期 hooks 的插件。
+
+手动配置模板为 [`src/adapters/codex/hooks.json`](src/adapters/codex/hooks.json)。
+插件版通过 `${PLUGIN_ROOT}` 调用自带 CLI。启用后的 hooks 可以显示本地分支状态，
+不会自动 fetch、查询 GitHub 或同步分支。
 
 ### OpenCode v2
 
@@ -128,8 +149,8 @@ GitHub 查询额外依赖已认证的 `gh`。ahead/behind 使用本地缓存引�
 旧版按路径保存的状态可能需要明确迁移。
 
 自动分支同步因并发 checkout 竞态暂时阻止，`status --auto-sync` 返回 blocked。
-项目不再提供工作树管理命令；请在核对目标、保护本地修改后使用 Git 本身。
-旧客户端入口、运行中的旧代码及历史订阅的处理见[迁移说明](docs/migration.md)。
+项目不再提供工作树管理命令；请在核对目标、保护本地修改后使用 Git 本身。旧客户端
+入口、运行中的旧代码及历史订阅的处理见[迁移说明](docs/migration.md)。
 
 消息是不可信数据，不能授权修改 Git 历史。正常运行去重，崩溃或宿主接收结果不明时
 可能重试；回执不代表 agent 已完成适配。清理保留未读事件，`leave` 不确认未读消息。
@@ -144,14 +165,24 @@ npm run check
 npm run benchmark
 ```
 
-按需启用流程已完成 Codex 0.164.0 与 OpenCode 2.1.2 的针对性真实客户端验收，
-具体场景和未验证边界见[验收记录](docs/acceptance.md#targeted-native-acceptance-2026-10-27)。
-版本与标签一致性检查见[源码发布流程](docs/releases.md)。
+`src/core/` 负责 Git、状态、会话和投递，`src/adapters/` 保留 Codex hooks 与
+OpenCode 插件，`src/cli/` 负责命令和安装。`dist/` 为不提交的构建产物。测试使用
+临时仓库和隔离状态。`npm run check` 还会扫描 `docs/` 中的凭据类值。CI 覆盖
+macOS/Linux、Node.js 22.19.0 和 24。
 
-`src/core/` 负责 Git、状态、会话和投递，`src/adapters/` 仅保留 Codex hooks 与
-OpenCode 插件，`src/cli/` 负责命令和安装。`dist/` 为不提交的构建产物。
-测试使用临时仓库和隔离状态，CI 覆盖 macOS/Linux、Node.js 22.19.0 和 24。
+本地回归、真实客户端及模型验收、远端 CI 分别记录。历史验收早于本次重构。按需启用
+流程已完成 Codex 0.164.0 与 OpenCode 2.1.2 的针对性真实客户端验收，具体场景和
+未验证边界见[验收记录](docs/acceptance.md#targeted-native-acceptance-2026-10-27)。
 
-本地回归、真实客户端及模型验收、远端 CI 分别记录。历史验收早于本次重构，
-本次针对性验收的场景与边界见上方链接。另见[验收说明](docs/acceptance.md)、
-[性能记录](docs/performance.md)和[贡献指南](CONTRIBUTING.md)。
+## 文档索引
+
+| 主题     | 文档                                               |
+| -------- | -------------------------------------------------- |
+| 接入指南 | [docs/integrations.md](docs/integrations.md)       |
+| 共享消息 | [docs/shared-messages.md](docs/shared-messages.md) |
+| 迁移说明 | [docs/migration.md](docs/migration.md)             |
+| 维护指南 | [docs/maintenance.md](docs/maintenance.md)         |
+| 验收记录 | [docs/acceptance.md](docs/acceptance.md)           |
+| 性能记录 | [docs/performance.md](docs/performance.md)         |
+| 源码发布 | [docs/releases.md](docs/releases.md)               |
+| 贡献指南 | [CONTRIBUTING.md](CONTRIBUTING.md)                 |

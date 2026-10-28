@@ -47,7 +47,8 @@ All benchmark delivery, receipt and deduplication assertions passed.
 These are single local runs with uncontrolled external load. They are not an
 old/new comparison, a stable latency guarantee or real-client performance
 measurements. The JSON records retain workload details and raw benchmark output;
-the executable path is replaced with `<node>`. Historical experiments below
+the executable path is replaced with `<node>` and personal home directories with
+`<home>`. Historical experiments below
 remain separately scoped to their original sources and conditions.
 
 ## Per-ref daemon cache ownership (2026-10-27, Asia/Singapore)

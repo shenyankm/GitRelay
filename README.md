@@ -1,17 +1,53 @@
 # GitRelay
 
-[English](README.md) | [Simplified Chinese](README.zh-CN.md)
-
-[Contributing](CONTRIBUTING.md) | [MIT License](LICENSE)
+[English](README.md) | [简体中文](README.zh-CN.md) · [Contributing](CONTRIBUTING.md) · [MIT License](LICENSE)
 
 Coordinate **Codex and OpenCode v2** sessions across Git worktrees. GitRelay
 delivers relevant upstream changes and agent messages, and reports local or
-GitHub branch status. Sessions are **off by default**: ordinary development does
-not register a receiver or start Git monitoring.
+GitHub branch status.
+
+> **Sessions are off by default.** Ordinary development does not register a
+> receiver or start Git monitoring.
 
 Node.js 22.19+ and Git are required. The runtime has no npm dependencies.
 `git-relay` is the package and CLI name; `worktree-relay` and `worktree-sync`
 remain CLI aliases.
+
+## Contents
+
+- [Quick start](#quick-start)
+- [Enable only when needed](#enable-only-when-needed)
+- [Platform support](#platform-support)
+- [Host setup](#host-setup)
+  - [Codex plugin](#codex-plugin)
+  - [OpenCode v2](#opencode-v2)
+- [Commands](#commands)
+- [State and safety](#state-and-safety)
+- [Development and validation](#development-and-validation)
+- [Documentation](#documentation)
+
+## Quick start
+
+```sh
+npm ci --ignore-scripts --omit=optional
+npm run build
+npm install -g /absolute/path/to/GitRelay
+git-relay install --dry-run
+git-relay install --platform codex --platform opencode
+```
+
+Then ask the receiving conversation to enable GitRelay:
+
+```text
+Enable GitRelay
+```
+
+The installer configures only the selected clients, preserves foreign or
+modified configuration, and keeps owned runtime copies. It does not activate
+sessions. Codex user hooks need separate review and trust through `/hooks`. Use
+repeated `--platform` or `--skip` to select clients; unknown platforms are
+rejected. Uninstall previews and retained-file behavior are documented in
+[automatic setup](docs/integrations.md#automatic-setup).
 
 ## Enable only when needed
 
@@ -30,36 +66,22 @@ request patterns; use `Enable GitRelay` when a longer request is not recognized.
 `Disable GitRelay` or `关闭 GitRelay` stops the subscription without acknowledging
 unread messages. Resuming the same native conversation retains its setting; new
 conversations default off. First enrollment establishes a baseline and does not
-replay earlier broadcasts. See [on-demand sessions](docs/integrations.md#on-demand-sessions).
+replay earlier broadcasts. See
+[on-demand sessions](docs/integrations.md#on-demand-sessions).
 
 ## Platform support
 
-| Platform    | Entry point                       | Delivery after opt-in                                                    |
-| ----------- | --------------------------------- | ------------------------------------------------------------------------ |
-| Codex       | Lifecycle hooks or bundled plugin | Context at prompt/tool boundaries; Stop can request continuation         |
-| OpenCode v2 | Native Promise plugin             | Checks every five seconds; durable host queue handles busy/idle sessions |
+| Platform    | Entry point                       | Delivery after opt-in                                            |
+| ----------- | --------------------------------- | ---------------------------------------------------------------- |
+| Codex       | Lifecycle hooks or bundled plugin | Context at prompt/tool boundaries; Stop can request continuation |
+| OpenCode v2 | Native Promise plugin             | Checks every five seconds; durable host queue handles busy/idle  |
 
 Codex hooks cannot wake an already idle session. OpenCode supports the v2 API;
 v1 is not supported. Runtime changes require rebuilding and refreshing the
 installed copy. See [integrations](docs/integrations.md) and the
 [platform matrix](docs/platform-matrix.md) for trust and verification boundaries.
 
-## Installation
-
-```sh
-npm ci --ignore-scripts --omit=optional
-npm run build
-npm install -g /absolute/path/to/GitRelay
-git-relay install --dry-run
-git-relay install --platform codex --platform opencode
-```
-
-The installer configures selected clients, preserves foreign or modified
-configuration, and keeps owned runtime copies. It does not activate sessions.
-Codex user hooks need separate review and trust through `/hooks`. Use repeated
-`--platform` or `--skip` to select clients. Unknown platforms are rejected.
-Uninstall previews and retained-file behavior are documented in
-[automatic setup](docs/integrations.md#automatic-setup).
+## Host setup
 
 ### Codex plugin
 
@@ -74,6 +96,9 @@ The plugin includes its CLI, skills, hooks, docs, and license. Reopen the chat,
 review `/hooks`, and enable the receiving session when needed. Avoid duplicate
 plugin/user hooks. A plugin listing or generated hook file does not prove that
 the host loaded or trusted it.
+
+The plugin is distributed through a local or repo marketplace. Codex does not
+accept lifecycle-hook plugins in its public directory.
 
 Manual hooks: [`src/adapters/codex/hooks.json`](src/adapters/codex/hooks.json).
 The plugin variant uses its bundled CLI through `${PLUGIN_ROOT}`. Enabled hooks
@@ -122,18 +147,18 @@ git-relay send --cwd /project/worktree-A --agent codex --session SENDER_ID \
 Sending does not subscribe the sender. File overlap is a relevance hint, not
 semantic conflict detection. See [shared messages](docs/shared-messages.md).
 
-GitHub queries require an authenticated `gh` executable. Ahead/behind uses cached
-local refs; a remote/local commit mismatch alone does not indicate direction.
-`watch` receives messages; `status --watch` observes branch snapshots. Neither
-starts automatically in an ordinary session.
+GitHub queries require an authenticated `gh` executable. Ahead/behind uses
+cached local refs; a remote/local commit mismatch alone does not indicate
+direction. `watch` receives messages; `status --watch` observes branch
+snapshots. Neither starts automatically in an ordinary session.
 
 ## State and safety
 
 Worktrees in one repository share events under
 `~/.local/state/worktree-agent-sync`, with independent session receipts.
 `XDG_STATE_HOME` and an absolute `WORKTREE_SYNC_STATE_DIR` can override the root.
-Repository identity prevents a replacement repository from claiming an old inbox.
-Explicit migration may be required for older path-based state.
+Repository identity prevents a replacement repository from claiming an old
+inbox. Explicit migration may be required for older path-based state.
 
 Automatic branch synchronization is temporarily blocked because concurrent
 checkouts can update the wrong branch. `status --auto-sync` reports blocked;
@@ -159,12 +184,24 @@ npm run benchmark
 `src/core/` owns Git, state, sessions, and delivery; `src/adapters/` contains
 Codex hook handling and the OpenCode plugin; `src/cli/` contains commands and
 installation. `dist/` is generated and is not committed. Tests use disposable
-repositories and isolated state. CI checks macOS/Linux on Node.js 22.19.0 and 24.
+repositories and isolated state. `npm run check` also scans `docs/` for
+credential-like values. CI checks macOS/Linux on Node.js 22.19.0 and 24.
 
 Local regressions, real-client/model acceptance, and hosted CI are recorded
-separately. Historical evidence predates this refactor. Targeted native acceptance
-for the on-demand flow is recorded for Codex 0.164.0 and OpenCode 2.1.2; see its
-exact scenarios and limits in
+separately. Historical evidence predates this refactor. Targeted native
+acceptance for the on-demand flow is recorded for Codex 0.164.0 and OpenCode
+2.1.2; see its exact scenarios and limits in
 [acceptance](docs/acceptance.md#targeted-native-acceptance-2026-10-27).
-See [performance](docs/performance.md), [contributing](CONTRIBUTING.md), and
-[source releases](docs/releases.md) for benchmarks, checks and version/tag rules.
+
+## Documentation
+
+| Topic           | Document                                           |
+| --------------- | -------------------------------------------------- |
+| Integrations    | [docs/integrations.md](docs/integrations.md)       |
+| Shared messages | [docs/shared-messages.md](docs/shared-messages.md) |
+| Migration       | [docs/migration.md](docs/migration.md)             |
+| Maintenance     | [docs/maintenance.md](docs/maintenance.md)         |
+| Acceptance      | [docs/acceptance.md](docs/acceptance.md)           |
+| Performance     | [docs/performance.md](docs/performance.md)         |
+| Source releases | [docs/releases.md](docs/releases.md)               |
+| Contributing    | [CONTRIBUTING.md](CONTRIBUTING.md)                 |

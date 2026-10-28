@@ -142,9 +142,11 @@ codex plugin add git-relay@git-relay-local
 codex plugin list --marketplace git-relay-local --json
 ```
 
-The package includes its runtime, docs, skills, and visual assets. Hooks resolve the CLI through `${PLUGIN_ROOT}`, including paths containing spaces. There is no duplicate project `.codex/hooks.json`; do not enable duplicate user-level commands. Reopen the chat and inspect `/hooks` for discovery and trust. Installation does not automatically trust hooks.
+The package includes its runtime, docs, skills, and visual assets. The manifest declares the `Developer Tools` category, the MIT license, and a subtitle within Codex's 30-character listing limit. Hooks resolve the CLI through `${PLUGIN_ROOT}`, including paths containing spaces. There is no duplicate project `.codex/hooks.json`; do not enable duplicate user-level commands. Reopen the chat and inspect `/hooks` for discovery and trust. Installation does not automatically trust hooks.
 
 The listing uses the same presentation fields as Ponytail: display name, developer, description, three starter prompts, brand color, logo/composer icon, skills, and lifecycle hooks. GitRelay provides focused status, synchronization, help, and coordination skills. Each has English display metadata. Codex owns the listing layout, management controls, and source indicator; a local marketplace remains a local source. Local installation does not publish a Git-backed marketplace or prove the App has refreshed its view.
+
+Lifecycle-hook plugins are not eligible for Codex's public directory; install GitRelay from a local or repo marketplace.
 
 App actions in `.codex/environments/environment.toml` provide **Branch status**, **Monitor branches (read-only)**, and **Auto-sync (fast-forward)**. The snapshot action writes `.codex/git-relay-status.md`; monitors stream output. Actions use Node 22.19+ native TypeScript support without requiring generated `dist`. GitHub queries require authenticated `gh` on the terminal PATH. The sync action currently reports blocked. Stop any older running sync process in its terminal after upgrading.
 
