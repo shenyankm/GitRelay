@@ -68,7 +68,7 @@ async function patch(
       {
         stdio: ["ignore", "pipe", "pipe"],
         detached: process.platform !== "win32",
-        env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1" },
+        env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1", GIT_ALLOW_PROTOCOL: "" },
       },
     );
     let settled = false;

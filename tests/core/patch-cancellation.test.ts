@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { access, chmod, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -51,7 +52,8 @@ for (const mode of ["cancel", "timeout"] as const)
         assert.ok(Date.now() - before < 2000, "cancel must not wait for a descendant holding a pipe");
         const pid = Number(await readFile(started, "utf8"));
         await new Promise((resolve) => realSetTimeout(resolve, 100));
-        assert.throws(() => process.kill(pid, 0), { code: "ESRCH" });
+        const state = spawnSync("ps", ["-o", "stat=", "-p", String(pid)], { encoding: "utf8" }).stdout.trim();
+        assert.ok(!state || state.startsWith("Z"), `descendant still running: ${state}`);
       } finally {
         if (oldPath === undefined) delete process.env.PATH;
         else process.env.PATH = oldPath;
@@ -61,19 +63,37 @@ for (const mode of ["cancel", "timeout"] as const)
     },
   );
 
-test("comparison does not fetch a missing promisor blob", async (t) => {
-  const f = await fixture(t),
-    remote = join(f.root, "remote.git");
-  await writeFile(join(f.b, "shared.txt"), "local\n");
-  const tip = await f.commit(f.main, "shared.txt", "upstream\n");
-  const blob = git(f.main, "rev-parse", `${tip}:shared.txt`).trim();
-  git(f.root, "clone", "--bare", "--no-hardlinks", f.main, remote);
-  git(f.main, "config", "remote.origin.url", pathToFileURL(remote).href);
-  git(f.main, "config", "remote.origin.promisor", "true");
-  git(f.main, "config", "remote.origin.partialclonefilter", "blob:none");
-  const object = join(f.main, ".git", "objects", blob.slice(0, 2), blob.slice(2));
-  await rm(object);
-  await assert.rejects(inspectChange({ root: f.b, ref: "refs/heads/main", commit: f.initial }, tip));
-  await assert.rejects(access(object));
-  assert.equal(git(f.main, "cat-file", "-e", blob), "");
-});
+for (const olderGit of [false, true])
+  test(
+    `comparison does not fetch a missing promisor blob${olderGit ? " without no-lazy-fetch support" : ""}`,
+    { skip: olderGit && process.platform === "win32" },
+    async (t) => {
+      const f = await fixture(t),
+        remote = join(f.root, "remote.git");
+      await writeFile(join(f.b, "shared.txt"), "local\n");
+      const tip = await f.commit(f.main, "shared.txt", "upstream\n");
+      const blob = git(f.main, "rev-parse", `${tip}:shared.txt`).trim();
+      git(f.root, "clone", "--bare", "--no-hardlinks", f.main, remote);
+      git(f.main, "config", "remote.origin.url", pathToFileURL(remote).href);
+      git(f.main, "config", "remote.origin.promisor", "true");
+      git(f.main, "config", "remote.origin.partialclonefilter", "blob:none");
+      const object = join(f.main, ".git", "objects", blob.slice(0, 2), blob.slice(2));
+      await rm(object);
+      const oldPath = process.env.PATH;
+      if (olderGit) {
+        const bin = join(f.root, "bin");
+        await mkdir(bin);
+        await writeFile(join(bin, "git"), '#!/bin/sh\nunset GIT_NO_LAZY_FETCH\nexec /usr/bin/git "$@"\n');
+        await chmod(join(bin, "git"), 0o755);
+        process.env.PATH = `${bin}:${oldPath ?? ""}`;
+      }
+      try {
+        await assert.rejects(inspectChange({ root: f.b, ref: "refs/heads/main", commit: f.initial }, tip));
+      } finally {
+        if (oldPath === undefined) delete process.env.PATH;
+        else process.env.PATH = oldPath;
+      }
+      await assert.rejects(access(object));
+      assert.equal(git(f.main, "cat-file", "-e", blob), "");
+    },
+  );
