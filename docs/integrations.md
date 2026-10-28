@@ -87,6 +87,8 @@ installation files. It does not check whether destinations are writable, stage
 or execute the new runtime, or acquire an installation lock. A successful
 preview cannot guarantee the install will succeed: permissions, ACLs, or files
 can change before publication.
+On macOS and Linux, the data directory path must not contain a backslash; choose
+a different `XDG_DATA_HOME` if it does.
 
 Uninstall only removes a verified owned entry, keeping archives, runtimes and
 shared message state. Inspect reported retained paths rather than deleting them

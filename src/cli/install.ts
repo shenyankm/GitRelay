@@ -9,6 +9,7 @@ import {
   installOpenCode,
   uninstallOpenCode,
   validRecord,
+  validateWorkspacePath,
 } from "./install-opencode.ts";
 import { codexDirectory, installCodex, uninstallCodex, validCodexRecord } from "./install-codex.ts";
 import { readInstallationRecord } from "./install-record.ts";
@@ -73,9 +74,11 @@ export async function install(
           continue;
         }
         if (dryRun) {
+          validateWorkspacePath(root);
           if (platform === "codex")
             await installCodex({ workspace: root, sourceRoot, signal, clientVersion: detected.version, dryRun: true });
           else await installOpenCode(root, await canonicalDirectory(config), sourceDist, signal, true);
+
           results.push(detected);
           continue;
         }
