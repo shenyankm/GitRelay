@@ -12,17 +12,26 @@ type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSi
 export function requestedActivation(prompt: unknown): boolean | undefined {
   if (typeof prompt !== "string") return;
   let fence: string | undefined;
+  let fenceIndent = 0;
   const text = prompt
     .split("\n")
     .filter((line) => {
-      const marker = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
       if (fence) {
-        if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim())
+        const closing = line.match(/^([ \t]*)(`{3,}|~{3,})(.*)$/);
+        if (
+          closing &&
+          closing[1].replaceAll("\t", "    ").length <= fenceIndent + 3 &&
+          closing[2][0] === fence[0] &&
+          closing[2].length >= fence.length &&
+          !closing[3].trim()
+        )
           fence = undefined;
         return false;
       }
-      if (marker && (marker[1][0] !== "`" || !marker[2].includes("`"))) {
-        fence = marker[1];
+      const marker = line.match(/^( {0,3})((?:[-+*]|\d{1,9}[.)])[ \t]+)?(`{3,}|~{3,})(.*)$/);
+      if (marker && (marker[3][0] !== "`" || !marker[4].includes("`"))) {
+        fence = marker[3];
+        fenceIndent = marker[2] ? marker[1].length + marker[2].replaceAll("\t", "    ").length : 0;
         return false;
       }
       return !/^(?: {4}|\t)/.test(line);

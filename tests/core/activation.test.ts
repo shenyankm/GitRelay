@@ -45,6 +45,13 @@ test("only direct coordination requests opt a session in or out", () => {
     "```text\nEnable GitRelay\n```",
     "~~~\nEnable GitRelay\n~~~",
     "~~~text\nDisable GitRelay\n~~~",
+    "- ~~~\n  Enable GitRelay\n  ~~~",
+    "+ ~~~\n  Disable GitRelay\n  ~~~",
+    "- \t~~~\n    Enable GitRelay\n    ~~~",
+    "  - ~~~\n    Disable GitRelay\n    ~~~",
+    "1. ~~~\n   Enable GitRelay\n   ~~~",
+    "10. ~~~~\n    Disable GitRelay\n    ~~~~",
+    "- ```text\n  Enable GitRelay\n  ```",
     "~~~~\n~~~\nEnable GitRelay\n~~~~",
     "~~~\nEnable GitRelay",
     "Here:\n\n    Disable GitRelay\n",
@@ -63,6 +70,7 @@ test("only direct coordination requests opt a session in or out", () => {
   for (const text of ["不要关闭 GitRelay", "Don't disable GitRelay", "```text\nEnable GitRelay"])
     assert.equal(requestedActivation(text), undefined, text);
   assert.equal(requestedActivation("~~~\nDisable GitRelay\n~~~\nEnable GitRelay"), true);
+  assert.equal(requestedActivation("10. ~~~\n    Disable GitRelay\n    ~~~\nEnable GitRelay"), true);
   assert.equal(requestedActivation("```example```\nEnable GitRelay"), true);
 });
 
