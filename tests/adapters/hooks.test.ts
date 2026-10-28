@@ -52,6 +52,35 @@ test("failed nested repository disable cannot disable its parent activation", as
   assert.equal(await sessionActivation({ cwd: f.b, ref, adapter: "codex", session: "receiver" }), true);
 });
 
+test("CLI can leave a deleted nested repository with an enabled parent", async (t) => {
+  const f = await fixture(t),
+    nested = join(f.b, "nested");
+  await mkdir(nested);
+  git(nested, "init", "-b", "main");
+  git(nested, "commit", "--allow-empty", "-m", "init");
+  const output = async (_value: object) => {};
+  const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
+  await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
+  await runHook({ ...input(nested), prompt: "Enable GitRelay" }, ref, output);
+  await runHook({ ...input(f.b, "other"), prompt: "Enable GitRelay" }, ref, output);
+  await runHook({ ...input(nested, "other"), prompt: "Enable GitRelay" }, ref, output);
+  const repo = await repository(nested);
+  await rm(nested, { recursive: true });
+  for (const [session, args] of [
+    ["receiver", ["--repository-id", repo.id]],
+    ["other", []],
+  ] as const) {
+    const result = spawnSync(
+      process.execPath,
+      ["--experimental-strip-types", cli, "leave", "--cwd", nested, "--agent", "codex", "--session", session, ...args],
+      { encoding: "utf8", env: process.env },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok((await readSession(repo, sessionKey(repo, { adapter: "codex", session }, ref)))?.closedAt);
+    assert.equal(await sessionActivation({ cwd: f.b, ref, adapter: "codex", session }), true);
+  }
+});
+
 test("invalid explicit CLI repository selection does not disable an existing worktree", async (t) => {
   const f = await fixture(t);
   await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, async () => {});
