@@ -1,6 +1,6 @@
 ---
 name: git-relay
-description: Inspect branch status and worktrees when the user explicitly requests GitRelay, or within an authorized parallel or multiple-worktree development session. Start continuous monitoring only when requested.
+description: Inspect branch status and worktrees, and explain automatic native-session coordination. Start a separate status watch only when requested.
 ---
 
 # GitRelay

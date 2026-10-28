@@ -49,7 +49,7 @@ export async function runHook(
       throw new Error("Hook input must identify one worktree (cwd or a single workspace root).");
     cwd = roots[0];
   }
-  const options = { cwd: cwd as string, ref, adapter: "codex", session, signal };
+  const options = { cwd: cwd as string, ref, adapter: "codex", session, signal, defaultEnabled: true };
   const request = event === "UserPromptSubmit" ? requestedActivation(input.prompt) : undefined;
   const wasEnabled = await sessionActivation(options);
   if (ref !== "refs/heads/main" && (request !== undefined || wasEnabled)) {
@@ -84,7 +84,11 @@ export async function runHook(
     const token = randomUUID();
     const disabled = Symbol();
     let joined: Awaited<ReturnType<typeof joinSession>> | undefined;
-    await sessionActivation(options, true, undefined, { token, phase: "begin", priorEnabled: wasEnabled });
+    await sessionActivation(options, true, undefined, {
+      token,
+      phase: "begin",
+      priorEnabled: await sessionActivation({ ...options, defaultEnabled: false }),
+    });
     try {
       await joinSession(options, async (register, repositoryId, subscriptionKey) => {
         const prepared = await sessionActivation(options, true, undefined, {

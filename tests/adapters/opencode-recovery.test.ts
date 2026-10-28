@@ -247,7 +247,7 @@ test(
   },
 );
 
-test("OpenCode resumes activation after plugin reload without enabling another conversation", async (t) => {
+test("OpenCode resumes existing and new conversations automatically after plugin reload", async (t) => {
   const f = await fixture(t),
     git = execFileSync("/bin/sh", ["-c", "command -v git"], { encoding: "utf8" }).trim();
   init(f.repo, f.template, git);
@@ -264,10 +264,7 @@ test("OpenCode resumes activation after plugin reload without enabling another c
   await second.prompt("receiver", "Continue the existing task");
   const event = await sendMessage({ cwd: f.repo, adapter: "codex", session: "sender", text: "RESUMED_ACTIVATION" });
   const sessions = await listSessions(f.repo);
-  assert.deepEqual(
-    sessions.map((session) => session.session),
-    ["receiver"],
-  );
+  assert.deepEqual(sessions.map((session) => session.session).sort(), ["other", "receiver"]);
   assert.ok(event.recipients.length);
   t.mock.timers.tick(5000);
   await until(async () => second.prompts.some((prompt) => prompt.text?.includes("RESUMED_ACTIVATION") === true));

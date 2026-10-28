@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-28",
+  "platform": "macOS arm64",
+  "sourceBase": "c8c8030",
+  "sourceHasUncommittedChanges": true,
+  "sourceSha256": {
+    "src/core/activation.ts": "50282663ff6d1c0e72303f2474769d59ef3a477613c74f67e9c31df73ef8939e",
+    "src/core/automatic-daemon.ts": "25e9da69082f632958cb62b957307d40530fa3573b50994d22000ac5b70a5b4c",
+    "src/adapters/hooks.ts": "4fcc2c2efd79eb1f86e36205fa6f3cae455af6d67d03d9e8f06606ebf898febc",
+    "src/adapters/opencode/index.ts": "42e75a7854c01a357c1ecdc0b554ef91bfd5658bcb0aa87bdcf44b53a2ec45a5",
+    "src/cli/main.ts": "95c9218e394610237588ac17f659db985db4a8c4a25a3a618bda2728f97d23de"
+  },
+  "localChecks": {
+    "command": "npm run check",
+    "passed": 702,
+    "failed": 0,
+    "skipped": 1,
+    "todo": 14
+  },
+  "nativeLifecycle": {
+    "codex": {
+      "version": "0.164.0",
+      "hooksTrustedInIsolatedConfig": true,
+      "ordinaryFirstTurnEnrolls": true,
+      "daemonStarts": true,
+      "lastTestHostExitStopsDaemon": true
+    },
+    "opencode": {
+      "version": "2.1.2",
+      "nativePluginEntry": true,
+      "sessionCreationEnrolls": true,
+      "daemonStarts": true,
+      "lastTestHostExitStopsDaemon": true
+    },
+    "processScope": "Native test process tables retain OS-observed test clients and their descendants; unrelated user clients are excluded so user sessions need not be closed.",
+    "modelCompletionTested": false
+  },
+  "installation": {
+    "codexCacheMatchesBuild": true,
+    "codexPackagedFileCount": 68,
+    "opencodeRuntimeMatchesBuild": true
+  },
+  "remoteCiTested": false
+}

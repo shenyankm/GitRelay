@@ -1,6 +1,6 @@
 # Migrating to GitRelay
 
-## Codex and OpenCode only; sessions default off
+## Codex and OpenCode only; sessions participate automatically
 
 This revision removes the native extensions, hooks, installers, benchmarks, and
 package metadata for the retired clients. Before upgrading an old installation,
@@ -9,11 +9,12 @@ the retired client's settings. Stop its running sessions. This checkout does
 not edit other installed clients or delete their settings, runtime archives,
 subscriptions, receipts, or unread messages.
 
-Rebuild/reinstall Codex and OpenCode to load the new runtime. Existing automatic
-registrations do not count as consent; explicitly enable each receiving session
-with `Enable GitRelay` or `启用 GitRelay`. Normal hooks and prompts stay off.
-Activation is scoped to the worktree, ref, adapter, native conversation, and
-OpenCode instance. Refer to [on-demand sessions](integrations.md#on-demand-sessions).
+Rebuild/reinstall and reload Codex and OpenCode to load the new runtime. Root
+sessions now participate without an enable prompt. Explicit saved disables are
+preserved; use `Enable GitRelay` or `启用 GitRelay` to reopen one. Native clients
+start the shared daemon automatically on macOS/Linux; it exits after the last
+native client process closes. No login service is installed. See
+[automatic sessions](integrations.md#automatic-sessions).
 
 Old inactive subscription records can still be selected by publishers and pin
 unread data. Inspect `git-relay sessions`, then use `leave` with the exact old

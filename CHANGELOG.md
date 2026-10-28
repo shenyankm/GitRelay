@@ -2,8 +2,8 @@
 
 ## [Unreleased]
 
-- Restrict maintained integrations to Codex and OpenCode v2, with sessions off by default.
-- Require explicit session activation; preserve unread messages when disabling or migrating.
+- Automatically enroll native Codex and OpenCode v2 root sessions; retain explicit opt-out and preserve unread messages.
+- Start a shared daemon from native clients on macOS/Linux and stop it after the last client process exits.
 - Keep automatic branch synchronization blocked pending safe worktree binding.
 - Preserve the exact monitored branch when a tag has the same name, including Unicode whitespace.
 - Separate read-only Git validation from pending synchronization tests and retain a deterministic checkout-race regression.

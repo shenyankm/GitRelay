@@ -6,7 +6,7 @@ import { watchRoot } from "./changes.ts";
 import { GitPathOutputError } from "./git.ts";
 import { preflightLeaveSession } from "./sessions.ts";
 
-type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSignal };
+type ActivationOptions = Identity & { cwd: string; ref: string; signal?: AbortSignal; defaultEnabled?: boolean };
 type Prepared = { token: string; repositoryId: string; subscriptionKey?: string };
 
 /** Conservative request matching: quoted examples and questions are not opt-ins. */
@@ -110,7 +110,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
   return requested;
 }
 
-/** Read-only until an explicit opt-in/out; no Git is needed without a candidate activation. */
+/** Persist explicit choices; native adapters may participate by default. */
 export async function sessionActivation(
   options: ActivationOptions,
   enabled?: boolean,
@@ -219,6 +219,20 @@ export async function sessionActivation(
         throw error;
       });
   if (enabled === undefined) {
+    if (options.defaultEnabled) {
+      for (let candidate = selected ?? cwd; ; candidate = dirname(candidate)) {
+        const current = (await read(candidate)).current;
+        if (current?.enabled === false && !(await matchingRepository(candidate, current))) return false;
+        const marker = await lstat(join(candidate, ".git")).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === "ENOENT" || error.code === "ENOTDIR") return undefined;
+          throw error;
+        });
+        if (marker || dirname(candidate) === candidate) break;
+      }
+      const root = await worktreeRoot();
+      const current = (await read(root)).current;
+      return current === undefined || (await enabledAt(root, current));
+    }
     if (process.env.GIT_WORK_TREE) {
       const selectedState = selected ? (await read(selected)).current : undefined;
       if (selected && (selectedState?.enabled === true || (await matchingRepository(selected, selectedState)))) {

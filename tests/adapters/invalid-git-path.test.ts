@@ -7,7 +7,7 @@ import plugin from "../../src/adapters/opencode/index.ts";
 import { fixture } from "../helpers.ts";
 
 test(
-  "OpenCode stays quiet until opt-in, then reports invalid Git root bytes without accepting events",
+  "OpenCode automatic enrollment rejects invalid Git root bytes without accepting events",
   { skip: process.platform === "win32" },
   async (t) => {
     const f = await fixture(t),
@@ -45,8 +45,6 @@ test(
     } as unknown as Plugin.Context);
     try {
       await prompt({ sessionID: "invalid-path", prompt: { text: "fix a bug" } });
-      assert.equal(warnings.length, 0);
-      await prompt({ sessionID: "invalid-path", prompt: { text: "Enable GitRelay" } });
       assert.equal(warnings.length, 1);
       assert.match(warnings[0], /not valid UTF-8/);
       assert.ok(!warnings[0].includes("/private_"));

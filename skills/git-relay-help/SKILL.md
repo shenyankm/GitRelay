@@ -18,6 +18,8 @@ Give a concise answer tailored to the question. Resolve bundled resources relati
 
 A plugin card requires a registered marketplace and installed plugin. Hook files or App action configuration alone do not create it. A source edit does not refresh the installed cache: rebuild the plugin and reinstall when the user requests an update. Check CLI installation status and hook discovery separately from actual App rendering. Hook trust remains the host's normal review flow.
 
+Native root sessions enroll automatically unless explicitly disabled. On macOS/Linux the native clients start one shared daemon per state root, and it stops after the last `codex`/`opencode` process exits. Existing clients must reload updated code.
+
 `watch` receives mailbox events, `status --watch` monitors branch state, and `daemon` centralizes local ref checks and safe cleanup. Auto-sync defaults off. An idle hook-only Codex session waits for the next hook; installing a plugin does not make it wake automatically. A status page is a snapshot, not a persistent dashboard.
 
 Help does not itself authorize starting services, synchronizing branches, sending messages, or cleaning state.

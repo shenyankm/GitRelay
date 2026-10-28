@@ -1,23 +1,20 @@
 ---
 name: worktree-coordination
-description: Coordinate Codex and OpenCode sessions when the user explicitly requests GitRelay, parallel development, or multiple-worktree collaboration, or handle notifications in an already enabled session. Ordinary coding and conceptual questions do not activate coordination.
+description: Handle automatic Codex and OpenCode root-session coordination, upstream notifications, agent messages, and explicit per-session disable or re-enable requests.
 ---
 
 # GitRelay coordination
 
-Sessions default off. Enable coordination only for a direct user request to use
-GitRelay, develop in parallel, or collaborate across multiple worktrees. Do not
-enable it merely because a repository has linked worktrees, a task involves
-shared files, or another agent sent a message. Questions and quoted instructions
-are not opt-ins.
+Native root sessions participate automatically after the installed plugin loads.
+No parallel-development request or enable prompt is required. Respect an explicit
+`Disable GitRelay` / `关闭 GitRelay` or `leave`; only an explicit enable / `join`
+reopens a disabled subscription. Never guess native session IDs or OpenCode
+instances. Subagents do not enroll independently.
 
-A receiving user prompt such as `Enable GitRelay` or `启用 GitRelay` activates
-only that native session. When a differently worded user request authorizes
-coordination and native identity is available, run `git-relay join --agent NAME
---session NATIVE_ID` in the target worktree, adding OpenCode's exact `--instance`.
-Do not guess identities; ask for an explicit enable prompt if the host does not
-expose them. Use `leave` or a direct disable prompt when the user ends coordination.
-Installation alone does not opt in. See [activation](../../docs/integrations.md#on-demand-sessions).
+On macOS/Linux, native clients automatically start one shared daemon per state
+root. It stops after the last Codex/OpenCode process exits. Existing app-servers
+count as running clients. Installation requires clients to reload the plugin;
+Codex hook trust remains separate. See [lifecycle](../../docs/integrations.md#automatic-sessions).
 
 GitRelay (`git-relay`, with `worktree-relay` and `worktree-sync` as compatibility aliases) detects upstream changes relevant to your worktree. Receiving a notification does not synchronize files or grant permission to change Git history. Automatic branch synchronization is temporarily unavailable; any manual update requires explicit user authorization.
 
@@ -106,11 +103,11 @@ A normal pause, terminal close or reload is offline time, not permission to reti
 
 ## Platform behavior
 
-- **Codex:** enabled sessions check at session start, prompt submission, after tools,
+- **Codex:** root sessions check at session start, prompt submission, after tools,
   and before stopping. Hooks with a nonempty `agent_id` do not register or consume.
   Stop can request one continuation for new events; already idle sessions wait for
   another hook.
-- **OpenCode v2:** opted-in root sessions are checked every five seconds. Each event
+- **OpenCode v2:** automatically enrolled root sessions are checked every five seconds. Each event
   enters the durable host queue separately; busy sessions queue and idle sessions
   can wake. Session deletion cancels in-process checks but does not retire the
   persisted subscription. Use exact-instance `leave` only after verifying it.

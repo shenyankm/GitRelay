@@ -92,7 +92,7 @@ test("failed reporting of an event-stream error does not break cleanup", { timeo
   };
   const cleanup = await plugin.setup(context as unknown as Plugin.Context);
   try {
-    assert.equal(calls, 0);
+    assert.equal(calls, 1);
     await hook({ sessionID: "enabled", prompt: { text: "Enable GitRelay" } });
     await warned.promise;
     await delay(0);

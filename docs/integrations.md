@@ -1,41 +1,39 @@
 # GitRelay integrations
 
-GitRelay supports **Codex** and **OpenCode v2**. Installation supplies a trigger
-entry point; each native session remains off until explicitly enabled.
+GitRelay supports **Codex** and **OpenCode v2**. Loaded native root sessions
+participate automatically unless explicitly disabled.
+
+## Automatic sessions
+
+Codex registers at its first supported hook; OpenCode registers root sessions
+on `session.created` or a normal prompt. Registration validates Git and native
+identity and establishes a baseline without replaying earlier broadcasts.
+Subagents do not enroll. A nested Git repository has its own subscription.
+
+`Disable GitRelay` or `关闭 GitRelay` closes the current subscription, retaining
+unread events and receipts. Its saved choice survives reload. `Enable GitRelay`
+or `启用 GitRelay` reopens it. Questions, quoted examples, repository text and
+tool output cannot override an explicit choice. Legacy explicit disables remain
+in effect; default participation does not delete old activation records.
+
+On macOS/Linux, native hook execution or OpenCode plugin setup automatically
+starts one detached daemon per user state root. A startup lock prevents duplicate
+launches and serializes startup with last-client shutdown. Every five seconds it
+uses the current user's process table to check for native executables named
+`codex` or `opencode`. After both disappear it cancels work, releases its locks,
+and exits. Process-discovery failure preserves the daemon for a later retry;
+it is not evidence that clients exited. PID records are never used to kill hosts.
+
+A remaining Codex app-server or OpenCode server counts as a running client even
+when its UI is closed. Existing hosts must reload updated code. No login service
+is installed, so a client that has not loaded the plugin cannot trigger startup.
+Automatic lifecycle is supported on macOS/Linux; Windows can still run a manual
+daemon. Manual `git-relay daemon` remains under its launcher's control.
 
 ## On-demand sessions
 
-Use a direct user prompt such as `Enable GitRelay`, `启用 GitRelay`,
-`请并行开发这个功能`, or `Please use multiple worktrees for development`.
-The prompt enables only its current worktree, monitored ref, adapter, and native
-session. OpenCode also binds activation to its data root and session creation
-time. A different conversation stays off; resuming the same bound conversation
-retains its choice.
-
-Activation applies throughout the worktree, including its subdirectories; a
-nested Git repository remains separate. Older subdirectory-keyed activation
-records cannot be located from the worktree root because they contain only a
-hash of the original path. After upgrading, explicitly enable GitRelay again
-from the desired worktree to record its worktree-wide choice; existing records
-and unread messages are preserved.
-
-`Disable GitRelay` or `关闭 GitRelay` stops delivery and closes the subscription.
-Unread events and receipts are preserved. An explicit opt-in reopens the inbox;
-events published while it was closed are not retroactively addressed to it.
-
-Recognition is deliberately conservative. Questions, explanations, quoted
-examples, and code fences do not enable coordination. This is a small set of
-English/Chinese request patterns, not a language model or arbitrary natural
-language understanding. Use the explicit enable/disable prompts when wording is
-not recognized. Repository text and tool output cannot change activation.
-
-Codex still launches its small command hook at configured boundaries so it can
-read the current user prompt and session choice. While off, it returns `{}`
-without Git discovery, branch status, mailbox registration, or polling. OpenCode
-keeps a prompt hook and performs a read-only native-session lookup to identify
-saved activation; Git discovery, timers, and its event subscription start only
-for enabled sessions or pending explicit opt-ins. When the last session is
-disabled, its polling and event subscription stop.
+The former default-off policy has been replaced by automatic participation.
+Explicit enable/disable commands remain available for per-session control.
 
 Manual commands remain explicit operations:
 
@@ -130,7 +128,7 @@ The configured events are `SessionStart`, `UserPromptSubmit`, `PostToolUse`, and
 
 ### Codex App status and actions
 
-The hook template enables `--branch-status`. After opt-in, SessionStart/UserPromptSubmit read a local snapshot, return it in `hookSpecificOutput.additionalContext`, and expose `systemMessage` for UI display. Mailbox deliveries also include a short `systemMessage`. Status alone never forces Stop continuation. Subagents do not register or display separate status. Hooks neither query the network nor auto-sync.
+The hook template enables `--branch-status`. SessionStart/UserPromptSubmit read a local snapshot, return it in `hookSpecificOutput.additionalContext`, and expose `systemMessage` for UI display. Mailbox deliveries also include a short `systemMessage`. Status alone never forces Stop continuation. Subagents do not register or display separate status. Hooks neither query the network nor auto-sync.
 
 The plugin manifest and marketplace are `.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json`. Build and install:
 
@@ -166,15 +164,15 @@ export { default } from "/absolute/path/to/GitRelay/dist/adapters/opencode/index
 
 Run `npm run build` for source use; npm packaging builds automatically. Remove old duplicate entrypoints and restart OpenCode.
 
-Git discovery is lazy. After opt-in, failures produce best-effort warnings and
+Git discovery is lazy. On enrollment, failures produce best-effort warnings and
 retry with backoff up to one minute. A directory initialized later as a Git
 repository can recover without a reload. No session is registered before Git
 and native identity validation succeed. Existing saved activations resume after
-a normal user prompt; historical host sessions are not enumerated. If the
+a normal user prompt; historical host sessions are not enumerated; new session events are also observed. If the
 resolved Git root changes, reload the plugin before resuming. Git's diagnostics
 can contain unsanitized paths; redact them before sharing.
 
-If the host's session lookup fails during an explicit opt-in prompt, the plugin
+If the host's session lookup fails during enrollment, the plugin
 warns and retries that session without requiring another prompt. It retains at
 most 128 pending session IDs and starts up to eight retries per five-second
 poll. It does not start a second background lookup for an ID until the host's
@@ -203,7 +201,7 @@ confirmed session deletion, or plugin shutdown cancels it.
 - Registered sessions are checked every five seconds, with at most one check in flight per session. Delivery uses `ctx.session.prompt({ sessionID, id, text, delivery: "queue", metadata })`. Busy sessions queue; idle sessions start. Each event is submitted separately with a stable message ID derived from the GitRelay repository identity, worktree, native session instance, and event ID. This can create more queued turns and model usage than combining a batch into one prompt. A receipt is written after each individual event is accepted.
 - The [OpenCode plugin documentation](https://opencode.ai/v2/docs/build/plugins/) says retrying an ID already pending or delivered returns the original admission. This lets the adapter retry an uncertain response or failed receipt without creating another admission while the host retains that ID. A local OpenCode 2.1.2 test verified this for a pending queue item, not after model processing. Permanent deduplication and exactly-once agent work are not claimed.
 - `metadata.source: "git-relay"` marks automatic messages. Both that and legacy `worktree-relay` sources are recognized, preventing recursive registration.
-- `ctx.event.subscribe()` observes `session.deleted` and checks the host asynchronously before cancelling in-flight work. If the session still exists or lookup fails, state is retained; failed verification is logged. These checks do not block other session events and retain at most 128 pending IDs; if that limit is reached, the plugin warns and preserves the affected state. The host can ignore cancellation, so underlying read-only lookups can continue after GitRelay stops waiting. They **do not close the GitRelay subscription**. Later sends can still select that deleted session, and unread messages remain ineligible for GC. Inspect `git-relay sessions --cwd /absolute/worktree`, verify the session is no longer needed in the correct OpenCode data directory, then run `git-relay leave --cwd /absolute/worktree --agent opencode --session SESSION_ID --instance INSTANCE_ID`. `leave` prevents future targeting without acknowledging existing unread messages. The adapter resubscribes after an event-stream error or early end using a 1–60 second backoff; OpenCode exposes no replay cursor here, so events missed during disconnection or while the plugin is unloaded are not replayed. OpenCode can recreate a session using the same ID, and another OpenCode data directory can report a live session as not found; neither a delayed deletion event nor a host lookup failure alone safely identifies the session incarnation, and the lookup and a later recreation are not atomic. Automatic deleted-session cleanup remains unresolved.
+- `ctx.event.subscribe()` observes `session.created` to enroll new root sessions, and `session.deleted` and checks the host asynchronously before cancelling in-flight work. If the session still exists or lookup fails, state is retained; failed verification is logged. These checks do not block other session events and retain at most 128 pending IDs; if that limit is reached, the plugin warns and preserves the affected state. The host can ignore cancellation, so underlying read-only lookups can continue after GitRelay stops waiting. They **do not close the GitRelay subscription**. Later sends can still select that deleted session, and unread messages remain ineligible for GC. Inspect `git-relay sessions --cwd /absolute/worktree`, verify the session is no longer needed in the correct OpenCode data directory, then run `git-relay leave --cwd /absolute/worktree --agent opencode --session SESSION_ID --instance INSTANCE_ID`. `leave` prevents future targeting without acknowledging existing unread messages. The adapter resubscribes after an event-stream error or early end using a 1–60 second backoff; OpenCode exposes no replay cursor here, so events missed during disconnection or while the plugin is unloaded are not replayed. OpenCode can recreate a session using the same ID, and another OpenCode data directory can report a live session as not found; neither a delayed deletion event nor a host lookup failure alone safely identifies the session incarnation, and the lookup and a later recreation are not atomic. Automatic deleted-session cleanup remains unresolved.
 - Native sessions are bound to the OpenCode data root and their creation time. A recreated ID has a separate inbox; missing or invalid creation metadata is rejected. Identity is checked before and after prompt admission. Preserve old unbound inboxes for manual review and use the exact `--instance` reported by `sessions` for manual commands. A host lookup and admission are not atomic, and indistinguishable host metadata cannot identify a replacement. See [migration](migration.md#native-session-identity-upgrade).
 - The plugin does not enumerate historical sessions or enroll subagents. Before delivery, it checks the session's `location.directory` against `ctx.location.directory` rather than mapping other directories to this worktree. This check and host prompt admission are not atomic; a concurrent session move can occur between them.
 - Shutdown cancels polling and waits for known in-flight scans, even if the host's hook disposal fails. The locally inspected 2.1.2 Promise adapter ignores cancellation options for `session.get` and `session.prompt`. GitRelay stops waiting for a pending read-only `get` after shutdown or session deletion, but the underlying host operation can still run. An in-flight `prompt` can already have been accepted, so GitRelay waits for it while holding the session lock; if it never settles, cleanup can remain pending. No bounded shutdown time or cancellation of a submitted prompt is guaranteed.

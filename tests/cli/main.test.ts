@@ -133,13 +133,13 @@ test("empty cwd and malformed refs are rejected before touching session state", 
   assert.equal((await run("check", ...identity)).stdout, "");
 });
 
-test("inactive hooks ignore an invalid configured ref", async (t) => {
+test("automatic hooks reject an invalid configured ref", async (t) => {
   const f = await fixture(t);
   const child = exec(process.execPath, [cli, "hook", "codex"], {
-    env: { ...process.env, WORKTREE_MAIN_REF: "main", PATH: join(f.root, "missing-git") },
+    env: { ...process.env, WORKTREE_MAIN_REF: "main" },
   });
   child.child.stdin!.end(JSON.stringify({ hook_event_name: "SessionStart", session_id: "s", cwd: f.b }));
-  assert.deepEqual(JSON.parse((await child).stdout), {});
+  await assert.rejects(child, /full branch ref/);
   const enabled = exec(process.execPath, [cli, "hook", "codex"], {
     env: { ...process.env, WORKTREE_MAIN_REF: "main" },
   });

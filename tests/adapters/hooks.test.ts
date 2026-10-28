@@ -584,28 +584,24 @@ test("Codex protocol returns model context and Stop continuation", () => {
   assert.deepEqual(hookResponse("Stop", "diff"), { decision: "block", reason: "diff" });
 });
 
-test("ordinary hooks skip Git, status and subscriptions until the native session opts in", async (t) => {
-  const f = await fixture(t),
-    previousPath = process.env.PATH;
-  process.env.PATH = join(f.root, "missing-bin");
-  t.after(() => {
-    if (previousPath === undefined) delete process.env.PATH;
-    else process.env.PATH = previousPath;
-  });
+test("ordinary hooks automatically register and report status without an enable prompt", async (t) => {
+  const f = await fixture(t);
   for (const hook_event_name of ["SessionStart", "UserPromptSubmit", "PostToolUse", "Stop"]) {
     const responses: object[] = [];
     await runHook(
-      { ...input(f.b), hook_event_name, prompt: "修复这个 bug" },
-      "refs/heads/other",
+      { ...input(f.b), hook_event_name, prompt: "Fix this bug" },
+      ref,
       async (value) => {
         responses.push(value);
       },
       undefined,
       true,
     );
-    assert.deepEqual(responses, [{}]);
+    assert.equal((await listSessions(f.b)).length, 1);
+    if (["SessionStart", "UserPromptSubmit"].includes(hook_event_name))
+      assert.match(JSON.stringify(responses), /feature\/b/);
+    else assert.deepEqual(responses, [{}]);
   }
-  await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
 });
 
 test("invalid hook refs do not enable a session", async (t) => {
@@ -617,40 +613,22 @@ test("invalid hook refs do not enable a session", async (t) => {
   await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
 });
 
-test("an unrelated session in a subdirectory stays off without Git even when the worktree is enabled", async (t) => {
+test("new sessions participate automatically in subdirectories and nested repositories", async (t) => {
   const f = await fixture(t),
     sub = join(f.b, "pkg"),
-    previousPath = process.env.PATH;
+    nested = join(f.b, "nested");
   await mkdir(sub);
-  await sessionActivation({ cwd: f.b, ref, adapter: "codex", session: "enabled" }, true);
-  process.env.PATH = join(f.root, "missing-bin");
-  t.after(() => {
-    if (previousPath === undefined) delete process.env.PATH;
-    else process.env.PATH = previousPath;
-  });
-  await runHook({ ...input(sub, "other"), hook_event_name: "PostToolUse" }, ref, async (value) => {
-    assert.deepEqual(value, {});
-  });
-});
-
-test("an unenabled nested repository stays off without Git for the same session", async (t) => {
-  const f = await fixture(t),
-    nested = join(f.b, "nested"),
-    previousPath = process.env.PATH;
   await mkdir(nested);
-  git(nested, "init");
-  await sessionActivation({ cwd: f.b, ref, adapter: "codex", session: "receiver" }, true);
-  process.env.PATH = join(f.root, "missing-bin");
-  t.after(() => {
-    if (previousPath === undefined) delete process.env.PATH;
-    else process.env.PATH = previousPath;
-  });
-  await runHook({ ...input(nested), hook_event_name: "PostToolUse" }, ref, async (value) => {
-    assert.deepEqual(value, {});
-  });
+  git(nested, "init", "-b", "main");
+  git(nested, "commit", "--allow-empty", "-m", "initial");
+  for (const cwd of [sub, nested]) {
+    await runHook({ ...input(cwd), hook_event_name: "SessionStart" }, ref, async () => {});
+    assert.equal((await listSessions(cwd)).length, 1);
+  }
+  assert.notEqual((await repository(sub)).id, (await repository(nested)).id);
 });
 
-test("a direct prompt enables only its session and later hooks deliver shared messages once", async (t) => {
+test("automatic sessions establish independent baselines and deliver shared messages once", async (t) => {
   const f = await fixture(t),
     responses: object[] = [],
     output = async (value: object) => {
@@ -666,10 +644,7 @@ test("a direct prompt enables only its session and later hooks deliver shared me
   assert.match(JSON.stringify(responses.at(-1)), /systemMessage/);
   await runHook({ ...input(f.b), hook_event_name: "SessionStart" }, ref, output);
   assert.deepEqual(responses.at(-1), {});
-  assert.deepEqual(
-    (await listSessions(f.b)).map((session) => session.session),
-    ["receiver"],
-  );
+  assert.deepEqual((await listSessions(f.b)).map((session) => session.session).sort(), ["other", "receiver"]);
 });
 
 test("hooks deliver across root and nested directories in either activation direction", async (t) => {
@@ -1125,7 +1100,7 @@ test(
   },
 );
 
-test("legacy auto-enrollment alone does not activate hooks or acknowledge an old inbox", async (t) => {
+test("automatic participation resumes an existing inbox and acknowledges delivered events", async (t) => {
   const f = await fixture(t),
     responses: object[] = [];
   const receiver = { cwd: f.b, ref, adapter: "codex", session: "receiver", async deliver() {} };
@@ -1140,13 +1115,13 @@ test("legacy auto-enrollment alone does not activate hooks or acknowledge an old
     undefined,
     true,
   );
-  assert.deepEqual(responses, [{}]);
+  assert.match(JSON.stringify(responses), /legacy unread/);
   const repo = await repository(f.b),
     key = sessionKey(repo, receiver, ref);
-  assert.equal(await readReceipt(repo, key, event.id), undefined);
+  assert.equal((await readReceipt(repo, key, event.id))?.status, "delivered");
 });
 
-test("status requires activation and Stop never blocks without a new event", async (t) => {
+test("automatic status and Stop never block without a new event", async (t) => {
   const f = await fixture(t),
     responses: object[] = [],
     output = async (value: object) => {
@@ -1167,13 +1142,15 @@ test("status requires activation and Stop never blocks without a new event", asy
   assert.deepEqual(responses.at(-1), {});
 });
 
-test("subagents and tool payloads cannot activate a session", async (t) => {
+test("subagents stay excluded and tool payloads cannot override an explicit opt-out", async (t) => {
   const f = await fixture(t),
     output = async (value: object) => assert.deepEqual(value, {});
   await runHook({ ...input(f.b), prompt: "Enable GitRelay", agent_id: "subagent" }, ref, output);
+  await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
+  await runHook({ ...input(f.b), prompt: "Disable GitRelay" }, ref, output);
   await runHook({ ...input(f.b), hook_event_name: "PostToolUse", prompt: "Enable GitRelay" }, ref, output);
   assert.equal(await sessionActivation({ cwd: f.b, ref, adapter: "codex", session: "receiver" }), false);
-  await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
+  assert.deepEqual(await listSessions(f.b), []);
 });
 
 test("a later disable wins while an earlier hook is still joining", async (t) => {

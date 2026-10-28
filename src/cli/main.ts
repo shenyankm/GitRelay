@@ -15,6 +15,7 @@ import { sessionActivation } from "../core/activation.ts";
 import { collectGarbage } from "../core/cleanup.ts";
 import { runDaemon } from "../core/daemon.ts";
 import { daemonStatus } from "../core/daemon-state.ts";
+import { ensureAutomaticDaemon, runAutomaticDaemon } from "../core/automatic-daemon.ts";
 import { branchStatus, validateGitHubRepository } from "../core/branch-status.ts";
 import { syncBranch } from "../core/branch-sync.ts";
 import { git, gitRefLine } from "../core/git.ts";
@@ -135,9 +136,12 @@ async function main() {
       platform: { type: "string", multiple: true },
       skip: { type: "string", multiple: true },
       "allow-unverified": { type: "boolean" },
+      automatic: { type: "boolean" },
     },
   });
   const [command, agent] = positionals;
+  if (values.automatic && (command !== "daemon" || agent !== undefined))
+    throw new Error("--automatic requires daemon.");
   longRunningCommand =
     command === "watch" ||
     (command === "daemon" && agent !== "status") ||
@@ -381,6 +385,10 @@ async function main() {
     const input = JSON.parse(data);
     if (!input || typeof input !== "object" || Array.isArray(input))
       throw new Error("Hook input must be a JSON object.");
+    if (["SessionStart", "UserPromptSubmit", "PostToolUse", "Stop"].includes(input.hook_event_name) && !input.agent_id)
+      await ensureAutomaticDaemon("codex", abort.signal).catch((error) =>
+        reportDiagnostic(`git-relay: ${String(error)}`),
+      );
     const result = await runHook(input, values.ref, output, abort.signal, values["branch-status"]);
     hookDelivered = result?.delivered === true;
     if (result?.diagnostic) reportDiagnostic(`git-relay: ${result.diagnostic}`);
@@ -481,7 +489,7 @@ async function main() {
       },
     });
   if (command === "daemon") {
-    await runDaemon({
+    await (values.automatic ? runAutomaticDaemon : runDaemon)({
       signal: abort.signal,
       intervalMs: Number(values["interval-ms"] ?? "5000"),
       retentionDays: days,

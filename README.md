@@ -6,8 +6,8 @@ Coordinate **Codex and OpenCode v2** sessions across Git worktrees. GitRelay
 delivers relevant upstream changes and agent messages, and reports local or
 GitHub branch status.
 
-> **Sessions are off by default.** Ordinary development does not register a
-> receiver or start Git monitoring.
+> **Sessions participate automatically.** On macOS/Linux, the first loaded client
+> starts one shared daemon; it stops after the last Codex/OpenCode process exits.
 
 Node.js 22.19+ and Git are required. The runtime has no npm dependencies.
 `git-relay` is the package and CLI name; `worktree-relay` and `worktree-sync`
@@ -16,7 +16,7 @@ remain CLI aliases.
 ## Contents
 
 - [Quick start](#quick-start)
-- [Enable only when needed](#enable-only-when-needed)
+- [Automatic sessions](#automatic-sessions)
 - [Platform support](#platform-support)
 - [Host setup](#host-setup)
   - [Codex plugin](#codex-plugin)
@@ -36,42 +36,36 @@ git-relay install --dry-run
 git-relay install --platform codex --platform opencode
 ```
 
-Then ask the receiving conversation to enable GitRelay:
-
-```text
-Enable GitRelay
-```
+Reopen the receiving clients after installation.
 
 The installer configures only the selected clients, preserves foreign or
-modified configuration, and keeps owned runtime copies. It does not activate
-sessions. Codex user hooks need separate review and trust through `/hooks`. Use
+modified configuration, and keeps owned runtime copies. Codex user hooks need
+separate review and trust through `/hooks` before automatic participation. Use
 repeated `--platform` or `--skip` to select clients; unknown platforms are
 rejected. Uninstall previews and retained-file behavior are documented in
 [automatic setup](docs/integrations.md#automatic-setup).
 
-## Enable only when needed
+## Automatic sessions
 
-Ask in the receiving conversation:
+Codex root sessions participate at their first lifecycle hook. OpenCode v2 root
+sessions participate when created or prompted. No enable prompt is required.
+First enrollment establishes a baseline without replaying earlier broadcasts.
 
-```text
-Enable GitRelay
-Please use multiple worktrees for development
-```
+`Disable GitRelay` or `关闭 GitRelay` stops that subscription without acknowledging
+unread messages. The saved choice survives resume. `Enable GitRelay` or
+`启用 GitRelay` explicitly reopens it; broadcasts while closed are not replayed.
+Subagents remain excluded.
 
-Chinese requests such as `启用 GitRelay` and `请并行开发这个功能` are also
-recognized. Only that native session is enabled. Ordinary prompts, explanations,
-questions and quoted examples do not enable it. Recognition uses conservative
-request patterns; use `Enable GitRelay` when a longer request is not recognized.
-
-`Disable GitRelay` or `关闭 GitRelay` stops the subscription without acknowledging
-unread messages. Resuming the same native conversation retains its setting; new
-conversations default off. First enrollment establishes a baseline and does not
-replay earlier broadcasts. See
-[on-demand sessions](docs/integrations.md#on-demand-sessions).
+On macOS/Linux, a native Codex hook or OpenCode plugin setup starts a shared daemon
+for the current user and state root. It checks client processes every five seconds
+and exits after no `codex` or `opencode` process remains, allowing lock cleanup to
+finish. A new client can start it again. No login service is installed. Existing
+clients must reload the updated plugin; merely installing files cannot inject code
+into an already running host. See [session lifecycle](docs/integrations.md#automatic-sessions).
 
 ## Platform support
 
-| Platform    | Entry point                       | Delivery after opt-in                                            |
+| Platform    | Entry point                       | Automatic delivery                                               |
 | ----------- | --------------------------------- | ---------------------------------------------------------------- |
 | Codex       | Lifecycle hooks or bundled plugin | Context at prompt/tool boundaries; Stop can request continuation |
 | OpenCode v2 | Native Promise plugin             | Checks every five seconds; durable host queue handles busy/idle  |
@@ -93,7 +87,7 @@ codex plugin list --marketplace git-relay-local --json
 ```
 
 The plugin includes its CLI, skills, hooks, docs, and license. Reopen the chat,
-review `/hooks`, and enable the receiving session when needed. Avoid duplicate
+review `/hooks`; new sessions participate automatically. Avoid duplicate
 plugin/user hooks. A plugin listing or generated hook file does not prove that
 the host loaded or trusted it.
 
@@ -115,7 +109,7 @@ export { default } from "/absolute/path/to/GitRelay/dist/adapters/opencode/index
 ```
 
 Build first, remove duplicate entries, and restart OpenCode. Each receiving
-worktree needs an entry. Enable its root session with a direct user prompt.
+worktree needs an entry. Root sessions participate automatically.
 
 ## Commands
 

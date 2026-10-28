@@ -1,4 +1,4 @@
-# GitRelay: Session exit, safe cleanup, and the optional daemon
+# GitRelay: Session exit, safe cleanup, and the shared daemon
 
 These features share the existing user-level message store. Plugins, hooks, and manual cleanup work without a daemon.
 
@@ -125,7 +125,7 @@ Upgrade and reload **all** participating CLIs, daemons, plugins, and hooks befor
 
 A process killed between writing a temporary JSON file and renaming it can leave a `<target>.json.<UUID>.tmp` file; legacy delivery-proof publication could leave a `<event>.<hash>.pi-proof.<UUID>.tmp` file. Normal scans and GC do not remove these files. Preserve them while investigating: an event may represent a send with an unknown outcome, and a temporary receipt or proof does not prove delivery was acknowledged. Do not promote or delete a candidate solely because it is old. Stop the relevant GitRelay operations and verify any remaining lock owner before inspecting the target and temporary files; installation journals and daemon files have separate locks. There is currently no automatic reconciliation or cleanup for these candidates.
 
-## 3. Optional daemon
+## 3. Shared daemon
 
 ```sh
 # One instance per user state root; runs in the foreground for supervision.
@@ -162,11 +162,12 @@ All CLI commands install signal handlers before operating. Ctrl+C/SIGTERM cancel
 
 Interrupted one-shot commands return a nonzero status (normally 130 for SIGINT or 143 for SIGTERM) and warn that the operation may already have completed. A nonzero status does not mean it was rolled back: inspect the resulting state before retrying, especially after `send`. `watch`, `daemon`, and `status --watch` retain their normal graceful-stop behavior; installer cancellation retains its existing behavior. Repeated Ctrl+C continues waiting for cleanup rather than forcing it to stop.
 
-No launchd/systemd/Windows service is installed, no automatic detachment occurs, and no stop command blindly kills a PID read from disk. Windows can run the daemon in the foreground or under a user-chosen service manager. Normal operation does not require a daemon, and it never starts automatically.
+Native Codex hooks and OpenCode plugin setup automatically launch a detached daemon on macOS/Linux. One instance serves each user state root. Its five-second process check stops it after the last native `codex`/`opencode` process exits; a remaining app-server counts as a client. Startup and shutdown share a lock so a new client can restart it safely. No launchd/systemd/Windows service is installed and no PID read from disk authorizes killing a process. Manually launched `git-relay daemon` remains under its launcher's control. Windows can run it in the foreground or under a user-chosen service manager.
 
 ### Files and recovery
 
 ```text
+<state-root>/daemon-start.lock # Serializes automatic startup and shutdown
 <state-root>/daemon.lock     # Singleton lock with PID and instance token
 <state-root>/daemon.json     # Heartbeat, instance token, polling interval
 <repo-store>/trash/          # Journal for approved deletions

@@ -5,7 +5,8 @@
 面向 **Codex 和 OpenCode v2** 的多工作树协作工具：投递相关上游变更、共享 agent
 消息、查看本地及 GitHub 分支状态。
 
-> **会话默认关闭。** 普通开发不会登记接收者，也不会启动 Git 监控。
+> **会话默认自动参与。** macOS/Linux 上首个客户端加载后启动共享 daemon，
+> 最后一个 Codex/OpenCode 进程退出后自动停止。
 
 需要 Node.js 22.19+ 和 Git，无 npm 运行时依赖。包名及主命令为 `git-relay`，保留
 `worktree-relay`、`worktree-sync` 命令别名。
@@ -13,7 +14,7 @@
 ## 目录
 
 - [快速开始](#快速开始)
-- [按需启用](#按需启用)
+- [自动参与与启停](#自动参与与启停)
 - [平台支持](#平台支持)
 - [客户端配置](#客户端配置)
   - [Codex 插件](#codex-插件)
@@ -33,42 +34,32 @@ git-relay install --dry-run
 git-relay install --platform codex --platform opencode
 ```
 
-然后在接收会话中明确输入：
-
-```text
-启用 GitRelay
-```
+安装后重新打开客户端。
 
 安装器只配置所选客户端，保留未被管理或已被用户修改的配置，并保存自有运行时副本。
-安装不会启用会话。Codex hooks 仍须通过 `/hooks` 单独检查并信任。可重复使用
+Codex hooks 仍须通过 `/hooks` 单独检查并信任，加载后会话自动参与。可重复使用
 `--platform` 选择客户端，或用 `--skip` 排除；其他平台名会被拒绝。卸载预览及保留
 文件的规则见[自动安装](docs/integrations.md#automatic-setup)。
 
-## 按需启用
+## 自动参与与启停
 
-在需要参与协作的会话中明确输入：
+Codex 根会话在首次生命周期 hook 时自动参与；OpenCode v2 根会话在创建或收到
+提示词时自动参与，无需先输入启用命令。首次登记建立基线，不补收此前的广播。
+子代理不单独登记。
 
-```text
-启用 GitRelay
-请并行开发这个功能
-请用多个工作树开发
-```
+输入 `关闭 GitRelay` 或 `Disable GitRelay` 可停止当前会话订阅，未读消息和回执保留。
+恢复同一会话会保留停用选择；输入 `启用 GitRelay` 或 `Enable GitRelay` 可重新加入。
+停用期间的广播不会补发。引用和工具输出不能改变显式选择。
 
-也支持 `Enable GitRelay`、`Please use multiple worktrees for development` 等
-明确请求。只启用当前原生会话；其他聊天继续保持关闭。恢复同一会话会保留选择，新建
-会话默认关闭。
-
-识别使用保守的中英文请求模式，不调用模型。普通提问、概念解释、引用示例和代码块
-不会启用；复杂表达未识别时，请直接输入 `启用 GitRelay`。首次启用建立监听基线，
-不会补收登记前的广播。
-
-输入 `关闭 GitRelay` 或 `Disable GitRelay` 可停止订阅，未读消息和回执保留。
-再次明确启用可恢复旧收件箱；停用期间发布的消息不会自动补发。详见
-[会话启用说明](docs/integrations.md#on-demand-sessions)。
+macOS/Linux 上，原生 Codex hook 或 OpenCode 插件加载时自动启动同一用户、同一
+状态目录下的共享 daemon。每 5 秒检查客户端进程，最后一个 `codex`/`opencode`
+进程退出后自动停止并清理锁；新客户端可再次启动它。不安装开机常驻服务。
+已运行的旧客户端需要重新加载插件，安装文件不会向旧进程注入新代码。详见
+[会话生命周期](docs/integrations.md#automatic-sessions)。
 
 ## 平台支持
 
-| 平台        | 接入方式                  | 启用后的投递方式                                |
+| 平台        | 接入方式                  | 自动投递方式                                    |
 | ----------- | ------------------------- | ----------------------------------------------- |
 | Codex       | 生命周期 hooks 或独立插件 | 提示词、工具结束时注入上下文；Stop 可请求继续   |
 | OpenCode v2 | 原生 Promise 插件         | 每 5 秒检查；忙时进入宿主持久队列，空闲时可唤醒 |
@@ -88,8 +79,7 @@ codex plugin add git-relay@git-relay-local
 codex plugin list --marketplace git-relay-local --json
 ```
 
-插件携带 CLI、技能、hooks、文档及许可证。重新打开聊天，检查 `/hooks`，再按需启用
-会话。避免插件 hooks 与用户 hooks 重复。插件卡片或配置文件存在不代表宿主已加载或
+插件携带 CLI、技能、hooks、文档及许可证。重新打开聊天并检查 `/hooks` 后，会话自动参与。避免插件 hooks 与用户 hooks 重复。插件卡片或配置文件存在不代表宿主已加载或
 信任；更新源码后需要重新构建并刷新已安装副本。
 
 插件通过本地或仓库 marketplace 分发。Codex 公开目录不接受带生命周期 hooks 的插件。
@@ -106,8 +96,7 @@ codex plugin list --marketplace git-relay-local --json
 export { default } from "/absolute/path/to/GitRelay/dist/adapters/opencode/index.js";
 ```
 
-先构建，移除重复入口，再重启 OpenCode。每个接收工作树都需要加载入口，并在其根
-会话中明确启用。
+先构建，移除重复入口，再重启 OpenCode。每个接收工作树都需要加载入口，根会话自动参与。
 
 ## 常用命令
 

@@ -8,6 +8,7 @@ import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { requestedActivation, sessionActivation } from "../../core/activation.ts";
 import { joinSession, leaveSessionIfRepository, preflightLeaveSession } from "../../core/sessions.ts";
+import { ensureAutomaticDaemon } from "../../core/automatic-daemon.ts";
 
 type SessionID = Parameters<Plugin.Context["session"]["get"]>[0]["sessionID"];
 
@@ -124,6 +125,7 @@ export default {
           session: id,
           instance: state.instance,
           signal: state.abort.signal,
+          defaultEnabled: true,
         };
         if (!(await sessionActivation(options))) {
           state.abort.abort();
@@ -200,7 +202,6 @@ export default {
     let lookupSequence = 0;
     const retrying = new Set<SessionID>();
     function maintainTimer() {
-      if (!sessions.size && !retries.size && !optIns.size && !optOuts.size) eventAbort?.abort();
       if ((sessions.size || retries.size) && !timer && !abort.signal.aborted) {
         timer = setInterval(() => {
           for (const id of sessions.keys()) void scan(id);
@@ -263,9 +264,10 @@ export default {
             session: id,
             instance,
             signal: AbortSignal.any([abort.signal, token.abort.signal]),
+            defaultEnabled: true,
           };
           let enabled = await sessionActivation(options);
-          if (optIns.has(id) && !enabled) {
+          if (optIns.has(id)) {
             enabled = await sessionActivation(options, true);
           }
           if (!enabled || abort.signal.aborted || token.cancelled) return;
@@ -277,7 +279,7 @@ export default {
           }
         }
       } catch (error) {
-        if (!abort.signal.aborted && !token.cancelled && optIns.has(id)) {
+        if (!abort.signal.aborted && !token.cancelled && !optOuts.has(id)) {
           if (!retry) warn(error);
           if (!sessions.has(id)) {
             if (retries.has(id) || retries.size < 128) retries.set(id, Math.max(retries.get(id) ?? 0, sequence));
@@ -540,6 +542,12 @@ export default {
             for await (const event of ctx.event.subscribe({ signal })) {
               if (signal.aborted) break;
               backoff = 1000;
+              if (event.type === "session.created") {
+                const task = enroll(event.data.sessionID);
+                draining.add(task);
+                void task.finally(() => draining.delete(task));
+                continue;
+              }
               if (event.type !== "session.deleted") continue;
               verifyDeletion(event.data.sessionID, signal);
             }
@@ -556,6 +564,8 @@ export default {
       void task.finally(() => draining.delete(task));
     }
 
+    watchEvents();
+    await ensureAutomaticDaemon("opencode", abort.signal).catch(warn);
     return async () => {
       abort.abort();
       if (timer) clearInterval(timer);

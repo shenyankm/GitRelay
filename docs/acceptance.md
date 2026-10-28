@@ -2,15 +2,18 @@
 
 ## Current scope
 
-The maintained integrations are Codex hooks and OpenCode v2. Sessions default
-off; the current refactor introduces explicit per-session activation and removes
-other clients' source, installers, dependencies, tests, and benchmarks.
+The maintained integrations are Codex hooks and OpenCode v2. Root sessions now
+participate automatically, with explicit disable/re-enable retained. Native
+macOS/Linux clients start a shared daemon that stops after all client processes
+exit. Historical native acceptance below predates this lifecycle change.
 
 Local regression coverage includes:
 
-- Ordinary prompts do not register receivers, query Git, or emit branch status.
+- Ordinary native hooks/prompts and OpenCode creation events enroll root sessions.
+- Automatic daemon singleton startup, either-client liveness, discovery failure,
+  last-client shutdown and restart use isolated process fixtures.
 - English/Chinese direct requests enable the current session only; questions,
-  quoted examples, tool output, and negations do not enable it.
+  quoted examples, tool output, and negations do not override explicit choices.
 - Activation is isolated by worktree, ref, adapter, session and native instance.
 - Disabling preserves unread events, closes enrollment, and permits explicit rejoin.
 - Codex context injection, Stop continuation, recursion and subagent guards.
@@ -32,6 +35,26 @@ npm pack --dry-run
 
 CI is configured for macOS/Linux on Node.js 22.19.0 and 24. A local pass does not
 establish hosted CI status or actual hook discovery/trust in a client.
+
+## Automatic lifecycle acceptance: 2026-10-28
+
+On macOS arm64, `npm run check` passed with 702 passed, zero failed, one skipped
+and 14 existing automatic-synchronization TODOs. See the source fingerprints and
+bounded results in [the lifecycle summary](evidence/2026-10-28-automatic-lifecycle/summary.json).
+
+- Real Codex CLI 0.164.0 used reviewed hooks trusted in an isolated configuration.
+  An ordinary first turn enrolled its session and started the daemon without an
+  enable prompt; closing its native host stopped the daemon.
+- Real OpenCode 2.1.2 loaded a native plugin entry. Creating a session enrolled it
+  and started the daemon without a prompt; closing the server stopped the daemon.
+- Native runs used OS process tables filtered to test clients and descendants,
+  allowing last-client shutdown checks without closing the user's active clients.
+  They verify lifecycle and registration, not successful model completion.
+- Isolated regressions cover simultaneous launches, either client keeping the
+  daemon alive, last-client shutdown, subsequent restart, and discovery failure.
+- The refreshed local Codex cache and OpenCode runtime matched the tested build.
+  Existing hosts must reload their installed code. This is local evidence, not a
+  hosted CI result or a release.
 
 ## Targeted native acceptance: 2026-10-27
 
@@ -95,7 +118,7 @@ prove the model read every item or completed the requested adaptation.
 [`acceptance-results.json`](acceptance-results.json) is retained as historical
 raw evidence from source snapshots before the two-client/on-demand refactor.
 It includes retired clients, old test counts, and old source/build hashes. Its
-results do not verify the current source or the new default-off behavior.
+results do not verify the current source or the current automatic lifecycle.
 History remains available in Git; it is not a current support matrix.
 
 Forced termination, power-loss durability, permanent host deduplication, Windows
