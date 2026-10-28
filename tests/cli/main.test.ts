@@ -109,3 +109,26 @@ test("removed clients have no installer or hook entry point", async (t) => {
     await assert.rejects(run("hook", platform), /Choose hook codex/);
   }
 });
+
+test("empty cwd and malformed refs are rejected before touching session state", async (t) => {
+  const f = await fixture(t);
+  const identity = ["--cwd", f.b, "--agent", "codex", "--session", "s"];
+  await run("check", ...identity);
+  await assert.rejects(run("check", "--cwd", "", "--session", "s"), /--cwd must not be empty/);
+  for (const ref of ["", "main", "refs/heads/bad..name"]) {
+    for (const command of ["check", "join", "leave", "send"]) {
+      await assert.rejects(
+        run(command, ...identity, "--ref", ref, ...(command === "send" ? ["--message", "x"] : [])),
+        ref.startsWith("refs/") ? /check-ref-format/ : /full branch ref/,
+      );
+    }
+  }
+  await assert.rejects(
+    exec(process.execPath, [cli, "leave", ...identity], { env: { ...process.env, WORKTREE_MAIN_REF: "" } }),
+    /full branch ref/,
+  );
+  const sessions = JSON.parse((await run("sessions", "--cwd", f.b)).stdout).sessions;
+  assert.equal(sessions.length, 1);
+  assert.equal(sessions[0].closedAt, undefined);
+  assert.equal((await run("check", ...identity)).stdout, "");
+});

@@ -162,6 +162,16 @@ async function main() {
     await output("git-relay check --session ID [--instance INSTANCE_ID] --acknowledge-history-gap --apply\n");
     return;
   }
+  if (values.cwd === "") throw new Error("--cwd must not be empty.");
+  if (
+    ["check", "watch", "send", "join", "leave", "hook"].includes(command) ||
+    (command === "status" && values.watch && values.session)
+  ) {
+    if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
+      throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
+    if (command !== "watch" && (command !== "hook" || values.ref !== "refs/heads/main"))
+      await git(parse(process.execPath).root, ["check-ref-format", values.ref], abort.signal);
+  }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
   if (values["dry-run"] && !["install", "uninstall", "gc"].includes(command))
     throw new Error("--dry-run requires install, uninstall or gc.");
@@ -386,8 +396,6 @@ async function main() {
   let refValidated = command !== "watch";
   if (command === "watch") {
     validateIdentity({ adapter: values.agent, session: values.session!, instance: values.instance });
-    if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
-      throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
     refValidated = await validateWatchRef(values.ref);
   }
   if (command === "join" || command === "leave") {
