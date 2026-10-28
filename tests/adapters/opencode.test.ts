@@ -330,6 +330,8 @@ test("OpenCode retries a lost admission response with the same per-event ID", as
 
 test("OpenCode reuses message IDs when receipt persistence fails", async (t) => {
   t.mock.method(console, "warn", () => {});
+  const releaseScan = Promise.withResolvers<void>();
+  t.after(() => releaseScan.resolve());
   const attempts: Prompt[] = [];
   const admitted = new Set<string>();
   let failReceipt = true;
@@ -347,13 +349,28 @@ test("OpenCode reuses message IDs when receipt persistence fails", async (t) => 
   await delay(5);
   const second = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "second" });
   receiptPath = join(f.repo.directory, "receipts", f.key, `${second.id}.json`);
+  const remove = fs.promises.rm;
+  const lockPath = join(f.repo.directory, "sessions", `${f.key}.lock`);
+  const intercept = t.mock.method(fs.promises, "rm", (async (...args: Parameters<typeof remove>) => {
+    await remove(...args);
+    if (args[0] === lockPath && attempts.length === 2) await releaseScan.promise;
+  }) as typeof remove);
+  syncBuiltinESMExports();
+  t.after(() => {
+    intercept.mock.restore();
+    syncBuiltinESMExports();
+  });
   f.tick();
   await waitFor(async () => attempts.length === 2 && (await f.unlocked()));
   assert.equal((await readReceipt(f.repo, f.key, first.id))?.status, "delivered");
   await rm(receiptPath, { recursive: true });
+  f.tick();
+  assert.equal(attempts.length, 2);
+  releaseScan.resolve();
   await waitFor(async () => {
+    if ((await readReceipt(f.repo, f.key, second.id))?.status === "delivered") return true;
     f.tick();
-    return (await readReceipt(f.repo, f.key, second.id))?.status === "delivered";
+    return false;
   });
   assert.equal(attempts.length, 3);
   assert.equal(attempts[1].id, attempts[2].id);
