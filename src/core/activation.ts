@@ -37,8 +37,8 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
         fenceIndent = marker[2] ? columns(marker[1] + marker[2]) : 0;
         return "";
       }
-      // Keep closing quotes so multiline examples remain quoted after indented code is removed.
-      return /^(?: {4}|\t)/.test(line) ? line.replace(/[^”」]/g, "") : line;
+      // Keep quote marks so multiline examples remain quoted after indented code is removed.
+      return columns(line.match(/^[ \t]*/)![0]) >= 4 ? line.replace(/[^“”「」]/g, "") : line;
     })
     .join("\n")
     .replace(/```[^]*?(?:```|$)/g, "")

@@ -25,11 +25,14 @@ test("code block examples do not change hook activation", async (t) => {
     options = { cwd: f.b, ref, adapter: "codex", session: "receiver" },
     output = async (_value: object) => {};
   await runHook({ ...input(f.b), prompt: "“Example:\nEnable GitRelay\n    ”" }, ref, output);
+  await runHook({ ...input(f.b), prompt: "    “Example:\nEnable GitRelay\n”" }, ref, output);
   await runHook({ ...input(f.b), prompt: "Example:\n~~~\nEnable GitRelay\n~~~" }, ref, output);
   assert.equal(await sessionActivation(options), false);
   await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
   await runHook({ ...input(f.b), prompt: "「例:\nDisable GitRelay\n    」" }, ref, output);
+  await runHook({ ...input(f.b), prompt: "    「示例:\nDisable GitRelay\n」" }, ref, output);
   await runHook({ ...input(f.b), prompt: "Example:\n\n    Disable GitRelay" }, ref, output);
+  await runHook({ ...input(f.b), prompt: " \tDisable GitRelay" }, ref, output);
   assert.equal(await sessionActivation(options), true);
   assert.equal((await listSessions(f.b))[0].closedAt, undefined);
   await runHook({ ...input(f.b), prompt: "- ~~~\n  Disable GitRelay\n  ~~~" }, ref, output);
