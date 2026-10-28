@@ -33,7 +33,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
     )
       continue;
     if (
-      /^(?:(?:请|麻烦|这次|本次|现在)\s*)*(?:(?:停止|关闭|停用|禁用)|(?:不要|别|无需)\s*(?:(?:使用|用|启用|开启|启动)\s*git-?relay\b|(?:进行|使用|采用)?\s*并行(?:开发|实现|编码)|(?:使用|用|采用|创建|建立|在)?\s*(?:多(?:个)?工作树|多\s*worktrees?)))|^(?:please\s+)?(?:(?:disable|deactivate|stop|turn off)\b|(?:do not|don't|never)\s+(?:(?:use|enable|activate|turn on|start)\b|(?:develop|implement|code|work)\b.{0,60}\bin parallel\b))/i.test(
+      /^(?:(?:请|麻烦|这次|本次|现在)\s*)*(?:(?:停止|关闭|停用|禁用)|(?:不要|别|无需)\s*(?:再\s*)?(?:(?:使用|用|启用|开启|启动)\s*git-?relay\b|(?:进行|使用|采用)?\s*并行(?:开发|实现|编码)|(?:使用|用|采用|创建|建立|在)?\s*(?:多(?:个)?工作树|多\s*worktrees?)))|^(?:please\s+)?(?:(?:disable|deactivate|stop|turn off)\b|(?:do not|don't|never)\s+(?:(?:use|enable|activate|turn on|start)\b|(?:develop|implement|code|work)\b.{0,60}\bin parallel\b))/i.test(
         request,
       )
     ) {
