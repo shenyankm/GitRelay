@@ -163,13 +163,16 @@ async function main() {
     return;
   }
   if (values.cwd === "") throw new Error("--cwd must not be empty.");
+  let statusRefValidated = true;
   if (
     ["check", "watch", "send", "join", "leave"].includes(command) ||
     (command === "status" && values.watch && values.session)
   ) {
     if (!values.ref.startsWith("refs/heads/") && !values.ref.startsWith("refs/remotes/"))
       throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
-    if (command !== "watch") await git(parse(process.execPath).root, ["check-ref-format", values.ref], abort.signal);
+    if (command === "status") statusRefValidated = await validateWatchRef(values.ref);
+    else if (command !== "watch")
+      await git(parse(process.execPath).root, ["check-ref-format", values.ref], abort.signal);
   }
   if (values["repository-id"] !== undefined && command !== "leave") throw new Error("--repository-id requires leave.");
   if (values["dry-run"] && !["install", "uninstall", "gc"].includes(command))
@@ -272,6 +275,14 @@ async function main() {
     }
     let previous: string | undefined;
     do {
+      if (!statusRefValidated) {
+        statusRefValidated = await validateWatchRef(values.ref);
+        if (!statusRefValidated) {
+          reportDiagnostic("git-relay: Could not validate the monitored ref; retrying.");
+          await delay(interval, undefined, { signal: abort.signal }).catch(() => {});
+          continue;
+        }
+      }
       if (!branchValidated) branchValidated = await validateWatchRef(`refs/heads/${values.branch}`);
       try {
         const sync = values["auto-sync"] ? await syncBranch(cwd, branch!, abort.signal) : undefined;
