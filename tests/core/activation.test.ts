@@ -7,6 +7,62 @@ import { sessionKey } from "../../src/core/mailbox.ts";
 import { hash } from "../../src/core/store.ts";
 import { fixture, git } from "../helpers.ts";
 
+test("failed pending enables preserve successful or later activation choices", async (t) => {
+  const f = await fixture(t);
+  const options = { cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "receiver" };
+  const change = (token: string, phase: "begin" | "prepare" | "failure") =>
+    sessionActivation(options, true, undefined, { token, phase, repositoryId: "a".repeat(64) });
+  await change("first", "begin");
+  await change("second", "begin");
+  await change("first", "failure");
+  assert.equal(await sessionActivation(options), false);
+  await change("second", "failure");
+  assert.equal(await sessionActivation(options), false);
+  await change("prepared", "begin");
+  await change("prepared", "prepare");
+  assert.equal(await sessionActivation(options), false);
+  await change("prepared", "failure");
+  assert.equal(await sessionActivation(options), false);
+  await change("a", "begin");
+  await change("b", "begin");
+  await change("a", "prepare");
+  await change("b", "prepare");
+  await change("a", "failure");
+  assert.equal(await sessionActivation(options), false);
+  await change("b", "failure");
+  assert.equal(await sessionActivation(options), false);
+  await change("third", "begin");
+  await change("fourth", "begin");
+  await sessionActivation(options, true);
+  await change("fourth", "failure");
+  assert.equal(await sessionActivation(options), true);
+  await change("fifth", "begin");
+  await sessionActivation(options, false);
+  await change("fifth", "failure");
+  assert.equal(await sessionActivation(options), false);
+  assert.equal(await change("fifth", "prepare"), false);
+  await change("one", "begin");
+  await change("two", "begin");
+  await sessionActivation(options, true, undefined, {
+    token: "one",
+    phase: "prepare",
+    repositoryId: "a".repeat(64),
+    run: async () => {},
+  });
+  await sessionActivation(options, false);
+  assert.equal(await change("two", "prepare"), false);
+  await change("later", "begin");
+  assert.equal(
+    await sessionActivation(options, true, undefined, {
+      token: "later",
+      phase: "prepare",
+      repositoryId: "a".repeat(64),
+      run: async () => {},
+    }),
+    true,
+  );
+});
+
 test("only direct coordination requests opt a session in or out", () => {
   for (const text of [
     "启用 GitRelay",
@@ -211,7 +267,48 @@ test("invalid activation state and managed symlinks fail closed", { skip: proces
   const path = join(directory, `${key}.json`);
   await writeFile(path, JSON.stringify({ key, enabled: "true" }));
   await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
+  await writeFile(
+    path,
+    JSON.stringify({ key, enabled: false, prepared: [{ token: "a", repositoryId: "a".repeat(64) }] }),
+  );
+  await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
+  await writeFile(
+    path,
+    JSON.stringify({
+      key,
+      enabled: false,
+      committed: false,
+      pending: ["a"],
+      prepared: [{ token: "a", repositoryId: "a".repeat(64), subscriptionKey: "../outside" }],
+    }),
+  );
+  await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
   const other = { ...options, session: "symlink" };
   await symlink(path, join(directory, `${sessionKey({ root: f.b }, other, other.ref)}.json`));
   await assert.rejects(sessionActivation(other), /not a regular file/);
 });
+
+test(
+  "pending activation does not follow a managed repos symlink",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      options = { cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "receiver" };
+    const directory = join(f.root, "state", "activations"),
+      key = sessionKey({ root: f.b }, options, options.ref);
+    await mkdir(directory, { recursive: true });
+    await mkdir(join(f.root, "outside"));
+    await symlink(join(f.root, "outside"), join(f.root, "state", "repos"));
+    await writeFile(
+      join(directory, `${key}.json`),
+      JSON.stringify({
+        key,
+        enabled: false,
+        committed: false,
+        pending: ["a"],
+        prepared: [{ token: "a", repositoryId: "a".repeat(64) }],
+      }),
+    );
+    await assert.rejects(sessionActivation(options), /Invalid GitRelay state directory/);
+  },
+);
