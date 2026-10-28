@@ -69,8 +69,12 @@ export async function sessionActivation(
       throw new Error(`Invalid GitRelay activation: ${path}; preserve it for inspection.`);
     return { key, path, current };
   };
+  let missing = false;
   const cwd = await realpath(resolve(options.cwd)).catch((error: NodeJS.ErrnoException) => {
-    if (error.code === "ENOENT") return resolve(options.cwd);
+    if (error.code === "ENOENT") {
+      missing = true;
+      return resolve(options.cwd);
+    }
     throw error;
   });
   const selected = process.env.GIT_WORK_TREE
@@ -127,7 +131,7 @@ export async function sessionActivation(
   let root: string;
   if (optOut?.root) root = await realpath(resolve(optOut.root));
   else if (optOut) {
-    await worktreeRoot();
+    if (!missing) await worktreeRoot();
     const current = await preflightLeaveSession(options);
     if (current.root || current.repositoryId !== optOut.repositoryId)
       throw new Error("GitRelay target changed during opt-out; preserve state and retry.");

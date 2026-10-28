@@ -387,6 +387,19 @@ test(
   },
 );
 
+test("Codex accepts inline matcher groups without handlers", { skip: process.platform === "win32" }, async (t) => {
+  const f = await fixture(t);
+  const profile = join(f.codexHome, "work.config.toml");
+  const config = "[[hooks.SessionStart]]\n";
+  const profileConfig = '[[hooks.PreToolUse]]\nmatcher = "^Bash$"\n';
+  await writeFile(f.config, config);
+  await writeFile(profile, profileConfig);
+  await installCodex(f);
+  assert.equal(await readFile(f.config, "utf8"), config);
+  assert.equal(await readFile(profile, "utf8"), profileConfig);
+  assert.ok(await readFile(f.hook, "utf8"));
+});
+
 test(
   "Codex refuses malformed known inline hook events and handlers",
   { skip: process.platform === "win32" },

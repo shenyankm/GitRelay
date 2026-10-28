@@ -82,6 +82,8 @@ updates an owned runtime; user-modified entries, foreign hooks, invalid journals
 and unowned paths are preserved. OpenCode installs a global plugin entry;
 Codex installs user hooks only when no conflicting hook file or plugin exists.
 Codex trust through `/hooks` remains separate. A dry run does not install entries.
+On macOS and Linux, the data directory path must not contain a backslash; choose
+a different `XDG_DATA_HOME` if it does.
 
 Uninstall only removes a verified owned entry, keeping archives, runtimes and
 shared message state. Inspect reported retained paths rather than deleting them
@@ -228,6 +230,7 @@ stdout carries data; stderr carries diagnostics. Watch errors, hook input warnin
 The default monitored ref is local `refs/heads/main`. CLI/hooks/OpenCode accept `WORKTREE_MAIN_REF`; CLI also accepts `--ref`, for example `refs/remotes/origin/main`. In contrast, `status --branch` takes a short branch name such as `main`.
 
 Existing check/watch, hooks, and daemon do not fetch, access the network, or install Git hooks. Remote-tracking refs need an external fetch before they reflect remote merges. Patch generation disables external diff and textconv programs.
+Older Git versions may start a lazy-fetch subprocess for a missing object, but its transport is blocked; restore the object locally before retrying.
 
 ## Local and GitHub branch monitoring
 

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
@@ -69,6 +69,19 @@ test("send rejects existing directories even without a trailing slash, but permi
   }
   assert.equal((await eventsIn(await repository(f.a))).length, 0);
   assert.deepEqual((await sendMessage({ ...sender, files: ["deleted.ts"] })).files, ["deleted.ts"]);
+  if (process.platform !== "win32") {
+    await symlink("src", join(f.a, "linkdir"));
+    await symlink("cycle-b", join(f.a, "cycle-a"));
+    await symlink("cycle-a", join(f.a, "cycle-b"));
+    git(f.a, "add", "linkdir", "cycle-a", "cycle-b");
+    for (const file of ["linkdir", "cycle-a"]) {
+      assert.deepEqual((await sendMessage({ ...sender, files: [file] })).files, [file]);
+    }
+    await assert.rejects(
+      sendMessage({ ...sender, files: ["cycle-a/child"] }),
+      /Cannot inspect message file path.*cycle-a\/child.*ELOOP/,
+    );
+  }
 });
 
 test("corrupt daemon liveness hints never prevent local fallback", async (t) => {
