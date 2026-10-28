@@ -112,3 +112,63 @@ for (const platform of ["codex", "opencode"] as const) {
     },
   );
 }
+
+for (const platform of ["codex", "opencode"] as const) {
+  for (const priorRevision of [false, true]) {
+    test(
+      `${platform} accepts a complete runtime published after a missing digest${priorRevision ? " for an existing revision" : ""}`,
+      { skip: process.platform === "win32" },
+      async (t) => {
+        const base = await fs.promises.mkdtemp(join(tmpdir(), "git-relay-runtime-publication-"));
+        t.after(() => fs.promises.rm(base, { recursive: true, force: true }));
+        const workspace = join(base, "workspace"),
+          source = join(base, "source"),
+          bin = join(base, "bin");
+        await fs.promises.mkdir(workspace);
+        await fs.promises.writeFile(join(workspace, ".git-relay-owner"), "git-relay installer v1\n");
+        await fs.promises.mkdir(join(source, "dist", "cli"), { recursive: true });
+        await fs.promises.mkdir(join(source, "dist", "adapters", "opencode"), { recursive: true });
+        await fs.promises.writeFile(join(source, "dist", "cli", "main.js"), "console.log('git-relay hook');\n");
+        await fs.promises.writeFile(
+          join(source, "dist", "adapters", "opencode", "index.js"),
+          "export default { id: 'git-relay', setup() {} };\n",
+        );
+        await fs.promises.mkdir(bin);
+        await fs.promises.writeFile(join(bin, "codex"), "#!/bin/sh\nprintf '%s\\n' '{\"installed\":[]}'\n", {
+          mode: 0o755,
+        });
+        const env = { ...process.env, CODEX_HOME: join(base, "codex"), PATH: [bin, process.env.PATH].join(delimiter) };
+        const install = () =>
+          platform === "codex"
+            ? installCodex({ workspace, sourceRoot: source, env, clientVersion: "0.164.0" })
+            : installOpenCode(workspace, join(base, "config"), join(source, "dist"));
+        const { installerDigest } = await import("../../src/cli/installer-digest.ts");
+        const id = await installerDigest(join(source, "dist"));
+        const runtime = join(workspace, "runtimes", id);
+        if (priorRevision) {
+          await install();
+          await fs.promises.rm(runtime, { recursive: true });
+        }
+        const lstat = fs.promises.lstat;
+        let published = false;
+        fs.promises.lstat = (async (...args: Parameters<typeof lstat>) => {
+          if (!published && args[0] === runtime) {
+            published = true;
+            await fs.promises.mkdir(runtime, { recursive: true });
+            await fs.promises.cp(join(source, "dist"), join(runtime, "dist"), { recursive: true });
+            await fs.promises.writeFile(join(runtime, "package.json"), '{"type":"module"}\n');
+          }
+          return lstat(...args);
+        }) as typeof lstat;
+        syncBuiltinESMExports();
+        try {
+          await install();
+        } finally {
+          fs.promises.lstat = lstat;
+          syncBuiltinESMExports();
+        }
+        assert.equal(published, true);
+      },
+    );
+  }
+}

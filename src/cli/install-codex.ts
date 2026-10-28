@@ -228,7 +228,7 @@ export async function installCodex({
         id = await digest(source, signal);
       if (latest) {
         const existing = join(workspace, "runtimes", latest.slice(21));
-        try {
+        const verifyLatest = async () => {
           const existingDigest = await digest(join(existing, "dist"), signal);
           if (
             (existingDigest !== latest.slice(21) &&
@@ -239,14 +239,25 @@ export async function installCodex({
             throw new Error(
               `Codex runtime was modified or its legacy digest cannot be verified; preserved: ${existing}. Retry with the original LC_ALL/LANG if known.`,
             );
+        };
+        try {
+          await verifyLatest();
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
           const present = await lstat(existing).catch((failure) => {
             if (failure.code === "ENOENT") return undefined;
             throw failure;
           });
-          if (present)
-            throw new Error(`Codex runtime is incomplete or was modified; preserved: ${existing}`, { cause: error });
+          if (present) {
+            try {
+              await verifyLatest();
+            } catch (failure) {
+              if ((failure as NodeJS.ErrnoException).code !== "ENOENT") throw failure;
+              throw new Error(`Codex runtime is incomplete or was modified; preserved: ${existing}`, {
+                cause: failure,
+              });
+            }
+          }
         }
       }
       const runtimes = join(workspace, "runtimes"),
@@ -264,26 +275,37 @@ export async function installCodex({
           if (failure.code === "ENOENT") return undefined;
           throw failure;
         });
-        if (existing)
-          throw new Error(`Codex runtime is incomplete or was modified; preserved: ${runtime}`, { cause: error });
-        const temp = await mkdtemp(join(runtimes, ".stage-"));
-        try {
-          await cp(source, join(temp, "dist"), { recursive: true });
-          if ((await digest(join(temp, "dist"), signal)) !== id)
-            throw new Error("Runtime changed while copying; retry installation.");
-          await writeFile(join(temp, "package.json"), '{"type":"module"}\n', { flag: "wx" });
+        if (existing) {
           try {
-            await rename(temp, runtime);
-          } catch (error) {
-            if (!["EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? "")) throw error;
             if (
               (await digest(join(runtime, "dist"), signal)) !== id ||
               (await contents(join(runtime, "package.json"))) !== '{"type":"module"}\n'
             )
-              throw new Error(`Codex runtime was modified: ${runtime}`);
+              throw new Error(`Codex runtime is incomplete or was modified; preserved: ${runtime}`, { cause: error });
+          } catch (failure) {
+            if ((failure as NodeJS.ErrnoException).code !== "ENOENT") throw failure;
+            throw new Error(`Codex runtime is incomplete or was modified; preserved: ${runtime}`, { cause: failure });
           }
-        } finally {
-          await rm(temp, { recursive: true, force: true });
+        } else {
+          const temp = await mkdtemp(join(runtimes, ".stage-"));
+          try {
+            await cp(source, join(temp, "dist"), { recursive: true });
+            if ((await digest(join(temp, "dist"), signal)) !== id)
+              throw new Error("Runtime changed while copying; retry installation.");
+            await writeFile(join(temp, "package.json"), '{"type":"module"}\n', { flag: "wx" });
+            try {
+              await rename(temp, runtime);
+            } catch (error) {
+              if (!["EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? "")) throw error;
+              if (
+                (await digest(join(runtime, "dist"), signal)) !== id ||
+                (await contents(join(runtime, "package.json"))) !== '{"type":"module"}\n'
+              )
+                throw new Error(`Codex runtime was modified: ${runtime}`);
+            }
+          } finally {
+            await rm(temp, { recursive: true, force: true });
+          }
         }
       }
       try {
