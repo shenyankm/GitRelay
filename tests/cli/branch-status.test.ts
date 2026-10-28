@@ -172,6 +172,17 @@ test("status handles a non-commit upstream", async (t) => {
   assert.deepEqual(status.local.tracking, { ref: "refs/remotes/origin/main", commit: null, ahead: null, behind: null });
 });
 
+test("status compares an annotated tag upstream that points to a commit", async (t) => {
+  const f = await fixture(t);
+  git(f.b, "tag", "-a", "upstream", "-m", "upstream");
+  const tag = git(f.b, "rev-parse", "refs/tags/upstream").trim();
+  git(f.b, "config", "branch.feature/b.remote", ".");
+  git(f.b, "config", "branch.feature/b.merge", "refs/tags/upstream");
+  await f.commit(f.b, "tag-test.txt", "local\n");
+  const status = JSON.parse((await run("status", "--cwd", f.b)).stdout);
+  assert.deepEqual(status.local.tracking, { ref: "refs/tags/upstream", commit: tag, ahead: 1, behind: 0 });
+});
+
 test("explicit empty CLI options are rejected", async (t) => {
   const f = await fixture(t);
   for (const [args, message] of [
