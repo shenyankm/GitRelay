@@ -155,12 +155,12 @@ export async function sessionActivation(
       let nextEnabled = enabled;
       if (operation?.phase === "begin") {
         nextPending = [...pending, operation.token];
-        nextEnabled = true;
+        nextEnabled = committed;
       } else if (operation) {
         if (!pending.includes(operation.token)) return current?.enabled === true;
         nextPending = pending.filter((token) => token !== operation.token);
         if (operation.phase === "success") committed = true;
-        nextEnabled = committed || nextPending.length > 0;
+        nextEnabled = committed;
       } else if (current?.enabled === enabled && !pending.length) return enabled;
       await writeJson(
         path,
@@ -169,6 +169,6 @@ export async function sessionActivation(
       );
       return nextEnabled;
     },
-    { signal: options.signal },
+    { signal: options.signal, waitMs: 5000 },
   );
 }

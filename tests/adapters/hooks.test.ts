@@ -35,6 +35,50 @@ test("failed enable leaves unborn and missing monitored branches disabled", asyn
   }
 });
 
+test(
+  "a killed enable attempt does not activate subsequent hooks",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      cwd = join(f.root, "unborn");
+    await mkdir(cwd);
+    git(cwd, "init", "-b", "main");
+    const activation = new URL("../../src/core/activation.ts", import.meta.url).href;
+    const script = `const { sessionActivation } = await import(${JSON.stringify(activation)}); await sessionActivation({ cwd: ${JSON.stringify(cwd)}, ref: ${JSON.stringify(ref)}, adapter: 'codex', session: 'receiver' }, true, undefined, { token: 'interrupted', phase: 'begin' }); process.kill(process.pid, 'SIGKILL');`;
+    const result = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script], {
+      env: process.env,
+    });
+    assert.equal(result.signal, "SIGKILL");
+    await runHook({ ...input(cwd), hook_event_name: "SessionStart" }, ref, async (value) =>
+      assert.deepEqual(value, {}),
+    );
+    assert.equal(await sessionActivation({ cwd, ref, adapter: "codex", session: "receiver" }), false);
+  },
+);
+
+test("failed activation cleanup waits for the activation lock", async (t) => {
+  const f = await fixture(t),
+    options = { cwd: f.b, ref, adapter: "codex", session: "receiver" };
+  await sessionActivation(options, true, undefined, { token: "failure", phase: "begin" });
+  const path = join(f.root, "state", "activations", `${sessionKey({ root: f.b }, options, ref)}.json.lock`);
+  const held = Promise.withResolvers<void>(),
+    release = Promise.withResolvers<void>();
+  const lock = withLock(path, async () => {
+    held.resolve();
+    await release.promise;
+  });
+  await held.promise;
+  const cleanup = sessionActivation(options, true, undefined, { token: "failure", phase: "failure" });
+  try {
+    await delay(50);
+    assert.equal(await sessionActivation(options), false);
+  } finally {
+    release.resolve();
+  }
+  await Promise.all([lock, cleanup]);
+  assert.equal(await sessionActivation(options), false);
+});
+
 test("legacy subdirectory activation closes its inbox when disabled at the root", async (t) => {
   const f = await fixture(t),
     sub = join(f.b, "sub"),
@@ -817,7 +861,6 @@ test("a later disable wins while an earlier hook is still joining", async (t) =>
     }
   };
   try {
-    await waitForChoice(true);
     const deadline = Date.now() + 3000;
     while (
       !(await access(join(repo.directory, "sessions", `${key}.lock`)).then(

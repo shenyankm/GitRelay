@@ -15,7 +15,7 @@ test("failed pending enables preserve successful or later activation choices", a
   await change("first", "begin");
   await change("second", "begin");
   await change("first", "failure");
-  assert.equal(await sessionActivation(options), true);
+  assert.equal(await sessionActivation(options), false);
   await change("second", "failure");
   assert.equal(await sessionActivation(options), false);
   await change("third", "begin");
