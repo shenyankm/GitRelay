@@ -17,7 +17,7 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
     [...value].reduce((width, char) => width + (char === "\t" ? 4 - (width % 4) : 1), 0);
   const text = prompt
     .split("\n")
-    .filter((line) => {
+    .map((line) => {
       if (fence && fenceIndent && line.trim() && columns(line.match(/^[ \t]*/)![0]) < fenceIndent) fence = undefined;
       if (fence) {
         const closing = line.match(/^([ \t]*)(`{3,}|~{3,})(.*)$/);
@@ -29,15 +29,16 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
           !closing[3].trim()
         )
           fence = undefined;
-        return false;
+        return "";
       }
       const marker = line.match(/^( {0,3})((?:[-+*]|\d{1,9}[.)])[ \t]+)?(`{3,}|~{3,})(.*)$/);
       if (marker && (marker[3][0] !== "`" || !marker[4].includes("`"))) {
         fence = marker[3];
         fenceIndent = marker[2] ? columns(marker[1] + marker[2]) : 0;
-        return false;
+        return "";
       }
-      return !/^(?: {4}|\t)/.test(line);
+      // Keep closing quotes so multiline examples remain quoted after indented code is removed.
+      return /^(?: {4}|\t)/.test(line) ? line.replace(/[^”」]/g, "") : line;
     })
     .join("\n")
     .replace(/```[^]*?(?:```|$)/g, "")
