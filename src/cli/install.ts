@@ -9,10 +9,10 @@ import {
   installOpenCode,
   uninstallOpenCode,
   validRecord,
+  validateWorkspacePath,
 } from "./install-opencode.ts";
 import { codexDirectory, installCodex, uninstallCodex, validCodexRecord } from "./install-codex.ts";
 import { readInstallationRecord } from "./install-record.ts";
-import { readJson } from "../core/store.ts";
 
 const platforms: Platform[] = ["codex", "opencode"];
 
@@ -74,30 +74,11 @@ export async function install(
           continue;
         }
         if (dryRun) {
-          const exists = await lstat(root).then(
-            () => true,
-            (error) => {
-              if (error.code === "ENOENT") return false;
-              throw error;
-            },
-          );
-          if (exists) await checkWorkspace(root);
-          if (platform === "codex" && (await readJson(join(root, "codex-install.json"))) !== undefined)
-            throw new Error("A previous Codex plugin installation record exists; inspect it before installing hooks.");
-          const name = platform === "codex" ? "Codex" : "OpenCode";
-          const state = join(root, platform === "codex" ? "codex-hooks.json" : "opencode.json");
-          const record = await readInstallationRecord(state, name);
-          const valid =
-            platform === "codex"
-              ? validCodexRecord(record, join(await codexDirectory(env), "hooks.json"), root)
-              : validRecord(
-                  record,
-                  join(await canonicalDirectory(config), "opencode", "plugins", "git-relay.js"),
-                  root,
-                );
-          if (record !== undefined && !valid) throw new Error(`Invalid ${name} installation record: ${state}`);
-          if (record && typeof record === "object" && "removing" in record && record.removing)
-            throw new Error("An uninstall is incomplete; rerun uninstall before installing.");
+          validateWorkspacePath(root);
+          if (platform === "codex")
+            await installCodex({ workspace: root, sourceRoot, signal, clientVersion: detected.version, dryRun: true });
+          else await installOpenCode(root, await canonicalDirectory(config), sourceDist, signal, true);
+
           results.push(detected);
           continue;
         }

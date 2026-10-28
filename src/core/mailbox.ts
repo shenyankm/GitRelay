@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { lstat, readdir, rename, stat } from "node:fs/promises";
+import { lstat, readdir, rename } from "node:fs/promises";
 import { join, posix } from "node:path";
 import { formatChange, type Change } from "./changes.ts";
 import {
@@ -31,6 +31,7 @@ export interface Session extends Identity {
   migrated?: boolean;
   closedAt?: string;
   posixPaths?: true;
+  activationToken?: string;
 }
 
 interface EventBase {
@@ -98,7 +99,9 @@ export function validateSession(value: unknown, key: string): Session {
       (typeof session.closedAt !== "string" || !Number.isFinite(Date.parse(session.closedAt)))) ||
     (session.migrated !== undefined && typeof session.migrated !== "boolean") ||
     (session.baseline !== undefined && !isCommit(session.baseline)) ||
-    (session.posixPaths !== undefined && session.posixPaths !== true)
+    (session.posixPaths !== undefined && session.posixPaths !== true) ||
+    (session.activationToken !== undefined &&
+      (typeof session.activationToken !== "string" || !/^[a-zA-Z0-9-]{1,128}$/.test(session.activationToken)))
   )
     throw new Error(`Invalid session: ${key}`);
   validateIdentity(session);
@@ -129,6 +132,8 @@ export async function registerSession(
   ref: string,
   baseline?: string,
   receiver?: boolean,
+  reopen = false,
+  activationToken?: string,
 ): Promise<Session> {
   const adapter = identity.adapter;
   validateIdentity({ adapter, session: "snapshot" });
@@ -158,7 +163,8 @@ export async function registerSession(
     lastSeen: now,
     baseline: previous?.baseline ?? baseline,
     migrated: previous?.migrated,
-    closedAt: previous?.closedAt,
+    closedAt: reopen ? undefined : previous?.closedAt,
+    activationToken: activationToken ?? previous?.activationToken,
     posixPaths:
       receiver === undefined ? previous?.posixPaths : receiver && process.platform !== "win32" ? true : undefined,
   };
@@ -477,9 +483,9 @@ export async function sendMessage(
   const repo = await repository(cwd, signal);
   for (const file of files) {
     signal?.throwIfAborted();
-    const info = await stat(join(repo.root, file)).catch((error) => {
+    const info = await lstat(join(repo.root, file)).catch((error) => {
       if (error.code === "ENOENT" || error.code === "ENOTDIR") return undefined; // Targets may exist only in another worktree.
-      throw error;
+      throw new Error(`Cannot inspect message file path: ${file} (${error.code ?? "unknown error"})`, { cause: error });
     });
     if (info?.isDirectory()) throw new Error(`Message files must name files, not directories: ${file}`);
   }

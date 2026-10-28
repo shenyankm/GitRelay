@@ -103,7 +103,7 @@ async function leavingRepository(options: LeaveOptions, protectPrior = false): P
     throw error;
   }
   await checkManagedRoot();
-  const key = sessionKey({ root }, options, options.ref);
+  const roots = new Set([root, process.platform === "win32" ? root.replace(/\\/g, "/") : `/${root}`]);
   const repos = join(stateDirectory(), "repos");
   const matches: Repository[] = [];
   for (const id of await readdir(repos).catch((failure) => {
@@ -120,7 +120,13 @@ async function leavingRepository(options: LeaveOptions, protectPrior = false): P
     if (!sessions?.isDirectory()) continue;
     await checkStateDirectory(directory);
     await checkStateDirectory(join(directory, "sessions"));
-    if ((await readJson(join(directory, "sessions", `${key}.json`))) === undefined) continue;
+    const candidates: { root: string; key: string }[] = [];
+    for (const candidate of roots) {
+      const key = sessionKey({ root: candidate }, options, options.ref);
+      if ((await readJson(join(directory, "sessions", `${key}.json`))) !== undefined)
+        candidates.push({ root: candidate, key });
+    }
+    if (!candidates.length) continue;
     await checkRepositoryDirectories(directory);
     const metadata = (await readJson(join(directory, "repo.json"))) as Partial<Repository> | undefined;
     if (
@@ -140,22 +146,25 @@ async function leavingRepository(options: LeaveOptions, protectPrior = false): P
       identity: metadata.identity,
       identitySource: metadata.identitySource!,
     };
-    const session = await readSession(repo, key);
-    if (
-      session &&
-      (session.root !== root ||
-        session.ref !== options.ref ||
-        session.adapter !== options.adapter ||
-        session.session !== options.session)
-    )
-      throw new Error(`Invalid session: ${key}`);
-    if (session) {
-      const ready = (await readJson(join(directory, "identity-ready.json"))) as { id?: string } | undefined;
-      const owner = (await readJson(join(directory, "identity-owner.json"))) as { id?: string } | undefined;
-      if (ready?.id !== id || owner?.id !== id)
-        throw new Error(`Incomplete GitRelay state initialization: ${directory}; prior state was preserved.`);
-      await assertMigrationReady(repo);
-      matches.push(repo);
+    for (const candidate of candidates) {
+      const session = await readSession(repo, candidate.key);
+      if (
+        session &&
+        (session.root !== candidate.root ||
+          session.ref !== options.ref ||
+          session.adapter !== options.adapter ||
+          session.session !== options.session ||
+          session.instance !== options.instance)
+      )
+        throw new Error(`Invalid session: ${candidate.key}`);
+      if (session) {
+        const ready = (await readJson(join(directory, "identity-ready.json"))) as { id?: string } | undefined;
+        const owner = (await readJson(join(directory, "identity-owner.json"))) as { id?: string } | undefined;
+        if (ready?.id !== id || owner?.id !== id)
+          throw new Error(`Incomplete GitRelay state initialization: ${directory}; prior state was preserved.`);
+        await assertMigrationReady(repo);
+        matches.push({ ...repo, root: candidate.root });
+      }
     }
   }
   if (matches.length !== 1)
@@ -360,7 +369,14 @@ export async function leaveSessionIfRepository(
 }
 
 /** Explicit rejoin keeps old inbox/receipts, but does not replay publications while closed. */
-export async function joinSession(options: SessionOptions): Promise<Session> {
+export async function joinSession(
+  options: SessionOptions,
+  registerWith?: (
+    register: (token?: string) => Promise<Session>,
+    repositoryId: string,
+    subscriptionKey: string,
+  ) => Promise<Session>,
+): Promise<Session> {
   const identity = snapshotIdentity(options);
   const cwd = options.cwd;
   const signal = options.signal;
@@ -376,16 +392,18 @@ export async function joinSession(options: SessionOptions): Promise<Session> {
         async () => {
           const current = await synchronizeRef(repo, options.ref, options, options.signal);
           await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
-          const registered = await registerSession(
-            repo,
-            options,
-            options.ref,
-            current,
-            process.platform === "win32" ? false : undefined,
-          );
-          const open = { ...registered, closedAt: undefined };
-          await writeJson(join(repo.directory, "sessions", `${key}.json`), open);
-          return open;
+          const register = async (token?: string) => {
+            return registerSession(
+              repo,
+              options,
+              options.ref,
+              current,
+              process.platform === "win32" ? false : undefined,
+              true,
+              token,
+            );
+          };
+          return registerWith ? registerWith(register, repo.id, key) : register();
         },
         { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN },
       ),

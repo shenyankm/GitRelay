@@ -54,23 +54,34 @@ test("initialization publishes its owner on the repository state filesystem", as
     import { basename, dirname } from "node:path";
     const realLink = fs.link;
     fs.link = async (from, to) => {
-      if (basename(dirname(dirname(from))) === "identity-history" && basename(to) === "identity-owner.json") {
-        const error = new Error("cross-device link"); error.code = "EXDEV"; throw error;
+      if (basename(to) === "identity-owner.json") {
+        if (!basename(from).startsWith(".git-relay-owner-") || dirname(from) !== dirname(dirname(to)))
+          throw new Error("owner temporary is not in the state filesystem");
+        console.log(JSON.stringify({ from, to }));
       }
       return realLink(from, to);
     };
     syncBuiltinESMExports();
     const { repository } = await import(${JSON.stringify(moduleUrl)});
-    console.log(JSON.stringify(await repository(process.argv[1])));
+    await repository(process.argv[1]);
   `;
   const { stdout } = await exec(
     process.execPath,
     ["--experimental-strip-types", "--input-type=module", "-e", source, f.main],
     { env: process.env, timeout: 20_000 },
   );
-  const repo = JSON.parse(stdout) as { id: string; directory: string };
-  assert.deepEqual(JSON.parse(await readFile(join(repo.directory, "identity-owner.json"), "utf8")), { id: repo.id });
-  assert.deepEqual(await readdir(join(stateDirectory(), "repos")), [repo.id]);
+  const paths = JSON.parse(stdout) as { from: string; to: string };
+  assert.equal(dirname(paths.from), join(stateDirectory(), "repos"));
+  assert.equal(dirname(dirname(paths.to)), dirname(paths.from));
+  assert.deepEqual((await readdir(dirname(paths.to))).sort(), [
+    "events",
+    "identity-owner.json",
+    "identity-ready.json",
+    "receipts",
+    "refs",
+    "sessions",
+    "trash",
+  ]);
 });
 
 test("failure writing the initial owner leaves no unowned state directory", async (t) => {
@@ -191,7 +202,7 @@ for (const code of ["EPERM", "EACCES", "EOPNOTSUPP", "ENOTSUP", "EXDEV"]) {
       import { basename } from "node:path";
       const realLink = fs.link;
       fs.link = async (from, to) => {
-        if (basename(to) === "identity-owner.json") {
+        if (basename(from).startsWith(".git-relay-owner-") && basename(to) === "identity-owner.json") {
           const error = new Error("hard links unavailable"); error.code = ${JSON.stringify(code)}; throw error;
         }
         return realLink(from, to);
@@ -410,3 +421,35 @@ for (const state of ["ready", "missing-ready", "migration-incomplete"] as const)
     }
   });
 }
+
+test("recovery without an identity or state does not create either", async (t) => {
+  const f = await fixture(t);
+  await assert.rejects(recoverRepositoryInitialization(f.main), /nothing to recover/i);
+  await assert.rejects(lstat(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+  await assert.rejects(lstat(stateDirectory()), { code: "ENOENT" });
+});
+
+test("prior identity state does not recommend legacy migration", async (t) => {
+  const f = await fixture(t);
+  await repository(f.main);
+  await writeFile(join(f.main, ".git", ".git-relay-id"), `${"0".repeat(64)}\n`);
+  await assert.rejects(repository(f.main), (error: Error) => {
+    assert.match(error.message, /identity-fresh --apply/);
+    assert.doesNotMatch(error.message, /identity-migrate/);
+    return true;
+  });
+});
+
+test("recovery with an existing identity and missing state leaves locks untouched", async (t) => {
+  const f = await fixture(t);
+  await writeFile(join(f.main, ".git", ".git-relay-id"), `${"1".repeat(64)}\n`);
+  await assert.rejects(recoverRepositoryInitialization(f.main), /nothing to recover/i);
+  await assert.rejects(lstat(stateDirectory()), { code: "ENOENT" });
+});
+
+test("path-keyed prior state offers migration", async (t) => {
+  const f = await fixture(t);
+  const common = join(f.main, ".git");
+  await mkdir(join(stateDirectory(), "repos", hash(common)), { recursive: true });
+  await assert.rejects(repository(f.main), /identity-fresh --apply or identity-migrate --apply/);
+});

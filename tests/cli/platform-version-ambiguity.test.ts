@@ -103,6 +103,31 @@ test(
     assert.equal((await detect("runtime 2.1.2\nopencode-v3.0.0", "")).status, "unavailable");
     assert.equal((await detect("starting tool", "dependency 2.1.2")).status, "unavailable");
     assert.equal((await detect("opencode 2.1.2", "warning 2.1.2")).status, "installed");
+    assert.equal(
+      (await detect("opencode 2.1.2", "WARNING: config /tmp/app-2.0.0/path; update 2.1.2 -> 2.2.0")).status,
+      "installed",
+    );
+    assert.equal((await detect("opencode 2.1.2", "WARNING: opencode 3.0.0 is active")).status, "unavailable");
+    assert.equal((await detect("opencode 2.1.2", "INFO: opencode version 3.0.0 is running")).status, "unavailable");
+    assert.equal((await detect("opencode 2.1.2", "WARNING: opencode 3.0.0 is available")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "WARNING: opencode-3.0.0.log is active")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "opencode-2.0.0.log: cannot open")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "opencode 3.0.0-rc.1+build")).status, "unavailable");
+    assert.equal((await detect("opencode 2.1.2", "opencode version 3.0.0")).status, "unavailable");
+    assert.equal((await detect("opencode 2.1.2", "opencode-2.0.0/cache: cannot open")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "opencode-2.0.0\\cache: cannot open")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "opencode 3.0.0, unsupported")).status, "unavailable");
+    assert.equal((await detect("opencode 2.1.2", "opencode 3.0.0")).status, "unavailable");
+    assert.equal((await detect("opencode 2.1.2", "opencode 2.1.2 update available: 3.0.0")).status, "installed");
+    assert.equal((await detect("opencode 2.1.2", "opencode-v3.0.0")).status, "unavailable");
+    const codex = join(dir, "codex");
+    await writeFile(codex, "#!/bin/sh\nprintf '%s' \"$VERSION_STDOUT\"\nprintf '%s' \"$VERSION_STDERR\" >&2\n");
+    await chmod(codex, 0o755);
+    assert.equal(
+      (await detectPlatform("codex", env("codex-cli 0.164.0", 'WARNING: CODEX_HOME "/tmp/app-2.0.0"'))).status,
+      "installed",
+    );
+    assert.equal((await detectPlatform("codex", env("codex-cli 0.164.0", "codex-cli 0.165.0"))).status, "unavailable");
     assert.equal((await detect("opencode 2.1.2-rc.3.0.0", "")).status, "unverified");
     assert.equal(await commandOutput(executable, [], env("stdout", "stderr"), 5000, 1024), "stdout");
     await assert.rejects(commandOutput(executable, [], env("", "x".repeat(300)), 5000, 100), /too large/);

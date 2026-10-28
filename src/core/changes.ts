@@ -67,10 +67,34 @@ async function patch(
       ],
       {
         stdio: ["ignore", "pipe", "pipe"],
-        timeout: 30_000,
-        signal,
+        detached: process.platform !== "win32",
+        env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1", GIT_ALLOW_PROTOCOL: "" },
       },
     );
+    let settled = false;
+    const cleanup = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
+    };
+    const stop = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (child.pid && process.platform !== "win32") {
+        try {
+          process.kill(-child.pid, "SIGKILL");
+        } catch {
+          child.kill("SIGKILL");
+        }
+      } else child.kill("SIGKILL");
+      child.stdout.destroy();
+      child.stderr.destroy();
+      reject(error);
+    };
+    const timer = setTimeout(() => stop(new Error("Git diff timed out.")), 30_000);
+    const abort = () => stop(signal?.reason);
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
     let output = "";
     let error = "";
     let truncated = false;
@@ -84,9 +108,13 @@ async function patch(
     child.stderr.on("data", (data: string) => {
       error = (error + data).slice(0, 4096);
     });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code !== 0) reject(new Error(error || `git diff exited with ${code}`));
+    child.on("error", stop);
+    child.on("close", (code, terminationSignal) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (code !== 0)
+        reject(new Error(error || `git diff exited with ${code}`, { cause: { code, signal: terminationSignal } }));
       else resolve(output + (truncated ? "\n[diff truncated; inspect commits locally]\n" : ""));
     });
   });
@@ -339,21 +367,21 @@ export async function inspectChange(
   signal?: AbortSignal,
 ): Promise<Change | undefined> {
   const { root } = cursor;
+  const compare = async <T>(read: () => Promise<T>): Promise<T> => {
+    try {
+      return await read();
+    } catch (cause) {
+      signal?.throwIfAborted();
+      const failure = (cause as Error & { cause?: { code?: unknown; signal?: unknown; killed?: boolean } }).cause;
+      if (typeof failure?.code !== "number" || failure.signal || failure.killed) throw cause;
+      throw new HistoryUnavailableError(
+        `Git could not compare upstream history ${JSON.stringify({ ref: cursor.ref, previous: cursor.commit, commit: current })}. A commit may be missing, history may be unrelated, or Git may be unable to read the repository. Restore trusted history or repair Git and retry; unread events are preserved.`,
+        { cause },
+      );
+    }
+  };
   // Compute from pinned hashes, so a concurrently advancing ref cannot mix snapshots.
-  let common: string;
-  try {
-    common = (await git(root, ["merge-base", cursor.commit, current], signal)).trim();
-  } catch (cause) {
-    signal?.throwIfAborted();
-    const failure = (
-      cause as Error & { cause?: NodeJS.ErrnoException & { signal?: NodeJS.Signals | null; killed?: boolean } }
-    ).cause;
-    if (typeof failure?.code === "string" || failure?.signal || failure?.killed) throw cause;
-    throw new HistoryUnavailableError(
-      `Git could not compare upstream history ${JSON.stringify({ ref: cursor.ref, previous: cursor.commit, commit: current })}. A commit may be missing, history may be unrelated, or Git may be unable to read the repository. Restore trusted history or repair Git and retry; unread events are preserved.`,
-      { cause },
-    );
-  }
+  const common = (await compare(() => git(root, ["merge-base", cursor.commit, current], signal))).trim();
   const own = await worktreeFiles(root, current, signal);
   if (!own.size) return undefined;
   const overlaps = await pathMatcher(root, own, signal);
@@ -361,10 +389,8 @@ export async function inspectChange(
   let steps = rewritten
     ? []
     : (
-        await git(
-          root,
-          ["rev-list", "--first-parent", "--parents", "--reverse", `${cursor.commit}..${current}`],
-          signal,
+        await compare(() =>
+          git(root, ["rev-list", "--first-parent", "--parents", "--reverse", `${cursor.commit}..${current}`], signal),
         )
       )
         .trim()
@@ -379,7 +405,7 @@ export async function inspectChange(
   const overlap = new Set<string>();
   for (let offset = 0; offset < steps.length; offset += 32) {
     const batch = steps.slice(offset, offset + 32);
-    const changed = await historyFiles(root, batch, snapshot, signal);
+    const changed = await compare(() => historyFiles(root, batch, snapshot, signal));
     for (let index = 0; index < batch.length; index++) {
       const [after, before] = batch[index];
       const files = changed[index].filter(overlaps);
@@ -397,7 +423,9 @@ export async function inspectChange(
       break;
     }
     preview += `\nCommit ${range.after}\n`;
-    preview += await patch(root, range.before, range.after, range.files, PATCH_LIMIT - preview.length, signal);
+    preview += await compare(() =>
+      patch(root, range.before, range.after, range.files, PATCH_LIMIT - preview.length, signal),
+    );
   }
   return {
     root,

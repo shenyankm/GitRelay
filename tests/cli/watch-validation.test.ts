@@ -21,6 +21,10 @@ test("watch commands reject permanent input errors before entering their retry l
     [["watch", "--session", "s", "--ref", "not-a-ref"], /full branch ref/],
     [["watch", "--session", "s", "--ref", "refs/heads/bad..name"], /check-ref-format/],
     [["status", "--watch", "--branch", "bad..name", "--interval-ms", "50"], /check-ref-format/],
+    [
+      ["status", "--watch", "--session", "s", "--ref", "refs/heads/bad..name", "--interval-ms", "50"],
+      /check-ref-format/,
+    ],
     [["status", "--watch", "--session", "x".repeat(513), "--interval-ms", "50"], /max 512/],
     [["status", "--watch", "--github", "--repo", "invalid", "--interval-ms", "5000"], /--repo must be/],
     [
@@ -147,3 +151,45 @@ test("status watch retries a repository that appears later", { timeout: 10000 },
   child.kill("SIGTERM");
   assert.deepEqual(await exit, [0, null]);
 });
+
+test(
+  "status watch with a session retries transient ref validation failure",
+  { skip: process.platform === "win32", timeout: 10000 },
+  async (t) => {
+    const f = await fixture(t),
+      bin = join(f.root, "git-bin"),
+      marker = join(f.root, "git-tried");
+    const realGit = execFileSync("/bin/sh", ["-c", "command -v git"], { encoding: "utf8" }).trim();
+    await mkdir(bin);
+    await writeFile(
+      join(bin, "git"),
+      '#!/bin/sh\nif [ ! -f "$WATCH_TEST_MARKER" ]; then /usr/bin/touch "$WATCH_TEST_MARKER"; exit 77; fi\nexec "$WATCH_TEST_GIT" "$@"\n',
+      { mode: 0o755 },
+    );
+    const child = spawn(
+      process.execPath,
+      [cli, "status", "--cwd", f.b, "--watch", "--session", "s", "--interval-ms", "50"],
+      {
+        env: {
+          ...process.env,
+          PATH: `${bin}${delimiter}${process.env.PATH}`,
+          WATCH_TEST_MARKER: marker,
+          WATCH_TEST_GIT: realGit,
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+    t.after(() => child.kill("SIGKILL"));
+    const exit = once(child, "exit");
+    let output = "",
+      stderr = "";
+    child.stdout.on("data", (data) => (output += data));
+    child.stderr.on("data", (data) => (stderr += data));
+    const deadline = Date.now() + 5000;
+    while (!output && child.exitCode === null && Date.now() < deadline) await delay(25);
+    assert.ok(output, stderr);
+    assert.equal(JSON.parse(output).type, "worktree.branch-status");
+    child.kill("SIGTERM");
+    assert.deepEqual(await exit, [0, null]);
+  },
+);

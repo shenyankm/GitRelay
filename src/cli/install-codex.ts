@@ -19,7 +19,7 @@ import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { readJson, withLock, writeJson } from "../core/store.ts";
 import { readInstallationRecord } from "./install-record.ts";
-import { checkWorkspace } from "./install-opencode.ts";
+import { checkWorkspace, validateWorkspacePath } from "./install-opencode.ts";
 import { commandOutput } from "./command-output.ts";
 import { installerDigest, matchesLegacyInstallerDigest } from "./installer-digest.ts";
 import { checkInlineHooks } from "./codex-config.ts";
@@ -30,6 +30,7 @@ type Options = {
   env?: NodeJS.ProcessEnv;
   signal?: AbortSignal;
   clientVersion?: string;
+  dryRun?: boolean;
 };
 type Record = {
   entry: string;
@@ -156,17 +157,41 @@ export async function installCodex({
   env = process.env,
   signal,
   clientVersion,
+  dryRun = false,
 }: Options): Promise<void> {
   if (process.platform === "win32") throw new Error("Automatic Codex hooks installation is not supported on Windows.");
   signal?.throwIfAborted();
-  await checkWorkspace(workspace);
+  validateWorkspacePath(workspace);
+  if (
+    !dryRun ||
+    (await lstat(workspace).then(
+      () => true,
+      (error) => {
+        if (error.code === "ENOENT") return false;
+        throw error;
+      },
+    ))
+  )
+    await checkWorkspace(workspace);
+
   const home = await codexDirectory(env);
-  await mkdir(home, { recursive: true, mode: 0o700 });
+  if (!dryRun) await mkdir(home, { recursive: true, mode: 0o700 });
   await checkPlugins(env, signal);
-  await checkInlineHooks(home, signal, clientVersion);
+  if (
+    !dryRun ||
+    (await lstat(home).then(
+      () => true,
+      (error) => {
+        if (error.code === "ENOENT") return false;
+        throw error;
+      },
+    ))
+  )
+    await checkInlineHooks(home, signal, clientVersion);
   let newlyPublished = false;
   const generation = randomUUID();
-  await withLock(
+  const lock: typeof withLock = dryRun ? async (_path, run) => run() : withLock;
+  await lock(
     join(workspace, "codex-hooks.lock"),
     async () => {
       const state = join(workspace, "codex-hooks.json"),
@@ -211,8 +236,13 @@ export async function installCodex({
       )
         throw new Error(`Codex bootstrap was modified; preserved: ${pointer}`);
       const revisions = join(workspace, "codex-revisions");
-      await mkdir(revisions, { recursive: true });
-      const names = (await readdir(revisions)).sort();
+      if (!dryRun) await mkdir(revisions, { recursive: true });
+      const names = (
+        await readdir(revisions).catch((error) => {
+          if (dryRun && error.code === "ENOENT") return [];
+          throw error;
+        })
+      ).sort();
       if (names.some((name) => !/^\d{20}-[a-f0-9]{64}$/.test(name)))
         throw new Error(`Unexpected Codex revision; preserved: ${revisions}`);
       for (const name of names)
@@ -226,9 +256,13 @@ export async function installCodex({
         throw new Error(`Codex revisions changed outside GitRelay: ${revisions}`);
       const source = join(sourceRoot, "dist"),
         id = await digest(source, signal);
+      const desired = latest?.endsWith(`-${id}`)
+        ? latest
+        : `${String(BigInt(latest?.slice(0, 20) ?? "0") + 1n).padStart(20, "0")}-${id}`;
+      if (!/^\d{20}-[a-f0-9]{64}$/.test(desired)) throw new Error("Codex revision counter exhausted.");
       if (latest) {
         const existing = join(workspace, "runtimes", latest.slice(21));
-        try {
+        const verifyLatest = async () => {
           const existingDigest = await digest(join(existing, "dist"), signal);
           if (
             (existingDigest !== latest.slice(21) &&
@@ -239,19 +273,30 @@ export async function installCodex({
             throw new Error(
               `Codex runtime was modified or its legacy digest cannot be verified; preserved: ${existing}. Retry with the original LC_ALL/LANG if known.`,
             );
+        };
+        try {
+          await verifyLatest();
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
           const present = await lstat(existing).catch((failure) => {
             if (failure.code === "ENOENT") return undefined;
             throw failure;
           });
-          if (present)
-            throw new Error(`Codex runtime is incomplete or was modified; preserved: ${existing}`, { cause: error });
+          if (present) {
+            try {
+              await verifyLatest();
+            } catch (failure) {
+              if ((failure as NodeJS.ErrnoException).code !== "ENOENT") throw failure;
+              throw new Error(`Codex runtime is incomplete or was modified; preserved: ${existing}`, {
+                cause: failure,
+              });
+            }
+          }
         }
       }
       const runtimes = join(workspace, "runtimes"),
         runtime = join(runtimes, id);
-      await mkdir(runtimes, { recursive: true });
+      if (!dryRun) await mkdir(runtimes, { recursive: true });
       try {
         if (
           (await digest(join(runtime, "dist"), signal)) !== id ||
@@ -264,28 +309,41 @@ export async function installCodex({
           if (failure.code === "ENOENT") return undefined;
           throw failure;
         });
-        if (existing)
-          throw new Error(`Codex runtime is incomplete or was modified; preserved: ${runtime}`, { cause: error });
-        const temp = await mkdtemp(join(runtimes, ".stage-"));
-        try {
-          await cp(source, join(temp, "dist"), { recursive: true });
-          if ((await digest(join(temp, "dist"), signal)) !== id)
-            throw new Error("Runtime changed while copying; retry installation.");
-          await writeFile(join(temp, "package.json"), '{"type":"module"}\n', { flag: "wx" });
+        if (existing) {
           try {
-            await rename(temp, runtime);
-          } catch (error) {
-            if (!["EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? "")) throw error;
             if (
               (await digest(join(runtime, "dist"), signal)) !== id ||
               (await contents(join(runtime, "package.json"))) !== '{"type":"module"}\n'
             )
-              throw new Error(`Codex runtime was modified: ${runtime}`);
+              throw new Error(`Codex runtime is incomplete or was modified; preserved: ${runtime}`, { cause: error });
+          } catch (failure) {
+            if ((failure as NodeJS.ErrnoException).code !== "ENOENT") throw failure;
+            throw new Error(`Codex runtime is incomplete or was modified; preserved: ${runtime}`, { cause: failure });
           }
-        } finally {
-          await rm(temp, { recursive: true, force: true });
+        } else {
+          if (dryRun) return;
+          const temp = await mkdtemp(join(runtimes, ".stage-"));
+          try {
+            await cp(source, join(temp, "dist"), { recursive: true });
+            if ((await digest(join(temp, "dist"), signal)) !== id)
+              throw new Error("Runtime changed while copying; retry installation.");
+            await writeFile(join(temp, "package.json"), '{"type":"module"}\n', { flag: "wx" });
+            try {
+              await rename(temp, runtime);
+            } catch (error) {
+              if (!["EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? "")) throw error;
+              if (
+                (await digest(join(runtime, "dist"), signal)) !== id ||
+                (await contents(join(runtime, "package.json"))) !== '{"type":"module"}\n'
+              )
+                throw new Error(`Codex runtime was modified: ${runtime}`);
+            }
+          } finally {
+            await rm(temp, { recursive: true, force: true });
+          }
         }
       }
+      if (dryRun) return;
       try {
         const checked = await commandOutput(
           nodePath,
@@ -302,10 +360,6 @@ export async function installCodex({
           `Codex runtime cannot run with ${nodePath}; check the runtime or uninstall and reinstall, then review /hooks again.`,
         );
       }
-      const desired = latest?.endsWith(`-${id}`)
-        ? latest
-        : `${String(BigInt(latest?.slice(0, 20) ?? "0") + 1n).padStart(20, "0")}-${id}`;
-      if (!/^\d{20}-[a-f0-9]{64}$/.test(desired)) throw new Error("Codex revision counter exhausted.");
       const content = hookContent(workspace, nodePath),
         anchor = record && !record.removed ? record.anchor : `.git-relay-codex-anchor-${randomUUID()}`;
       if (!record || record.removed) {
@@ -331,6 +385,7 @@ export async function installCodex({
     },
     { waitMs: 100, signal },
   );
+  if (dryRun) return;
   try {
     await checkPlugins(env, signal);
     await checkInlineHooks(home, signal, clientVersion);

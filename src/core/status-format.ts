@@ -2,9 +2,10 @@ import type { branchStatus } from "./branch-status.ts";
 import type { SyncResult } from "./branch-sync.ts";
 
 type Status = Awaited<ReturnType<typeof branchStatus>> & { sync?: SyncResult };
+
 const cell = (value: string) =>
   value
-    .replace(/[\x00-\x1f\x7f]/g, " ")
+    .replace(/[\x00-\x1f\x7f-\x9f]/g, " ")
     .replace(/[\\`*_[\]|]/g, "\\$&")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
