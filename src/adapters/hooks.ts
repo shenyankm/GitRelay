@@ -4,7 +4,8 @@ import { watchRoot } from "../core/changes.ts";
 import { formatNotifications } from "../core/mailbox.ts";
 import { branchStatus } from "../core/branch-status.ts";
 import { formatBranchStatus } from "../core/status-format.ts";
-import { GitPathOutputError } from "../core/git.ts";
+import { git, GitPathOutputError } from "../core/git.ts";
+import { parse } from "node:path";
 import { requestedActivation, sessionActivation } from "../core/activation.ts";
 import { joinSession, leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../core/sessions.ts";
 
@@ -51,6 +52,11 @@ export async function runHook(
   const options = { cwd: cwd as string, ref, adapter: "codex", session, signal };
   const request = event === "UserPromptSubmit" ? requestedActivation(input.prompt) : undefined;
   const wasEnabled = await sessionActivation(options);
+  if (ref !== "refs/heads/main" && (request !== undefined || wasEnabled)) {
+    if (!ref.startsWith("refs/heads/") && !ref.startsWith("refs/remotes/"))
+      throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
+    await git(parse(process.execPath).root, ["check-ref-format", ref], signal);
+  }
   if (request === false) {
     const checked = await preflightLeaveSession(options);
     await sessionActivation(options, false, checked);

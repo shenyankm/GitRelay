@@ -16,7 +16,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { test } from "node:test";
@@ -25,19 +25,153 @@ import { installerDigest } from "../../src/cli/installer-digest.ts";
 
 const exec = promisify(execFile);
 
+async function processGroupState(group: number): Promise<{ seen: boolean; live: boolean; ownedLive: boolean }> {
+  const { stdout } = await exec("ps", ["-axo", "pgid=,uid=,stat="]);
+  const rows = stdout.trim().split("\n");
+  if (!rows.length || rows.some((row) => !/^\s*\d+\s+\d+\s+\S+\s*$/.test(row)))
+    throw new Error("Could not inspect process group ownership.");
+  let seen = false,
+    live = false,
+    ownedLive = false;
+  for (const row of rows) {
+    const [pgid, uid, state] = row.trim().split(/\s+/);
+    if (Number(pgid) !== group) continue;
+    seen = true;
+    if (!state.startsWith("Z")) {
+      live = true;
+      if (Number(uid) === process.getuid?.()) ownedLive = true;
+    }
+  }
+  return { seen, live, ownedLive };
+}
+
 async function waitForGroupGone(group: number): Promise<void> {
   const deadline = Date.now() + 3000;
   while (Date.now() < deadline) {
+    let denied = false;
     try {
       process.kill(-group, 0);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ESRCH") return;
-      throw error;
+      if ((error as NodeJS.ErrnoException).code !== "EPERM") throw error;
+      denied = true;
     }
+    const state = await processGroupState(group);
+    // EPERM can mean a group was reused by another user; keep waiting for our live processes.
+    if (denied ? !state.ownedLive : state.seen && !state.live) return;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   assert.fail(`Process group ${group} remained after cancellation`);
 }
+
+test(
+  "process group inspection detects owned children until they exit",
+  { skip: process.platform === "win32" },
+  async () => {
+    const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { detached: true, stdio: "ignore" });
+    const group = child.pid!;
+    try {
+      assert.equal((await processGroupState(group)).ownedLive, true);
+    } finally {
+      child.kill("SIGKILL");
+      await new Promise<void>((resolve) => child.once("close", () => resolve()));
+    }
+    assert.equal((await processGroupState(group)).ownedLive, false);
+  },
+);
+
+test(
+  "process group inspection detects a child after its group leader exits",
+  { skip: process.platform === "win32" },
+  async () => {
+    const leader = spawn("/bin/sh", ["-c", "/bin/sleep 30 >/dev/null 2>&1 & echo $!"], {
+      detached: true,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    const group = leader.pid!;
+    let output = "";
+    leader.stdout.setEncoding("utf8");
+    leader.stdout.on("data", (data) => (output += data));
+    await new Promise<void>((resolve, reject) => {
+      leader.once("error", reject);
+      leader.once("close", () => resolve());
+    });
+    const child = Number(output.trim());
+    assert.ok(Number.isInteger(child) && child > 1);
+    try {
+      assert.equal((await processGroupState(group)).ownedLive, true);
+    } finally {
+      try {
+        process.kill(child, "SIGKILL");
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error;
+      }
+    }
+    await waitForGroupGone(group);
+  },
+);
+
+test("an EPERM probe still waits for owned fixture processes", { skip: process.platform === "win32" }, async () => {
+  const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { detached: true, stdio: "ignore" });
+  const group = child.pid!;
+  const originalKill = process.kill;
+  let probes = 0;
+  process.kill = ((pid, signal) => {
+    if (pid === -group && signal === 0) {
+      probes++;
+      throw Object.assign(new Error("injected EPERM"), { code: "EPERM" });
+    }
+    return originalKill(pid, signal);
+  }) as typeof process.kill;
+  const pending = waitForGroupGone(group);
+  try {
+    const deadline = Date.now() + 2000;
+    while (probes < 2 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.ok(probes >= 2, "owned process was not checked again");
+    child.kill("SIGKILL");
+    await new Promise<void>((resolve) => child.once("close", () => resolve()));
+    await pending;
+  } finally {
+    process.kill = originalKill;
+    child.kill("SIGKILL");
+  }
+});
+
+test(
+  "process group cleanup ignores zombies but waits for live members",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "git-relay-ps-"));
+    const marker = join(dir, "seen"),
+      absent = join(dir, "absent");
+    const group = 424242,
+      uid = process.getuid!();
+    await writeFile(
+      join(dir, "ps"),
+      `#!/bin/sh\nif [ ! -e ${JSON.stringify(marker)} ]; then /usr/bin/touch ${JSON.stringify(marker)}; printf '%s %s S\\n' ${group} ${uid}; elif [ ! -e ${JSON.stringify(absent)} ]; then /usr/bin/touch ${JSON.stringify(absent)}; printf '%s %s S\\n' ${group + 1} ${uid}; else printf '%s %s Z+\\n' ${group} ${uid}; fi\n`,
+      { mode: 0o755 },
+    );
+    const oldPath = process.env.PATH,
+      originalKill = process.kill;
+    process.env.PATH = `${dir}${delimiter}${oldPath ?? ""}`;
+    let probes = 0;
+    process.kill = ((pid, signal) => {
+      if (pid === -group && signal === 0) {
+        probes++;
+        return true;
+      }
+      return originalKill(pid, signal);
+    }) as typeof process.kill;
+    t.after(async () => {
+      process.kill = originalKill;
+      if (oldPath === undefined) delete process.env.PATH;
+      else process.env.PATH = oldPath;
+      await rm(dir, { recursive: true, force: true });
+    });
+    await waitForGroupGone(group);
+    assert.ok(probes >= 3, "a live or unobserved process was treated as exited");
+  },
+);
 
 async function fixture(t: import("node:test").TestContext) {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-codex-install-"));

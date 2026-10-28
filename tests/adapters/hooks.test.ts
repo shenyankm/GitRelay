@@ -570,7 +570,7 @@ test("ordinary hooks skip Git, status and subscriptions until the native session
     const responses: object[] = [];
     await runHook(
       { ...input(f.b), hook_event_name, prompt: "修复这个 bug" },
-      ref,
+      "refs/heads/other",
       async (value) => {
         responses.push(value);
       },
@@ -579,6 +579,15 @@ test("ordinary hooks skip Git, status and subscriptions until the native session
     );
     assert.deepEqual(responses, [{}]);
   }
+  await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
+});
+
+test("invalid hook refs do not enable a session", async (t) => {
+  const f = await fixture(t);
+  await assert.rejects(
+    runHook({ ...input(f.b), prompt: "Enable GitRelay" }, "refs/heads/bad..name", async () => {}),
+    /check-ref-format/,
+  );
   await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
 });
 

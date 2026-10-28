@@ -110,6 +110,45 @@ test("removed clients have no installer or hook entry point", async (t) => {
   }
 });
 
+test("empty cwd and malformed refs are rejected before touching session state", async (t) => {
+  const f = await fixture(t);
+  const identity = ["--cwd", f.b, "--agent", "codex", "--session", "s"];
+  await run("check", ...identity);
+  await assert.rejects(run("check", "--cwd", "", "--session", "s"), /--cwd must not be empty/);
+  for (const ref of ["", "main", "refs/heads/bad..name"]) {
+    for (const command of ["check", "join", "leave", "send"]) {
+      await assert.rejects(
+        run(command, ...identity, "--ref", ref, ...(command === "send" ? ["--message", "x"] : [])),
+        ref.startsWith("refs/") ? /check-ref-format/ : /full branch ref/,
+      );
+    }
+  }
+  await assert.rejects(
+    exec(process.execPath, [cli, "leave", ...identity], { env: { ...process.env, WORKTREE_MAIN_REF: "" } }),
+    /full branch ref/,
+  );
+  const sessions = JSON.parse((await run("sessions", "--cwd", f.b)).stdout).sessions;
+  assert.equal(sessions.length, 1);
+  assert.equal(sessions[0].closedAt, undefined);
+  assert.equal((await run("check", ...identity)).stdout, "");
+});
+
+test("inactive hooks ignore an invalid configured ref", async (t) => {
+  const f = await fixture(t);
+  const child = exec(process.execPath, [cli, "hook", "codex"], {
+    env: { ...process.env, WORKTREE_MAIN_REF: "main", PATH: join(f.root, "missing-git") },
+  });
+  child.child.stdin!.end(JSON.stringify({ hook_event_name: "SessionStart", session_id: "s", cwd: f.b }));
+  assert.deepEqual(JSON.parse((await child).stdout), {});
+  const enabled = exec(process.execPath, [cli, "hook", "codex"], {
+    env: { ...process.env, WORKTREE_MAIN_REF: "main" },
+  });
+  enabled.child.stdin!.end(
+    JSON.stringify({ hook_event_name: "UserPromptSubmit", session_id: "s", cwd: f.b, prompt: "Enable GitRelay" }),
+  );
+  await assert.rejects(enabled, /full branch ref/);
+});
+
 test("leave outside a repository is a no-op while missing worktrees retain their diagnostic", async (t) => {
   const f = await fixture(t);
   const outside = join(f.root, "outside");
