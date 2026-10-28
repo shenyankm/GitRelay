@@ -86,26 +86,25 @@ export async function detectPlatform(
         : { platform, status: "missing" };
   try {
     const { stdout, stderr } = output;
+    const semver =
+      /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][\dA-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][\dA-Za-z-]*))*)?(?:\+[\dA-Za-z-]+(?:\.[\dA-Za-z-]+)*)?$/;
     // A version attached to a wrapper name can still make stdout ambiguous.
     const stderrClaims = stderr.matchAll(
-      new RegExp(`^\\s*${command}(?:-cli)?(?:\\s+|-)v?(\\d+\\.\\d+\\.\\d+[\\w.+-]*)(?![\\w.+/\\\\-])`, "gim"),
+      new RegExp(
+        `^\\s*${command}(?:-cli)?(?:\\s+(?:version\\s+)?|-)v?(\\d+\\.\\d+\\.\\d+[\\w.+-]*)(?![\\w.+/\\\\-])`,
+        "gim",
+      ),
     );
     const allVersions = new Set([
       ...[...stdout.matchAll(/v?(\d+\.\d+\.\d+[\w.+-]*)/g)].map((match) => match[1]),
-      ...[...stderrClaims].map((match) => match[1]),
+      ...[...stderrClaims].map((match) => match[1]).filter((candidate) => semver.test(candidate)),
     ]);
     const matches = [...stdout.matchAll(/(?:^|[^\w.+-])(v?)(\d+\.\d+\.\d+[\w.+-]*)/g)];
     const versions = new Set(matches.map((match) => match[2]));
     if (allVersions.size > 1)
       return { platform, status: "unavailable", reason: "Ambiguous version output: multiple distinct versions" };
     const version = versions.values().next().value;
-    if (
-      !version ||
-      matches.some((match) => match[1].length + match[2].length > 256) ||
-      !/^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][\dA-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][\dA-Za-z-]*))*)?(?:\+[\dA-Za-z-]+(?:\.[\dA-Za-z-]+)*)?$/.test(
-        version,
-      )
-    ) {
+    if (!version || matches.some((match) => match[1].length + match[2].length > 256) || !semver.test(version)) {
       return { platform, status: "unavailable", reason: "Unrecognized version output" };
     }
     const previouslyTested = version === verified;
