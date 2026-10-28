@@ -80,9 +80,15 @@ export async function migrateLegacyState(
   )
     throw new Error("Invalid legacy migration identity or directories.");
   signal?.throwIfAborted();
-  await checkStateDirectory(dirname(newDirectory));
+  try {
+    await checkStateDirectory(dirname(newDirectory));
+    await directory(oldDirectory);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      throw new Error("No path-keyed legacy state exists; use identity-fresh --apply to start a new inbox.");
+    throw error;
+  }
   await checkStateDirectory(join(dirname(dirname(newDirectory)), "identity-migration-claims"), true);
-  await directory(oldDirectory);
   const alreadyMigrated = await withLock(
     join(oldDirectory, "publish.lock"),
     async () => {
