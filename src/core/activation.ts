@@ -13,7 +13,6 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
   if (typeof prompt !== "string") return;
   let fence: string | undefined;
   let fenceIndent = 0;
-  let inlineCode = false;
   const columns = (value: string) =>
     [...value].reduce((width, char) => width + (char === "\t" ? 4 - (width % 4) : 1), 0);
   const text = prompt
@@ -39,14 +38,9 @@ export function requestedActivation(prompt: unknown): boolean | undefined {
         return "";
       }
       if (columns(line.match(/^[ \t]*/)![0]) >= 4) {
-        // Keep delimiters that close a multiline example.
-        return line.replace(/[^“”「」`]/g, "").replace(/`/g, () => {
-          if (!inlineCode) return "";
-          inlineCode = false;
-          return "`";
-        });
+        // Keep single backticks and quote marks around multiline examples.
+        return line.replace(/`+|[^“”「」`]/g, (part) => (part === "`" ? part : ""));
       }
-      for (const char of line) if (char === "`") inlineCode = !inlineCode;
       return line;
     })
     .join("\n")

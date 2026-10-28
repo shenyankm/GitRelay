@@ -44,6 +44,8 @@ test("only direct coordination requests opt a session in or out", () => {
     "“请并行开发”是示例",
     "“Example:\nEnable GitRelay\n    ”",
     "`Example:\nEnable GitRelay\n    `",
+    "    `Example:\nEnable GitRelay\n`",
+    "    `Example:\nDisable GitRelay\n`",
     "`Example:\nDisable GitRelay\n    `",
     "    “Example:\nEnable GitRelay\n”",
     "「例:\nDisable GitRelay\n    」",
@@ -80,6 +82,7 @@ test("only direct coordination requests opt a session in or out", () => {
     assert.equal(requestedActivation(text), undefined, text);
   assert.equal(requestedActivation("~~~\nDisable GitRelay\n~~~\nEnable GitRelay"), true);
   assert.equal(requestedActivation("    ```\nEnable GitRelay"), true);
+  assert.equal(requestedActivation("    `example\nEnable GitRelay"), true);
   assert.equal(requestedActivation("`Example:\nEnable GitRelay\n    `\nDisable GitRelay"), false);
   assert.equal(requestedActivation("10. ~~~\n    Disable GitRelay\n    ~~~\nEnable GitRelay"), true);
   assert.equal(requestedActivation("- ~~~\n  example\nDisable GitRelay"), false);
