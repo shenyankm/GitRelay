@@ -1,0 +1,37 @@
+{
+  "completedAt": "2026-10-29T15:13:11.448Z",
+  "baseCommit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+  "baseline": "Pre-existing uncommitted adaptive-history and empty-comparison changes; saved before disabling status ahead/behind traversal",
+  "command": "npm run check",
+  "exitCode": 0,
+  "includes": [
+    "format:check",
+    "typecheck",
+    "check:release",
+    "npm test",
+    "npm pack --dry-run"
+  ],
+  "testSummary": {
+    "tests": 756,
+    "pass": 755,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "todo": 0
+  },
+  "sourceSha256": "b19d567c2ce389e1971d77e41dccb371bfaaa38db98fe38f7327ba89da1eb58e",
+  "buildSha256": "25dd23ff0d143967778829bd07fca78dda61dd86b2a886df6af1d4fbe579d016",
+  "baselineBuildSha256": "c0b8bdd07fbc9901a81f9b5bb245390bee844518a6cf733076942799a15ce960",
+  "changedBuildFiles": [
+    "dist/core/branch-status.js"
+  ],
+  "verifiedBenchmarkRecords": [
+    "baseline.json",
+    "candidate.json"
+  ],
+  "limitations": [
+    "Local macOS arm64 validation",
+    "No hosted CI, Windows, cold-cache, network-filesystem or native-agent latency test",
+    "CPU metrics exclude Git children; no physical-I/O or per-variant peak-memory measurement"
+  ]
+}

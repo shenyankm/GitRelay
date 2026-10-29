@@ -1,0 +1,72 @@
+{
+  "startedAt": "2026-10-29T02:04:51.769Z",
+  "completedAt": "2026-10-29T02:04:53.019Z",
+  "source": {
+    "commit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+    "dirty": false,
+    "sha256": "771e5725dfc2ac1e8b4bcea7b95c71118252b0b22e4053bc46c190149ea470c7",
+    "buildSha256": "de2e638687debee1045352552eadad70af9615d2be3853234b1d4bcd4731c3ac"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-delivery.mjs"
+  ],
+  "results": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "platform": "darwin",
+      "arch": "arm64",
+      "startupMedianMs": 32.9,
+      "samples": [
+        {
+          "sendMs": 66.1,
+          "checkMs": 87.6,
+          "endToEndMs": 153.7,
+          "resources": "        0.08 real         0.05 user         0.02 sys\n            55197696  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7377  page reclaims\n                  37  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   4  messages sent\n                   3  messages received\n                   0  signals received\n                   0  voluntary context switches\n                 607  involuntary context switches\n           502534226  instructions retired\n           203760595  cycles elapsed\n            18844240  peak memory footprint\n"
+        },
+        {
+          "sendMs": 64.8,
+          "checkMs": 85.6,
+          "endToEndMs": 150.4,
+          "resources": "        0.08 real         0.06 user         0.02 sys\n            57262080  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7504  page reclaims\n                  37  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   4  messages sent\n                   3  messages received\n                   0  signals received\n                   0  voluntary context switches\n                 556  involuntary context switches\n           584907098  instructions retired\n           214017167  cycles elapsed\n            19368576  peak memory footprint\n"
+        },
+        {
+          "sendMs": 63.3,
+          "checkMs": 83.9,
+          "endToEndMs": 147.2,
+          "resources": "        0.08 real         0.06 user         0.02 sys\n            57458688  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7518  page reclaims\n                  37  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   4  messages sent\n                   3  messages received\n                   0  signals received\n                   0  voluntary context switches\n                 598  involuntary context switches\n           578923105  instructions retired\n           212468811  cycles elapsed\n            19499552  peak memory footprint\n"
+        },
+        {
+          "sendMs": 64.4,
+          "checkMs": 87,
+          "endToEndMs": 151.4,
+          "resources": "        0.08 real         0.06 user         0.02 sys\n            57491456  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7520  page reclaims\n                  37  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   4  messages sent\n                   3  messages received\n                   0  signals received\n                   0  voluntary context switches\n                 621  involuntary context switches\n           583438731  instructions retired\n           218664741  cycles elapsed\n            19581544  peak memory footprint\n"
+        },
+        {
+          "sendMs": 69.9,
+          "checkMs": 91.2,
+          "endToEndMs": 161.1,
+          "resources": "        0.08 real         0.06 user         0.02 sys\n            57540608  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7519  page reclaims\n                  37  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   4  messages sent\n                   3  messages received\n                   0  signals received\n                   0  voluntary context switches\n                 718  involuntary context switches\n           587665113  instructions retired\n           234737364  cycles elapsed\n            19647104  peak memory footprint\n"
+        }
+      ],
+      "medians": {
+        "sendMs": 64.8,
+        "checkMs": 87,
+        "endToEndMs": 151.4
+      },
+      "resourceTool": "/usr/bin/time -l",
+      "workload": "one sender and receiver in linked worktrees; CLI messages; warm caches; no daemon; setup excluded"
+    }
+  ],
+  "stdout": "{\n  \"node\": \"v22.23.2\",\n  \"git\": \"git version 2.54.0 (Apple Git-157)\",\n  \"platform\": \"darwin\",\n  \"arch\": \"arm64\",\n  \"startupMedianMs\": 32.9,\n  \"samples\": [\n    {\n      \"sendMs\": 66.1,\n      \"checkMs\": 87.6,\n      \"endToEndMs\": 153.7,\n      \"resources\": \"        0.08 real         0.05 user         0.02 sys\\n            55197696  maximum resident set size\\n                   0  average shared memory size\\n                   0  average unshared data size\\n                   0  average unshared stack size\\n                7377  page reclaims\\n                  37  page faults\\n                   0  swaps\\n                   0  block input operations\\n                   0  block output operations\\n                   4  messages sent\\n                   3  messages received\\n                   0  signals received\\n                   0  voluntary context switches\\n                 607  involuntary context switches\\n           502534226  instructions retired\\n           203760595  cycles elapsed\\n            18844240  peak memory footprint\\n\"\n    },\n    {\n      \"sendMs\": 64.8,\n      \"checkMs\": 85.6,\n      \"endToEndMs\": 150.4,\n      \"resources\": \"        0.08 real         0.06 user         0.02 sys\\n            57262080  maximum resident set size\\n                   0  average shared memory size\\n                   0  average unshared data size\\n                   0  average unshared stack size\\n                7504  page reclaims\\n                  37  page faults\\n                   0  swaps\\n                   0  block input operations\\n                   0  block output operations\\n                   4  messages sent\\n                   3  messages received\\n                   0  signals received\\n                   0  voluntary context switches\\n                 556  involuntary context switches\\n           584907098  instructions retired\\n           214017167  cycles elapsed\\n            19368576  peak memory footprint\\n\"\n    },\n    {\n      \"sendMs\": 63.3,\n      \"checkMs\": 83.9,\n      \"endToEndMs\": 147.2,\n      \"resources\": \"        0.08 real         0.06 user         0.02 sys\\n            57458688  maximum resident set size\\n                   0  average shared memory size\\n                   0  average unshared data size\\n                   0  average unshared stack size\\n                7518  page reclaims\\n                  37  page faults\\n                   0  swaps\\n                   0  block input operations\\n                   0  block output operations\\n                   4  messages sent\\n                   3  messages received\\n                   0  signals received\\n                   0  voluntary context switches\\n                 598  involuntary context switches\\n           578923105  instructions retired\\n           212468811  cycles elapsed\\n            19499552  peak memory footprint\\n\"\n    },\n    {\n      \"sendMs\": 64.4,\n      \"checkMs\": 87,\n      \"endToEndMs\": 151.4,\n      \"resources\": \"        0.08 real         0.06 user         0.02 sys\\n            57491456  maximum resident set size\\n                   0  average shared memory size\\n                   0  average unshared data size\\n                   0  average unshared stack size\\n                7520  page reclaims\\n                  37  page faults\\n                   0  swaps\\n                   0  block input operations\\n                   0  block output operations\\n                   4  messages sent\\n                   3  messages received\\n                   0  signals received\\n                   0  voluntary context switches\\n                 621  involuntary context switches\\n           583438731  instructions retired\\n           218664741  cycles elapsed\\n            19581544  peak memory footprint\\n\"\n    },\n    {\n      \"sendMs\": 69.9,\n      \"checkMs\": 91.2,\n      \"endToEndMs\": 161.1,\n      \"resources\": \"        0.08 real         0.06 user         0.02 sys\\n            57540608  maximum resident set size\\n                   0  average shared memory size\\n                   0  average unshared data size\\n                   0  average unshared stack size\\n                7519  page reclaims\\n                  37  page faults\\n                   0  swaps\\n                   0  block input operations\\n                   0  block output operations\\n                   4  messages sent\\n                   3  messages received\\n                   0  signals received\\n                   0  voluntary context switches\\n                 718  involuntary context switches\\n           587665113  instructions retired\\n           234737364  cycles elapsed\\n            19647104  peak memory footprint\\n\"\n    }\n  ],\n  \"medians\": {\n    \"sendMs\": 64.8,\n    \"checkMs\": 87,\n    \"endToEndMs\": 151.4\n  },\n  \"resourceTool\": \"/usr/bin/time -l\",\n  \"workload\": \"one sender and receiver in linked worktrees; CLI messages; warm caches; no daemon; setup excluded\"\n}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

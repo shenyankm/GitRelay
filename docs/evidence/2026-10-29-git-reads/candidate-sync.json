@@ -1,0 +1,33 @@
+{
+  "startedAt": "2026-10-29T02:27:38.259Z",
+  "completedAt": "2026-10-29T02:27:41.005Z",
+  "source": {
+    "commit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+    "dirty": true,
+    "sha256": "4e73c6b6a48d0d19e89765650339cc467cffda63391ba638dc1fae4a8932e2a2",
+    "buildSha256": "c0b8bdd07fbc9901a81f9b5bb245390bee844518a6cf733076942799a15ce960"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-sync.mjs"
+  ],
+  "results": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "samples": 7,
+      "medianMs": 293.02654199999984,
+      "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+    }
+  ],
+  "stdout": "{\"node\":\"v22.23.2\",\"git\":\"git version 2.54.0 (Apple Git-157)\",\"samples\":7,\"medianMs\":293.02654199999984,\"workload\":\"up-to-date linked worktree with local file remote; one warm-up and setup excluded\"}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

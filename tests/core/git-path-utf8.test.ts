@@ -91,6 +91,7 @@ for (const category of ["committed", "staged", "unstaged", "others"] as const) {
         },
       };
       await consumeMailbox(receiver);
+      const committed = category === "committed" ? await f.commit(f.b, "other.txt", "local commit\n") : f.initial;
       const event = await sendMessage({
         cwd: f.a,
         adapter: "test",
@@ -102,7 +103,7 @@ for (const category of ["committed", "staged", "unstaged", "others"] as const) {
         key = sessionKey(repo, receiver, ref);
       const bin = join(f.root, "bin");
       await mkdir(bin);
-      const script = `#!/bin/sh\ncase "$*" in\n*'${category === "committed" ? "diff --ignore-submodules=none --name-only --no-renames -z " + f.initial + " " + f.initial : category === "staged" ? "diff --ignore-submodules=none --name-only --no-renames -z --cached --" : category === "unstaged" ? "diff --name-only --no-renames -z --" : "ls-files --others -z"}'*) printf x > "$GIT_RELAY_TEST_BAD_PATH_MARKER"; printf 'name_\\377\\000'; exit 0 ;;\nesac\nexec /usr/bin/git "$@"\n`;
+      const script = `#!/bin/sh\ncase "$*" in\n*'${category === "committed" ? "diff --ignore-submodules=none --name-only --no-renames -z " + f.initial + " " + committed : category === "staged" ? "diff --ignore-submodules=none --name-only --no-renames -z --cached --" : category === "unstaged" ? "diff --name-only --no-renames -z --" : "ls-files --others -z"}'*) printf x > "$GIT_RELAY_TEST_BAD_PATH_MARKER"; printf 'name_\\377\\000'; exit 0 ;;\nesac\nexec /usr/bin/git "$@"\n`;
       await writeFile(join(bin, "git"), script);
       await chmod(join(bin, "git"), 0o755);
       const prior = process.env.PATH,

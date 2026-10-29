@@ -101,7 +101,15 @@ export async function branchStatus(options: BranchStatusOptions) {
   const status = (
     await git(
       cwd,
-      ["--no-optional-locks", "status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"],
+      [
+        "--no-optional-locks",
+        "status",
+        "--porcelain=v2",
+        "--branch",
+        "-z",
+        "--untracked-files=normal",
+        "--no-ahead-behind",
+      ],
       signal,
       "paths",
     )
@@ -126,7 +134,15 @@ export async function branchStatus(options: BranchStatusOptions) {
     const check = (
       await git(
         cwd,
-        ["--no-optional-locks", "status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"],
+        [
+          "--no-optional-locks",
+          "status",
+          "--porcelain=v2",
+          "--branch",
+          "-z",
+          "--untracked-files=normal",
+          "--no-ahead-behind",
+        ],
         signal,
         "paths",
       )
@@ -181,12 +197,14 @@ export async function branchStatus(options: BranchStatusOptions) {
     }
     tracking = { ref: upstream, commit: upstreamCommit, ahead: null, behind: null };
     if (upstreamCommit && commit) {
-      const counts = (
-        await git(cwd, ["rev-list", "--left-right", "--count", `${commit}...${upstreamCommit}`, "--"], signal)
-      )
-        .trim()
-        .split(/\s+/)
-        .map(Number);
+      signal?.throwIfAborted();
+      const counts =
+        commit === upstreamCommit
+          ? [0, 0]
+          : (await git(cwd, ["rev-list", "--left-right", "--count", `${commit}...${upstreamCommit}`, "--"], signal))
+              .trim()
+              .split(/\s+/)
+              .map(Number);
       tracking.ahead = counts[0];
       tracking.behind = counts[1];
     }

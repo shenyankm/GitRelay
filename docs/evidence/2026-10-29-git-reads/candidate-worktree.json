@@ -1,0 +1,4 @@
+{"node":"v22.23.2","git":"git version 2.54.0 (Apple Git-157)","samples":20,"medianMs":33.523540999999994,"minMs":30.670500000000004,"maxMs":43.538624999999996}
+{"ignoredFiles":1000,"samples":5,"medianScanAndMatchMs":39.71579099999997}
+{"ignoredFiles":10000,"samples":5,"medianScanAndMatchMs":44.587625000000116}
+{"ignoredFiles":100000,"samples":5,"medianScanAndMatchMs":134.25354200000038}

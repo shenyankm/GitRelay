@@ -1,8 +1,201 @@
 # GitRelay performance benchmarks
 
-The latest synchronization, state-reader, cleanup and hook measurements are below.
+The latest event-ordering, Git-read, synchronization, state-reader, cleanup and hook measurements are below.
 Other sections retain measurements for named historical source snapshots;
 retired-client results are not current support claims.
+
+## Repeated upstream-event ordering: 2026-10-29
+
+Inbox ordering now groups unread upstream events by ref, previous commit and
+resulting commit. Events with the same transition share candidate-parent hashes,
+and each event's legacy-migration identity is classified once per scan. The
+existing causal traversal, cycle detection and message positions are preserved.
+Message-only scans return before allocating upstream-ordering maps.
+
+The [alternating comparison](evidence/2026-10-29-event-ordering/comparison.json)
+compares the preceding working tree, including the status-history optimization,
+with this change. Both include uncommitted changes on `a4623bb`; only
+`dist/core/mailbox.js` differs between the runtime builds. Each workload uses
+one warm-up and five measured samples per variant in alternating order against
+the same state files on macOS arm64, Node 22.23.2. Setup is excluded and caches
+are warm. These are synthetic valid upstream event chains, beginning with a
+legacy migration and using reversed timestamps to require causal reordering.
+
+| Event chain                    |     Before |   After | Observed reduction |
+| ------------------------------ | ---------: | ------: | -----------------: |
+| 100 repeated rollback events   |     8.4 ms |  3.4 ms |              59.3% |
+| 1,000 repeated rollback events |   562.2 ms | 25.5 ms |              95.5% |
+| 2,000 repeated rollback events | 2,311.5 ms | 48.6 ms |              97.9% |
+| 100 linear events              |     3.5 ms |  4.1 ms |             -15.2% |
+| 1,000 linear events            |    25.2 ms | 25.9 ms |              -2.5% |
+| 2,000 linear events            |    56.0 ms | 55.1 ms |               1.6% |
+
+All samples assert the complete event-ID order and absence of new receipts.
+For 2,000 rollback events, process CPU fell from 2,427.3 to 130.3 ms. Linear
+history shows no consistent improvement; the small absolute differences are
+not reliable general speedup estimates. This removes repeated work for repeated
+transitions, not every possible quadratic graph: many distinct transitions
+sharing a commit, or migration-parent fanout, can still require many comparisons
+or edges. No persistent index, dependency, API or state format was added.
+
+The [baseline](evidence/2026-10-29-event-ordering/baseline.json) and
+[candidate](evidence/2026-10-29-event-ordering/candidate.json) recorder runs retain
+source/build fingerprints; their standalone timings are separate from the
+alternating comparison. Reproduce with saved runtime builds:
+
+```sh
+node scripts/benchmark-ordering.mjs /absolute/baseline/dist
+node scripts/record-benchmark.mjs ordering /absolute/new-ordering-result.json
+```
+
+The regression fixture covers two refs, repeated and unchanged commits, legacy
+migration without a parent-ID salt, interleaved messages, reversed clocks and
+acknowledged prefixes. Its hash-count bound failed before the change: 134 mixed
+events required 8,324 hashes. The candidate passes that bound while preserving
+exact per-ref order and message positions.
+
+[`npm run check` passed](evidence/2026-10-29-event-ordering/validation.json):
+formatting, types, release checks, 756 passed tests, one skipped test, zero
+failures and package dry-run. The validation record rechecks both saved build
+fingerprints and confirms that only the mailbox runtime module changed.
+
+External load was uncontrolled. The measurement includes the held session lock,
+state reads and ordering; it excludes Git history comparison, full backlog
+delivery and native-client latency. Cold caches, network filesystems, Windows
+and per-variant peak memory were not compared.
+
+## Avoid duplicate status history: 2026-10-29
+
+Branch status now disables Git status's optional ahead/behind traversal. The
+returned counts still come from the selected branch's pinned commit comparison.
+Both the initial status read and the ambiguous-HEAD recheck use this option;
+worktree changes and branch identity are still read normally.
+
+The [alternating comparison](evidence/2026-10-29-status-history/comparison.json)
+uses the existing uncommitted adaptive-history candidate described below as its
+baseline, based on `a4623bb`. Only `dist/core/branch-status.js` differs between
+the two runtime builds. Each workload has one warm-up followed by 20 samples
+per variant on the same temporary repository, alternating variant order.
+The host is macOS arm64, Node 22.23.2 and Git 2.54.0, with warm filesystem
+caches. Setup is excluded. Divergent branches each contain 10,000 commits
+after a shared base; the explicitly selected branch remains at that base.
+
+| Status workload                                  |   Before |   After | Observed reduction |
+| ------------------------------------------------ | -------: | ------: | -----------------: |
+| Current branch, without commit graph             | 132.8 ms | 88.0 ms |              33.7% |
+| Explicitly selected branch, without commit graph | 108.9 ms | 62.8 ms |              42.3% |
+| Current branch, with commit graph                |  53.4 ms | 53.4 ms |               0.0% |
+| Explicitly selected branch, with commit graph    |  56.6 ms | 53.9 ms |               4.8% |
+
+Every sample asserts the exact local/upstream commit IDs, ahead/behind counts,
+current worktree branch and dirty state. The benchmark also retains the earlier
+equal-commit and staged/unstaged/untracked/ignored-file checks. Commit graphs
+already make the redundant traversal cheap; these measurements do not establish
+a general speedup for that case. Small differences and unchanged worktree-read
+timings should be treated as noise. No dependency, API or state format changed.
+
+The separate [baseline recorder](evidence/2026-10-29-status-history/baseline.json)
+and [candidate recorder](evidence/2026-10-29-status-history/candidate.json)
+retain source/build fingerprints. Their standalone timings are not the
+alternating comparison. Reproduce with both builds saved first:
+
+```sh
+node scripts/benchmark-git-reads.mjs /absolute/baseline/dist
+node scripts/record-benchmark.mjs git-reads /absolute/new-status-result.json
+```
+
+[`npm run check` passed](evidence/2026-10-29-status-history/validation.json):
+formatting, types, release checks, 755 passed tests, one skipped test, zero
+failures and package dry-run. The validation record confirms the tested build
+matches the candidate recorder and lists the sole changed runtime module.
+
+External load was uncontrolled. CPU metrics omit Git children; filesystem block
+counters do not measure physical disk bytes. Cold caches, network filesystems,
+Windows, native agent/model latency and per-variant peak memory were not tested.
+
+## Adaptive history and empty comparisons: 2026-10-29
+
+The current implementation avoids `rev-list` when the two inspected refs have
+the same object ID. Worktree relevance also avoids `merge-base` for identical
+commits and a committed-file diff when the pinned HEAD is the merge base.
+Staged, unstaged, untracked, ignored and gitlink reads remain fresh.
+Synchronization reads its three independent boolean policies concurrently,
+settles all reads and preserves the original first blocking policy/error order.
+
+History starts with 32 commits, then sizes subsequent batches from the observed
+UTF-8 filename bytes, targeting 8 MiB and clamping to 32–256 commits. The argument
+cap leaves room for SHA-256 hashes on Windows. The existing 16 MiB command-output
+limit remains enforced. Oversized large batches split before the existing
+four-process per-commit fallback. Abrupt workload changes can still overflow an
+estimate; this is a scheduling heuristic, not a total-memory bound. Commit
+ordering, intermediate reverts, merge/snapshot comparisons, strict decoding,
+cancellation and error propagation remain in place.
+
+The following comparisons use a saved build of `a4623bb` and the final candidate
+on macOS arm64, Node 22.23.2 and Git 2.54.0. The
+[history comparison](evidence/2026-10-29-git-reads/history-comparison.json) and
+[wide-history comparison](evidence/2026-10-29-git-reads/wide-history-comparison.json)
+each use six alternating samples per variant on the same real Git repository.
+The [Git-read comparison](evidence/2026-10-29-git-reads/git-reads-comparison.json)
+uses 20 alternating samples after a warm-up. Setup is excluded and caches are
+warm. All ordered-commit, filename, patch/revert, dirty-state and divergence
+assertions passed.
+
+The [protected-sync comparison](evidence/2026-10-29-git-reads/sync-comparison.json)
+uses three alternating runs per variant, each reporting the median of seven
+up-to-date calls after a warm-up against a local-file remote. HEAD, file contents
+and clean-worktree assertions passed for every call.
+
+| Core operation                               |   Before |    After | Observed reduction |
+| -------------------------------------------- | -------: | -------: | -----------------: |
+| 100-commit history                           | 129.8 ms |  99.7 ms |              23.2% |
+| 500-commit history                           | 314.3 ms | 140.3 ms |              55.4% |
+| 2,000-commit history                         | 884.3 ms | 242.2 ms |              72.6% |
+| 200 commits, 1,000 long filenames per commit | 297.0 ms | 259.7 ms |              12.6% |
+| Status with identical tracked commits        |  50.7 ms |  40.5 ms |              20.1% |
+| Dirty worktree with identical commits        |  29.3 ms |  19.3 ms |              34.2% |
+| Dirty worktree at the upstream's ancestor    |  29.1 ms |  28.3 ms |               2.7% |
+| Protected up-to-date sync, local-file remote | 353.6 ms | 311.1 ms |              12.0% |
+
+The Git-read benchmark's Node CPU medians were 6.6→4.9 ms for status,
+7.4→5.3 ms for equal-commit relevance and 7.4→6.1 ms for ancestor relevance.
+These omit Git child CPU. OS block counters were zero and do not establish
+physical disk I/O. External load was uncontrolled; small differences, including
+the ancestor timing, are not reliable general speedup estimates. Cold caches,
+network filesystems, per-variant peak memory, Windows execution and native
+agent/model latency were not compared.
+
+Reproduce after building both source snapshots:
+
+```sh
+node scripts/benchmark-git-reads.mjs /absolute/baseline/dist
+node docs/evidence/2026-10-29-git-reads/compare-history.mjs /absolute/baseline/dist /absolute/candidate/dist
+node docs/evidence/2026-10-29-git-reads/compare-history.mjs /absolute/baseline/dist /absolute/candidate/dist wide
+node scripts/record-benchmark.mjs git-reads /absolute/new-git-reads-result.json
+```
+
+Eight final recorder runs for Git reads, history, mailbox, maintenance,
+concurrency, delivery, synchronization and hooks retain identical source/build
+fingerprints in `evidence/2026-10-29-git-reads/candidate-*.json`. A separate
+large-tree run passed exact filename and matching assertions through 100,000
+ignored files. Mailbox polling/recovery through 10,000 retained events, GC,
+1/4/8-process consumers, immediate hook delivery, Stop continuation and receipt
+deduplication passed. Their standalone timings are coverage records, not
+controlled speedup claims for unchanged paths.
+
+[`npm run check` passed](evidence/2026-10-29-git-reads/validation.json): formatting,
+types, release metadata, 755 passed tests, one skipped test, zero failures and
+package dry-run. The validation record rechecks all eight source/build
+fingerprints after the full gate. New regressions cover adaptive batch boundaries,
+smaller combined retries, empty comparisons and parallel policy failure ordering.
+The UTF-8 committed-path fixture now injects into a real local commit diff.
+
+The practical stopping point for this pass is measured gains in the exercised
+workloads while preserving state/delivery semantics. Remaining retained-state
+scans validate receipts and publication recovery; eliminating them needs a
+separately verified state/index protocol. Git root/path validation, synchronization
+locks, fetch freshness and installer stability checks remain necessary. No
+cross-call cache, new dependency, public API or state-format change was added.
 
 ## Protected opt-in synchronization: 2026-10-28
 
@@ -180,7 +373,7 @@ node scripts/record-benchmark.mjs mailbox /absolute/new-mailbox-result.json
 ```
 
 The recorder supports `delivery`, `mailbox`, `history`, `maintenance`,
-`concurrency`, `hooks` and `sync`. It records the source commit, dirty status, a content fingerprint,
+`concurrency`, `hooks`, `sync` and `git-reads`. It records the source commit, dirty status, a content fingerprint,
 OS/Node/Git versions, workload records and raw stdout/stderr. Existing benchmark
 assertions must pass, and the source fingerprint must remain unchanged. Build
 immediately before recording and do not run another build or test concurrently.

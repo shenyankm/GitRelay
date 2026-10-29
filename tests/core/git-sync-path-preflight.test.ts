@@ -21,7 +21,10 @@ async function remoteFixture(t: TestContext) {
   return f;
 }
 
-async function gitWrapper(f: Awaited<ReturnType<typeof fixture>>, mode: "invalid-path" | "marker-after-fetch") {
+async function gitWrapper(
+  f: Awaited<ReturnType<typeof fixture>>,
+  mode: "invalid-path" | "marker-after-fetch" | "config-error" | "config-blocked",
+) {
   const bin = join(f.root, "wrapper-bin"),
     calls = join(f.root, "calls.log"),
     done = join(f.root, "settled");
@@ -33,6 +36,10 @@ async function gitWrapper(f: Awaited<ReturnType<typeof fixture>>, mode: "invalid
 const fs=require('node:fs'),cp=require('node:child_process');
 const args=process.argv.slice(2), mode=${JSON.stringify(mode)}, calls=${JSON.stringify(calls)};
 fs.appendFileSync(calls,JSON.stringify(args)+'\\n');
+const policy=args.includes('config')?args.at(-1):undefined;
+if(mode.startsWith('config-') && policy==='core.splitIndex') { cp.spawnSync('/bin/sleep',['0.2']); fs.writeFileSync(${JSON.stringify(done)},'settled'); process.stdout.write('false\\n'); process.exit(0); }
+if(mode==='config-error' && policy==='extensions.worktreeConfig' || mode==='config-blocked' && policy==='core.sparseCheckout') { process.stderr.write('injected config failure'); process.exit(2); }
+if(mode==='config-blocked' && policy==='extensions.worktreeConfig') { process.stdout.write('true\\n'); process.exit(0); }
 if(mode==='invalid-path' && args.includes('--git-path') && args.at(-1)==='MERGE_HEAD') { process.stdout.write(Buffer.from([255,10])); process.exit(0); }
 if(mode==='invalid-path' && args.includes('--git-path') && args.at(-1)==='CHERRY_PICK_HEAD') { cp.spawnSync('/bin/sleep',['0.2']); fs.writeFileSync(${JSON.stringify(done)},'settled'); }
 const child=cp.spawnSync('/usr/bin/git',args,{encoding:null});
@@ -59,6 +66,29 @@ const names = async (path: string) =>
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line) as string[]);
+
+for (const mode of ["config-error", "config-blocked"] as const)
+  test(
+    `sync policy reads settle siblings and preserve result priority: ${mode}`,
+    { skip: process.platform === "win32" },
+    async (t) => {
+      const f = await remoteFixture(t);
+      const before = git(f.main, "rev-parse", "refs/remotes/origin/main").trim();
+      const w = await gitWrapper(f, mode);
+      try {
+        const result = await syncBranch(f.main, "main");
+        assert.equal(result.state, mode === "config-error" ? "error" : "blocked");
+        assert.match(result.reason ?? "", mode === "config-error" ? /injected config failure/ : /per-worktree config/);
+        assert.equal(await readFile(w.done, "utf8"), "settled");
+        assert.ok(!(await names(w.calls)).some((args) => args.includes("fetch") || args.includes("merge")));
+        assert.equal(await readFile(join(f.main, "shared.txt"), "utf8"), "base\n");
+      } finally {
+        w.restore();
+      }
+      assert.equal(git(f.main, "rev-parse", "refs/remotes/origin/main").trim(), before);
+      assert.equal(git(f.main, "rev-parse", "HEAD").trim(), f.initial);
+    },
+  );
 
 test(
   "Git operation-path reader rejects invalid UTF-8 without fetching or changing files",

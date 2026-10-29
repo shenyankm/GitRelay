@@ -17,6 +17,8 @@ const scripts = {
   concurrency: "benchmark-concurrency.mjs",
   hooks: "benchmark-hooks.mjs",
   sync: "benchmark-sync.mjs",
+  "git-reads": "benchmark-git-reads.mjs",
+  ordering: "benchmark-ordering.mjs",
 };
 const [name, output, ...extra] = process.argv.slice(2);
 assert.ok(

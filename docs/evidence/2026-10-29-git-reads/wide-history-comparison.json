@@ -1,0 +1,89 @@
+{
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "moduleSha256": {
+    "baseline": "7be5fbfa8f9a9c6a470b1148d4e23eb84ae2154d7f779f0eb573f0d968a40de1",
+    "candidate": "f6b9f71e80c862cb2f4ea4ca4e81d25cc2cf66795ea6b0e50488d9491e3ff34c"
+  },
+  "workload": "200 commits each changing 1000 long filenames, plus two overlapping edits including a revert",
+  "samples": 6,
+  "results": [
+    {
+      "name": "baseline",
+      "commits": 200,
+      "round": 0,
+      "wallMs": 542.021042
+    },
+    {
+      "name": "candidate",
+      "commits": 200,
+      "round": 0,
+      "wallMs": 298.514584
+    },
+    {
+      "name": "candidate",
+      "commits": 200,
+      "round": 1,
+      "wallMs": 260.8978750000001
+    },
+    {
+      "name": "baseline",
+      "commits": 200,
+      "round": 1,
+      "wallMs": 296.46254100000033
+    },
+    {
+      "name": "baseline",
+      "commits": 200,
+      "round": 2,
+      "wallMs": 290.2580420000004
+    },
+    {
+      "name": "candidate",
+      "commits": 200,
+      "round": 2,
+      "wallMs": 258.410625
+    },
+    {
+      "name": "candidate",
+      "commits": 200,
+      "round": 3,
+      "wallMs": 253.522833
+    },
+    {
+      "name": "baseline",
+      "commits": 200,
+      "round": 3,
+      "wallMs": 297.6201249999999
+    },
+    {
+      "name": "baseline",
+      "commits": 200,
+      "round": 4,
+      "wallMs": 304.193041
+    },
+    {
+      "name": "candidate",
+      "commits": 200,
+      "round": 4,
+      "wallMs": 270.02300000000014
+    },
+    {
+      "name": "candidate",
+      "commits": 200,
+      "round": 5,
+      "wallMs": 253.3196250000001
+    },
+    {
+      "name": "baseline",
+      "commits": 200,
+      "round": 5,
+      "wallMs": 288.5437919999995
+    }
+  ],
+  "limitations": "Same real Git repository, alternating variants, warm caches, setup excluded, uncontrolled external load. No cold-cache, per-variant memory, physical I/O, network-filesystem or real-client latency comparison."
+}

@@ -210,12 +210,13 @@ export async function syncBranch(cwd: string, branch: string, signal?: AbortSign
       if (error?.cause?.code === 1 && !error.cause.stderr?.toString()) return "";
       throw error;
     });
-    if (
-      (await config("extensions.worktreeConfig", true)) === "true" ||
-      (await config("core.sparseCheckout", true)) === "true" ||
-      (await config("core.splitIndex", true)) === "true" ||
-      conditionalConfig
-    )
+    const policies = await Promise.allSettled(
+      ["extensions.worktreeConfig", "core.sparseCheckout", "core.splitIndex"].map((key) => config(key, true)),
+    );
+    signal?.throwIfAborted();
+    const policy = policies.find((result) => result.status === "rejected" || result.value === "true");
+    if (policy?.status === "rejected") throw policy.reason;
+    if (policy || conditionalConfig)
       return {
         state: "blocked",
         reason:

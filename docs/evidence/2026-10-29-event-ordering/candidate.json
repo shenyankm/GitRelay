@@ -1,0 +1,325 @@
+{
+  "startedAt": "2026-10-29T15:58:17.977Z",
+  "completedAt": "2026-10-29T15:58:19.527Z",
+  "source": {
+    "commit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+    "dirty": true,
+    "sha256": "471c0bbc2e00a6140e741ee4d6e9569b64c47656be307350dc6aa5edde7d53b1",
+    "buildSha256": "b9983a9f093caa63310eead85e106cbde9c9a43afb03be290a718e4edb6c0345"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-ordering.mjs"
+  ],
+  "results": [
+    {
+      "environment": {
+        "node": "v22.23.2",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "variants": {
+        "candidate": "/Users/sheny/Developer/code/worktree-relay/dist/"
+      },
+      "samples": 5,
+      "medians": [
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 100,
+          "wallMs": 3.368541999999998,
+          "cpuMs": 6.789
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 1000,
+          "wallMs": 27.768666999999994,
+          "cpuMs": 69.475
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 2000,
+          "wallMs": 53.05083400000001,
+          "cpuMs": 141.293
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 100,
+          "wallMs": 2.7033330000000433,
+          "cpuMs": 6.156
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 1000,
+          "wallMs": 24.537791000000084,
+          "cpuMs": 62.53
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 2000,
+          "wallMs": 58.12154200000009,
+          "cpuMs": 161.418
+        }
+      ],
+      "results": [
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 100,
+          "sample": 1,
+          "wallMs": 3.368541999999998,
+          "cpuMs": 6.789
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 100,
+          "sample": 2,
+          "wallMs": 3.450624999999995,
+          "cpuMs": 7.907
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 100,
+          "sample": 3,
+          "wallMs": 3.008666000000005,
+          "cpuMs": 6.702
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 100,
+          "sample": 4,
+          "wallMs": 2.9206669999999946,
+          "cpuMs": 5.79
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 100,
+          "sample": 5,
+          "wallMs": 3.739291999999992,
+          "cpuMs": 10.841
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 1000,
+          "sample": 1,
+          "wallMs": 29.639207999999996,
+          "cpuMs": 88.121
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 1000,
+          "sample": 2,
+          "wallMs": 27.768666999999994,
+          "cpuMs": 99.005
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 1000,
+          "sample": 3,
+          "wallMs": 27.971000000000004,
+          "cpuMs": 69.475
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 1000,
+          "sample": 4,
+          "wallMs": 24.806249999999977,
+          "cpuMs": 63.82
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 1000,
+          "sample": 5,
+          "wallMs": 24.17149999999998,
+          "cpuMs": 62.788
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 2000,
+          "sample": 1,
+          "wallMs": 51.60508299999998,
+          "cpuMs": 149.081
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 2000,
+          "sample": 2,
+          "wallMs": 54.69091599999996,
+          "cpuMs": 149.073
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 2000,
+          "sample": 3,
+          "wallMs": 51.46124999999995,
+          "cpuMs": 138.449
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 2000,
+          "sample": 4,
+          "wallMs": 53.05083400000001,
+          "cpuMs": 141.293
+        },
+        {
+          "name": "candidate",
+          "workload": "rollback",
+          "events": 2000,
+          "sample": 5,
+          "wallMs": 53.55624999999998,
+          "cpuMs": 139.508
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 100,
+          "sample": 1,
+          "wallMs": 2.3629170000000386,
+          "cpuMs": 5.869
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 100,
+          "sample": 2,
+          "wallMs": 2.417500000000018,
+          "cpuMs": 6.156
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 100,
+          "sample": 3,
+          "wallMs": 3.2407089999999243,
+          "cpuMs": 8.085
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 100,
+          "sample": 4,
+          "wallMs": 2.7033330000000433,
+          "cpuMs": 6.135
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 100,
+          "sample": 5,
+          "wallMs": 3.2648339999999507,
+          "cpuMs": 8.027
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 1000,
+          "sample": 1,
+          "wallMs": 24.660665999999992,
+          "cpuMs": 63.636
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 1000,
+          "sample": 2,
+          "wallMs": 24.537791000000084,
+          "cpuMs": 62.53
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 1000,
+          "sample": 3,
+          "wallMs": 24.697000000000003,
+          "cpuMs": 64.453
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 1000,
+          "sample": 4,
+          "wallMs": 23.748749999999973,
+          "cpuMs": 59.862
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 1000,
+          "sample": 5,
+          "wallMs": 24.48279100000002,
+          "cpuMs": 62.42
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 2000,
+          "sample": 1,
+          "wallMs": 51.51029100000005,
+          "cpuMs": 134.339
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 2000,
+          "sample": 2,
+          "wallMs": 64.33549999999991,
+          "cpuMs": 172.89
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 2000,
+          "sample": 3,
+          "wallMs": 61.69462500000009,
+          "cpuMs": 164.8
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 2000,
+          "sample": 4,
+          "wallMs": 58.12154200000009,
+          "cpuMs": 161.418
+        },
+        {
+          "name": "candidate",
+          "workload": "linear",
+          "events": 2000,
+          "sample": 5,
+          "wallMs": 52.28275000000008,
+          "cpuMs": 135.297
+        }
+      ],
+      "workload": "Synthetic valid upstream event chains with an initial legacy migration; repeated two-commit rollbacks and a linear-history control; reversed timestamps; same real state files, held session lock, one warm-up and setup excluded; alternating variants",
+      "limitations": "Warm local caches and uncontrolled external load. Measures locked inbox scanning and ordering, not Git history comparison, full backlog delivery, native-client latency, cold caches, network filesystems or per-variant peak memory."
+    }
+  ],
+  "stdout": "{\"environment\":{\"node\":\"v22.23.2\",\"platform\":\"darwin\",\"arch\":\"arm64\"},\"variants\":{\"candidate\":\"/Users/sheny/Developer/code/worktree-relay/dist/\"},\"samples\":5,\"medians\":[{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":100,\"wallMs\":3.368541999999998,\"cpuMs\":6.789},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":1000,\"wallMs\":27.768666999999994,\"cpuMs\":69.475},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":2000,\"wallMs\":53.05083400000001,\"cpuMs\":141.293},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":100,\"wallMs\":2.7033330000000433,\"cpuMs\":6.156},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":1000,\"wallMs\":24.537791000000084,\"cpuMs\":62.53},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":2000,\"wallMs\":58.12154200000009,\"cpuMs\":161.418}],\"results\":[{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":100,\"sample\":1,\"wallMs\":3.368541999999998,\"cpuMs\":6.789},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":100,\"sample\":2,\"wallMs\":3.450624999999995,\"cpuMs\":7.907},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":100,\"sample\":3,\"wallMs\":3.008666000000005,\"cpuMs\":6.702},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":100,\"sample\":4,\"wallMs\":2.9206669999999946,\"cpuMs\":5.79},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":100,\"sample\":5,\"wallMs\":3.739291999999992,\"cpuMs\":10.841},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":1000,\"sample\":1,\"wallMs\":29.639207999999996,\"cpuMs\":88.121},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":1000,\"sample\":2,\"wallMs\":27.768666999999994,\"cpuMs\":99.005},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":1000,\"sample\":3,\"wallMs\":27.971000000000004,\"cpuMs\":69.475},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":1000,\"sample\":4,\"wallMs\":24.806249999999977,\"cpuMs\":63.82},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":1000,\"sample\":5,\"wallMs\":24.17149999999998,\"cpuMs\":62.788},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":2000,\"sample\":1,\"wallMs\":51.60508299999998,\"cpuMs\":149.081},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":2000,\"sample\":2,\"wallMs\":54.69091599999996,\"cpuMs\":149.073},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":2000,\"sample\":3,\"wallMs\":51.46124999999995,\"cpuMs\":138.449},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":2000,\"sample\":4,\"wallMs\":53.05083400000001,\"cpuMs\":141.293},{\"name\":\"candidate\",\"workload\":\"rollback\",\"events\":2000,\"sample\":5,\"wallMs\":53.55624999999998,\"cpuMs\":139.508},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":100,\"sample\":1,\"wallMs\":2.3629170000000386,\"cpuMs\":5.869},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":100,\"sample\":2,\"wallMs\":2.417500000000018,\"cpuMs\":6.156},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":100,\"sample\":3,\"wallMs\":3.2407089999999243,\"cpuMs\":8.085},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":100,\"sample\":4,\"wallMs\":2.7033330000000433,\"cpuMs\":6.135},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":100,\"sample\":5,\"wallMs\":3.2648339999999507,\"cpuMs\":8.027},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":1000,\"sample\":1,\"wallMs\":24.660665999999992,\"cpuMs\":63.636},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":1000,\"sample\":2,\"wallMs\":24.537791000000084,\"cpuMs\":62.53},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":1000,\"sample\":3,\"wallMs\":24.697000000000003,\"cpuMs\":64.453},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":1000,\"sample\":4,\"wallMs\":23.748749999999973,\"cpuMs\":59.862},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":1000,\"sample\":5,\"wallMs\":24.48279100000002,\"cpuMs\":62.42},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":2000,\"sample\":1,\"wallMs\":51.51029100000005,\"cpuMs\":134.339},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":2000,\"sample\":2,\"wallMs\":64.33549999999991,\"cpuMs\":172.89},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":2000,\"sample\":3,\"wallMs\":61.69462500000009,\"cpuMs\":164.8},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":2000,\"sample\":4,\"wallMs\":58.12154200000009,\"cpuMs\":161.418},{\"name\":\"candidate\",\"workload\":\"linear\",\"events\":2000,\"sample\":5,\"wallMs\":52.28275000000008,\"cpuMs\":135.297}],\"workload\":\"Synthetic valid upstream event chains with an initial legacy migration; repeated two-commit rollbacks and a linear-history control; reversed timestamps; same real state files, held session lock, one warm-up and setup excluded; alternating variants\",\"limitations\":\"Warm local caches and uncontrolled external load. Measures locked inbox scanning and ordering, not Git history comparison, full backlog delivery, native-client latency, cold caches, network filesystems or per-variant peak memory.\"}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

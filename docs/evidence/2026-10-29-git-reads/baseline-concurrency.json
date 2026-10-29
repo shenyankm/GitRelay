@@ -1,0 +1,126 @@
+{
+  "startedAt": "2026-10-29T02:04:27.519Z",
+  "completedAt": "2026-10-29T02:04:51.695Z",
+  "source": {
+    "commit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+    "dirty": false,
+    "sha256": "771e5725dfc2ac1e8b4bcea7b95c71118252b0b22e4053bc46c190149ea470c7",
+    "buildSha256": "de2e638687debee1045352552eadad70af9615d2be3853234b1d4bcd4731c3ac"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-concurrency.mjs"
+  ],
+  "results": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "events": 1000,
+      "samples": 3,
+      "workload": "independent CLI processes in one worktree; process startup included; setup excluded; warm caches"
+    },
+    {
+      "processes": 1,
+      "daemon": false,
+      "idleRoundsMs": [
+        140.8,
+        141.2,
+        139.6
+      ],
+      "medianIdleMs": 140.8,
+      "recoverEightPerProcessMs": 142.6,
+      "gcAndPollMs": 285.7,
+      "gcBusy": 4
+    },
+    {
+      "processes": 1,
+      "daemon": true,
+      "idleRoundsMs": [
+        148.9,
+        147.2,
+        143.2
+      ],
+      "medianIdleMs": 147.2,
+      "recoverEightPerProcessMs": 143.2,
+      "gcAndPollMs": 274.6,
+      "gcBusy": 0
+    },
+    {
+      "processes": 1,
+      "concurrentDeletionVerified": true,
+      "skippedFirstPoll": 1
+    },
+    {
+      "processes": 4,
+      "daemon": false,
+      "idleRoundsMs": [
+        328,
+        369.1,
+        335.8
+      ],
+      "medianIdleMs": 335.8,
+      "recoverEightPerProcessMs": 329.4,
+      "gcAndPollMs": 707.9,
+      "gcBusy": 6
+    },
+    {
+      "processes": 4,
+      "daemon": true,
+      "idleRoundsMs": [
+        323.5,
+        325.4,
+        338.1
+      ],
+      "medianIdleMs": 325.4,
+      "recoverEightPerProcessMs": 324.3,
+      "gcAndPollMs": 731.9,
+      "gcBusy": 8
+    },
+    {
+      "processes": 4,
+      "concurrentDeletionVerified": true,
+      "skippedFirstPoll": 4
+    },
+    {
+      "processes": 8,
+      "daemon": false,
+      "idleRoundsMs": [
+        600.8,
+        608.7,
+        595.7
+      ],
+      "medianIdleMs": 600.8,
+      "recoverEightPerProcessMs": 641.4,
+      "gcAndPollMs": 1209.3,
+      "gcBusy": 7
+    },
+    {
+      "processes": 8,
+      "daemon": true,
+      "idleRoundsMs": [
+        647.5,
+        595.8,
+        572.7
+      ],
+      "medianIdleMs": 595.8,
+      "recoverEightPerProcessMs": 612.8,
+      "gcAndPollMs": 1200.2,
+      "gcBusy": 8
+    },
+    {
+      "processes": 8,
+      "concurrentDeletionVerified": true,
+      "skippedFirstPoll": 8
+    }
+  ],
+  "stdout": "{\"node\":\"v22.23.2\",\"git\":\"git version 2.54.0 (Apple Git-157)\",\"events\":1000,\"samples\":3,\"workload\":\"independent CLI processes in one worktree; process startup included; setup excluded; warm caches\"}\n{\"processes\":1,\"daemon\":false,\"idleRoundsMs\":[140.8,141.2,139.6],\"medianIdleMs\":140.8,\"recoverEightPerProcessMs\":142.6,\"gcAndPollMs\":285.7,\"gcBusy\":4}\n{\"processes\":1,\"daemon\":true,\"idleRoundsMs\":[148.9,147.2,143.2],\"medianIdleMs\":147.2,\"recoverEightPerProcessMs\":143.2,\"gcAndPollMs\":274.6,\"gcBusy\":0}\n{\"processes\":1,\"concurrentDeletionVerified\":true,\"skippedFirstPoll\":1}\n{\"processes\":4,\"daemon\":false,\"idleRoundsMs\":[328,369.1,335.8],\"medianIdleMs\":335.8,\"recoverEightPerProcessMs\":329.4,\"gcAndPollMs\":707.9,\"gcBusy\":6}\n{\"processes\":4,\"daemon\":true,\"idleRoundsMs\":[323.5,325.4,338.1],\"medianIdleMs\":325.4,\"recoverEightPerProcessMs\":324.3,\"gcAndPollMs\":731.9,\"gcBusy\":8}\n{\"processes\":4,\"concurrentDeletionVerified\":true,\"skippedFirstPoll\":4}\n{\"processes\":8,\"daemon\":false,\"idleRoundsMs\":[600.8,608.7,595.7],\"medianIdleMs\":600.8,\"recoverEightPerProcessMs\":641.4,\"gcAndPollMs\":1209.3,\"gcBusy\":7}\n{\"processes\":8,\"daemon\":true,\"idleRoundsMs\":[647.5,595.8,572.7],\"medianIdleMs\":595.8,\"recoverEightPerProcessMs\":612.8,\"gcAndPollMs\":1200.2,\"gcBusy\":8}\n{\"processes\":8,\"concurrentDeletionVerified\":true,\"skippedFirstPoll\":8}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

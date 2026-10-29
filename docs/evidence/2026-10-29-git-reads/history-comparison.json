@@ -1,0 +1,233 @@
+{
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "moduleSha256": {
+    "baseline": "7be5fbfa8f9a9c6a470b1148d4e23eb84ae2154d7f779f0eb573f0d968a40de1",
+    "candidate": "f6b9f71e80c862cb2f4ea4ca4e81d25cc2cf66795ea6b0e50488d9491e3ff34c"
+  },
+  "workload": "100/500/2000 first-parent commits; two overlapping edits including a revert",
+  "samples": 6,
+  "results": [
+    {
+      "name": "baseline",
+      "commits": 100,
+      "round": 0,
+      "wallMs": 120.658792
+    },
+    {
+      "name": "candidate",
+      "commits": 100,
+      "round": 0,
+      "wallMs": 107.90699999999998
+    },
+    {
+      "name": "candidate",
+      "commits": 100,
+      "round": 1,
+      "wallMs": 102.74145900000008
+    },
+    {
+      "name": "baseline",
+      "commits": 100,
+      "round": 1,
+      "wallMs": 130.28208399999994
+    },
+    {
+      "name": "baseline",
+      "commits": 100,
+      "round": 2,
+      "wallMs": 130.853791
+    },
+    {
+      "name": "candidate",
+      "commits": 100,
+      "round": 2,
+      "wallMs": 99.2399999999999
+    },
+    {
+      "name": "candidate",
+      "commits": 100,
+      "round": 3,
+      "wallMs": 99.09095799999989
+    },
+    {
+      "name": "baseline",
+      "commits": 100,
+      "round": 3,
+      "wallMs": 129.25029099999983
+    },
+    {
+      "name": "baseline",
+      "commits": 100,
+      "round": 4,
+      "wallMs": 119.07145800000012
+    },
+    {
+      "name": "candidate",
+      "commits": 100,
+      "round": 4,
+      "wallMs": 99.87141599999995
+    },
+    {
+      "name": "candidate",
+      "commits": 100,
+      "round": 5,
+      "wallMs": 99.530708
+    },
+    {
+      "name": "baseline",
+      "commits": 100,
+      "round": 5,
+      "wallMs": 132.2573749999999
+    },
+    {
+      "name": "baseline",
+      "commits": 500,
+      "round": 0,
+      "wallMs": 347.464375
+    },
+    {
+      "name": "candidate",
+      "commits": 500,
+      "round": 0,
+      "wallMs": 140.3387090000001
+    },
+    {
+      "name": "candidate",
+      "commits": 500,
+      "round": 1,
+      "wallMs": 140.18674999999985
+    },
+    {
+      "name": "baseline",
+      "commits": 500,
+      "round": 1,
+      "wallMs": 302.21637499999997
+    },
+    {
+      "name": "baseline",
+      "commits": 500,
+      "round": 2,
+      "wallMs": 404.1782079999998
+    },
+    {
+      "name": "candidate",
+      "commits": 500,
+      "round": 2,
+      "wallMs": 152.87462499999992
+    },
+    {
+      "name": "candidate",
+      "commits": 500,
+      "round": 3,
+      "wallMs": 156.1529999999998
+    },
+    {
+      "name": "baseline",
+      "commits": 500,
+      "round": 3,
+      "wallMs": 326.31837499999983
+    },
+    {
+      "name": "baseline",
+      "commits": 500,
+      "round": 4,
+      "wallMs": 294.1162499999996
+    },
+    {
+      "name": "candidate",
+      "commits": 500,
+      "round": 4,
+      "wallMs": 131.88991699999997
+    },
+    {
+      "name": "candidate",
+      "commits": 500,
+      "round": 5,
+      "wallMs": 137.92658399999982
+    },
+    {
+      "name": "baseline",
+      "commits": 500,
+      "round": 5,
+      "wallMs": 284.2621250000002
+    },
+    {
+      "name": "baseline",
+      "commits": 2000,
+      "round": 0,
+      "wallMs": 1040.7799999999997
+    },
+    {
+      "name": "candidate",
+      "commits": 2000,
+      "round": 0,
+      "wallMs": 384.25970899999993
+    },
+    {
+      "name": "candidate",
+      "commits": 2000,
+      "round": 1,
+      "wallMs": 243.85941700000058
+    },
+    {
+      "name": "baseline",
+      "commits": 2000,
+      "round": 1,
+      "wallMs": 842.0393750000003
+    },
+    {
+      "name": "baseline",
+      "commits": 2000,
+      "round": 2,
+      "wallMs": 884.4776249999995
+    },
+    {
+      "name": "candidate",
+      "commits": 2000,
+      "round": 2,
+      "wallMs": 226.36016599999948
+    },
+    {
+      "name": "candidate",
+      "commits": 2000,
+      "round": 3,
+      "wallMs": 229.4142499999989
+    },
+    {
+      "name": "baseline",
+      "commits": 2000,
+      "round": 3,
+      "wallMs": 957.4684589999997
+    },
+    {
+      "name": "baseline",
+      "commits": 2000,
+      "round": 4,
+      "wallMs": 884.0815419999999
+    },
+    {
+      "name": "candidate",
+      "commits": 2000,
+      "round": 4,
+      "wallMs": 249.0326669999995
+    },
+    {
+      "name": "candidate",
+      "commits": 2000,
+      "round": 5,
+      "wallMs": 240.4612500000003
+    },
+    {
+      "name": "baseline",
+      "commits": 2000,
+      "round": 5,
+      "wallMs": 778.7415409999994
+    }
+  ],
+  "limitations": "Same real Git repository, alternating variants, warm caches, setup excluded, uncontrolled external load. No cold-cache, per-variant memory, physical I/O, network-filesystem or real-client latency comparison."
+}

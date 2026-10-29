@@ -1,0 +1,229 @@
+{
+  "startedAt": "2026-10-29T02:04:56.091Z",
+  "completedAt": "2026-10-29T02:04:58.999Z",
+  "source": {
+    "commit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+    "dirty": false,
+    "sha256": "771e5725dfc2ac1e8b4bcea7b95c71118252b0b22e4053bc46c190149ea470c7",
+    "buildSha256": "de2e638687debee1045352552eadad70af9615d2be3853234b1d4bcd4731c3ac"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-hooks.mjs"
+  ],
+  "results": [
+    {
+      "environment": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "workload": "15 alternating full CLI idle PostToolUse samples per variant; one session, warm filesystem caches, healthy synthetic daemon; wrapper process overhead included",
+      "limits": "Node startup remains per hook. CPU and RSS are per-child OS metrics; block counters are not physical disk bytes. Native host/model latency and cold caches are not measured.",
+      "candidateCliSha256": "a4f4895f5eb853f199407c3caf8cfd7348b433d20c5b7a11e8a5c7973c52a804",
+      "medians": {
+        "candidate": {
+          "wallMs": 103.55049999999994,
+          "cpuMs": 51.185,
+          "maxRssKiB": 53808,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0,
+          "gitProcesses": 5,
+          "psProcesses": 0,
+          "rootProbes": 2
+        }
+      },
+      "loadedModules": {
+        "candidate": [
+          "adapters/hooks.js",
+          "cli/main.js",
+          "core/activation.js",
+          "core/automatic-daemon.js",
+          "core/branch-status.js",
+          "core/changes.js",
+          "core/consumer.js",
+          "core/daemon-state.js",
+          "core/git.js",
+          "core/mailbox.js",
+          "core/publisher.js",
+          "core/sessions.js",
+          "core/status-format.js",
+          "core/store.js"
+        ]
+      },
+      "buildSha256": {
+        "candidate": "8bd3f204eceac594882e7c11b588f413dca7821d777d9cc690c356ea05ee036a"
+      },
+      "samples": {
+        "candidate": [
+          {
+            "wallMs": 94.41220900000008,
+            "cpuMs": 47.642,
+            "maxRssKiB": 53744,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 103.55049999999994,
+            "cpuMs": 50.453,
+            "maxRssKiB": 53824,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 102.78645800000004,
+            "cpuMs": 52.055,
+            "maxRssKiB": 53728,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 99.87475000000006,
+            "cpuMs": 49.316,
+            "maxRssKiB": 53760,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 103.33791700000006,
+            "cpuMs": 49.897,
+            "maxRssKiB": 53872,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 101.76979099999994,
+            "cpuMs": 50.734,
+            "maxRssKiB": 53744,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 103.78395799999998,
+            "cpuMs": 51.185,
+            "maxRssKiB": 53664,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 101.4950839999999,
+            "cpuMs": 49.297,
+            "maxRssKiB": 53616,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 99.17033400000014,
+            "cpuMs": 50.154,
+            "maxRssKiB": 53936,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 125.54983300000004,
+            "cpuMs": 62.536,
+            "maxRssKiB": 54000,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 112.9325829999998,
+            "cpuMs": 55.963,
+            "maxRssKiB": 54048,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 115.60908300000006,
+            "cpuMs": 55.63,
+            "maxRssKiB": 53728,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 112.90000000000009,
+            "cpuMs": 55.454,
+            "maxRssKiB": 53968,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 116.6357079999998,
+            "cpuMs": 55.515,
+            "maxRssKiB": 53808,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          },
+          {
+            "wallMs": 120.64708299999984,
+            "cpuMs": 59.668,
+            "maxRssKiB": 53968,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0,
+            "gitProcesses": 5,
+            "psProcesses": 0,
+            "rootProbes": 2
+          }
+        ]
+      },
+      "checks": {
+        "immediateMessages": true,
+        "stopContinuation": true,
+        "deduplication": true
+      }
+    }
+  ],
+  "stdout": "{\n  \"environment\": {\n    \"node\": \"v22.23.2\",\n    \"git\": \"git version 2.54.0 (Apple Git-157)\",\n    \"platform\": \"darwin\",\n    \"arch\": \"arm64\"\n  },\n  \"workload\": \"15 alternating full CLI idle PostToolUse samples per variant; one session, warm filesystem caches, healthy synthetic daemon; wrapper process overhead included\",\n  \"limits\": \"Node startup remains per hook. CPU and RSS are per-child OS metrics; block counters are not physical disk bytes. Native host/model latency and cold caches are not measured.\",\n  \"candidateCliSha256\": \"a4f4895f5eb853f199407c3caf8cfd7348b433d20c5b7a11e8a5c7973c52a804\",\n  \"medians\": {\n    \"candidate\": {\n      \"wallMs\": 103.55049999999994,\n      \"cpuMs\": 51.185,\n      \"maxRssKiB\": 53808,\n      \"fsReadBlocks\": 0,\n      \"fsWriteBlocks\": 0,\n      \"gitProcesses\": 5,\n      \"psProcesses\": 0,\n      \"rootProbes\": 2\n    }\n  },\n  \"loadedModules\": {\n    \"candidate\": [\n      \"adapters/hooks.js\",\n      \"cli/main.js\",\n      \"core/activation.js\",\n      \"core/automatic-daemon.js\",\n      \"core/branch-status.js\",\n      \"core/changes.js\",\n      \"core/consumer.js\",\n      \"core/daemon-state.js\",\n      \"core/git.js\",\n      \"core/mailbox.js\",\n      \"core/publisher.js\",\n      \"core/sessions.js\",\n      \"core/status-format.js\",\n      \"core/store.js\"\n    ]\n  },\n  \"buildSha256\": {\n    \"candidate\": \"8bd3f204eceac594882e7c11b588f413dca7821d777d9cc690c356ea05ee036a\"\n  },\n  \"samples\": {\n    \"candidate\": [\n      {\n        \"wallMs\": 94.41220900000008,\n        \"cpuMs\": 47.642,\n        \"maxRssKiB\": 53744,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 103.55049999999994,\n        \"cpuMs\": 50.453,\n        \"maxRssKiB\": 53824,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 102.78645800000004,\n        \"cpuMs\": 52.055,\n        \"maxRssKiB\": 53728,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 99.87475000000006,\n        \"cpuMs\": 49.316,\n        \"maxRssKiB\": 53760,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 103.33791700000006,\n        \"cpuMs\": 49.897,\n        \"maxRssKiB\": 53872,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 101.76979099999994,\n        \"cpuMs\": 50.734,\n        \"maxRssKiB\": 53744,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 103.78395799999998,\n        \"cpuMs\": 51.185,\n        \"maxRssKiB\": 53664,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 101.4950839999999,\n        \"cpuMs\": 49.297,\n        \"maxRssKiB\": 53616,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 99.17033400000014,\n        \"cpuMs\": 50.154,\n        \"maxRssKiB\": 53936,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 125.54983300000004,\n        \"cpuMs\": 62.536,\n        \"maxRssKiB\": 54000,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 112.9325829999998,\n        \"cpuMs\": 55.963,\n        \"maxRssKiB\": 54048,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 115.60908300000006,\n        \"cpuMs\": 55.63,\n        \"maxRssKiB\": 53728,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 112.90000000000009,\n        \"cpuMs\": 55.454,\n        \"maxRssKiB\": 53968,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 116.6357079999998,\n        \"cpuMs\": 55.515,\n        \"maxRssKiB\": 53808,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      },\n      {\n        \"wallMs\": 120.64708299999984,\n        \"cpuMs\": 59.668,\n        \"maxRssKiB\": 53968,\n        \"fsReadBlocks\": 0,\n        \"fsWriteBlocks\": 0,\n        \"gitProcesses\": 5,\n        \"psProcesses\": 0,\n        \"rootProbes\": 2\n      }\n    ]\n  },\n  \"checks\": {\n    \"immediateMessages\": true,\n    \"stopContinuation\": true,\n    \"deduplication\": true\n  }\n}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

@@ -209,29 +209,38 @@ export function validateEvent(value: unknown, id: string, posixPaths = false): S
 
 function orderUpstream(events: SharedEvent[]): SharedEvent[] {
   const upstream = events.filter((event): event is UpstreamEvent => event.kind === "upstream");
+  if (!upstream.length) return events;
   const ends = new Map<string, UpstreamEvent[]>();
   const migration = (event: UpstreamEvent) =>
     event.recipients.length === 1 &&
     event.id === hash(["upstream", event.ref, event.previous, event.commit, `migration:${event.recipients[0]}`]);
+  const migrations = new Set(upstream.filter(migration).map((event) => event.id));
+  const transitions = new Map<string, UpstreamEvent[]>();
+  const parents = new Map(upstream.map((event) => [event.id, [] as UpstreamEvent[]]));
   for (const event of upstream) {
     const key = JSON.stringify([event.ref, event.commit]);
     const group = ends.get(key) ?? [];
     group.push(event);
     ends.set(key, group);
+    if (migrations.has(event.id)) continue;
+    const transition = JSON.stringify([event.ref, event.previous, event.commit]);
+    const children = transitions.get(transition) ?? [];
+    children.push(event);
+    transitions.set(transition, children);
   }
-  const parents = new Map(
-    upstream.map((event) => [
-      event.id,
-      migration(event)
-        ? []
-        : (ends.get(JSON.stringify([event.ref, event.previous])) ?? []).filter(
-            (parent) =>
-              parent.id !== event.id &&
-              (migration(parent) ||
-                event.id === hash(["upstream", event.ref, event.previous, event.commit, parent.id])),
-          ),
-    ]),
-  );
+  // Repeated rollbacks share a transition; hash each possible parent only once per transition.
+  for (const children of transitions.values()) {
+    const event = children[0];
+    const targets = new Map(children.map((child) => [child.id, parents.get(child.id)!]));
+    for (const parent of ends.get(JSON.stringify([event.ref, event.previous])) ?? []) {
+      if (migrations.has(parent.id)) {
+        for (const [id, list] of targets) if (id !== parent.id) list.push(parent);
+      } else {
+        const id = hash(["upstream", event.ref, event.previous, event.commit, parent.id]);
+        if (id !== parent.id) targets.get(id)?.push(parent);
+      }
+    }
+  }
   const state = new Map<string, number>(),
     ordered: UpstreamEvent[] = [];
   for (const event of upstream) {

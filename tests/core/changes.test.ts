@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { formatChange, inspectChange, resolveMain, watchRoot } from "../../src/core/changes.ts";
@@ -56,28 +56,28 @@ test("does not lose intermediate edits reverted before the next poll", async (t)
 test("history read batches preserve commit and patch order across empty and unrelated commits", async (t) => {
   const f = await fixture(t);
   await writeFile(join(f.b, "shared.txt"), "local\n");
-  const commits: string[] = [];
-  for (let index = 0; index < 67; index++) {
-    if (index === 31 || index === 32 || index === 66) {
-      git(f.main, "commit", "--allow-empty", "-m", "empty");
-      commits.push(git(f.main, "rev-parse", "HEAD").trim());
-    } else {
-      const relevant = index === 0 || index === 65;
-      commits.push(
-        await f.commit(
-          f.main,
-          relevant ? "shared.txt" : "other.txt",
-          relevant ? (index === 0 ? "temporary\n" : "base\n") : `${index}\n`,
-        ),
-      );
+  git(f.main, "config", "gc.auto", "0");
+  git(f.main, "config", "maintenance.auto", "false");
+  let history = "";
+  for (let index = 0; index < 515; index++) {
+    history += `commit ${ref}\nmark :${index + 1}\ncommitter Test <test@example.com> ${1700000000 + index} +0000\ndata 6\nchange\nfrom ${index ? `:${index}` : f.initial}\n`;
+    if (![31, 32, 287, 288, 514].includes(index)) {
+      const relevant = index === 0 || index === 513;
+      const text = relevant ? (index === 0 ? "temporary\n" : "base\n") : `${index}\n`;
+      history += `M 100644 inline ${relevant ? "shared.txt" : "other.txt"}\ndata ${Buffer.byteLength(text)}\n${text}\n`;
     }
+    history += `\nget-mark :${index + 1}\n`;
   }
+  const commits = execFileSync("git", ["-C", f.main, "fast-import", "--quiet"], { input: history, encoding: "utf8" })
+    .trim()
+    .split(/\r?\n/);
+  assert.equal(commits.length, 515);
   const change = await inspectChange({ root: f.b, ref, commit: f.initial }, commits.at(-1)!);
   assert.deepEqual(change?.files, ["shared.txt"]);
   assert.deepEqual(change?.commits, commits);
   assert.deepEqual(
     [...change!.patch.matchAll(/\nCommit ([a-f0-9]+)\n/g)].map((match) => match[1]),
-    [commits[0], commits[65]],
+    [commits[0], commits[513]],
   );
   assert.match(change!.patch, /temporary/);
 });
@@ -152,6 +152,58 @@ else {
     } finally {
       if (previousPath === undefined) delete process.env.PATH;
       else process.env.PATH = previousPath;
+    }
+  },
+);
+
+test(
+  "oversized history batches retry smaller combined reads in order",
+  { skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    await writeFile(join(f.b, "shared.txt"), "local\n");
+    const commits = [await f.commit(f.main, "shared.txt", "temporary\n")];
+    for (let index = 0; index < 63; index++) {
+      git(f.main, "commit", "--allow-empty", "-m", "empty");
+      commits.push(git(f.main, "rev-parse", "HEAD").trim());
+    }
+    commits.push(await f.commit(f.main, "shared.txt", "base\n"));
+    const executable = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+    const bin = join(f.root, "bin"),
+      calls = join(f.root, "calls");
+    await mkdir(bin);
+    await writeFile(
+      join(bin, "git"),
+      `#!${process.execPath}
+const fs = require('node:fs'), cp = require('node:child_process');
+const args = process.argv.slice(2);
+if (args[2] === 'log') {
+  const count = args.filter(arg => /^[a-f0-9]{40,64}$/.test(arg)).length;
+  fs.appendFileSync(${JSON.stringify(calls)}, count + '\\n');
+  if (count > 32) { process.stdout.write(Buffer.alloc(17 * 1024 * 1024, 120)); return; }
+}
+const child = cp.spawnSync(${JSON.stringify(executable)}, args, { stdio: 'inherit' });
+process.exit(child.status ?? 1);
+`,
+      { mode: 0o755 },
+    );
+    const previous = process.env.PATH;
+    process.env.PATH = `${bin}:${previous ?? ""}`;
+    try {
+      const change = await inspectChange({ root: f.b, ref, commit: f.initial }, commits.at(-1)!);
+      assert.deepEqual(change?.files, ["shared.txt"]);
+      assert.deepEqual(change?.commits, commits);
+      assert.deepEqual(
+        [...change!.patch.matchAll(/\nCommit ([a-f0-9]+)\n/g)].map((match) => match[1]),
+        [commits[0], commits.at(-1)],
+      );
+      assert.match(change!.patch, /temporary/);
+      const sizes = (await readFile(calls, "utf8")).trim().split("\n").map(Number);
+      assert.ok(sizes.some((size) => size > 32));
+      assert.ok(sizes.some((size) => size > 1 && size <= 32));
+    } finally {
+      if (previous === undefined) delete process.env.PATH;
+      else process.env.PATH = previous;
     }
   },
 );

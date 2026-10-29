@@ -230,20 +230,25 @@ export async function worktreeFiles(root: string, current: string, signal?: Abor
         { cause },
       );
     });
-  const base = await git(root, ["merge-base", current, head], signal)
-    .then((value) => value.trim())
-    .catch((cause) => {
-      signal?.throwIfAborted();
-      throw new Error(
-        "The current worktree HEAD cannot be compared with the monitored branch (possibly no common ancestor). Switch to a branch with shared history or use leave to stop this subscription. Unread events are preserved.",
-        { cause },
-      );
-    });
+  const base =
+    current === head
+      ? head
+      : await git(root, ["merge-base", current, head], signal)
+          .then((value) => value.trim())
+          .catch((cause) => {
+            signal?.throwIfAborted();
+            throw new Error(
+              "The current worktree HEAD cannot be compared with the monitored branch (possibly no common ancestor). Switch to a branch with shared history or use leave to stop this subscription. Unread events are preserved.",
+              { cause },
+            );
+          });
   const own = new Set<string>();
   // Independent reads; settle every child before releasing the consumer lock on failure.
   const reads = await Promise.allSettled(
     [
-      ["diff", "--ignore-submodules=none", "--name-only", "--no-renames", "-z", base, head, "--"],
+      ...(base === head
+        ? []
+        : [["diff", "--ignore-submodules=none", "--name-only", "--no-renames", "-z", base, head, "--"]]),
       ["diff", "--ignore-submodules=none", "--name-only", "--no-renames", "-z", "--cached", "--"],
       ["diff", "--name-only", "--no-renames", "-z", "--"],
       ["ls-files", "--others", "-z"],
@@ -338,6 +343,14 @@ async function historyFiles(
     // Preserve the per-commit size limit if combining otherwise valid outputs exceeds it.
     if ((error as Error & { cause?: { code?: string } }).cause?.code !== "ERR_CHILD_PROCESS_STDIO_MAXBUFFER")
       throw error;
+    if (steps.length > 32) {
+      // Smaller combined reads can fit even when a large history batch overflows.
+      const middle = Math.ceil(steps.length / 2);
+      return [
+        ...(await historyFiles(root, steps.slice(0, middle), false, signal)),
+        ...(await historyFiles(root, steps.slice(middle), false, signal)),
+      ];
+    }
     const files: string[][] = [];
     for (let offset = 0; offset < steps.length; offset += 4) {
       const batch = await Promise.allSettled(steps.slice(offset, offset + 4).map(read));
@@ -403,9 +416,17 @@ export async function inspectChange(
   const commits = steps.map(([commit]) => commit);
   const ranges: { before: string; after: string; files: string[] }[] = [];
   const overlap = new Set<string>();
-  for (let offset = 0; offset < steps.length; offset += 32) {
-    const batch = steps.slice(offset, offset + 32);
+  let batchSize = 32;
+  for (let offset = 0; offset < steps.length;) {
+    const batch = steps.slice(offset, offset + batchSize);
     const changed = await compare(() => historyFiles(root, batch, snapshot, signal));
+    const bytes = changed.reduce(
+      (total, files, index) =>
+        total + batch[index][0].length + 3 + files.reduce((size, file) => size + Buffer.byteLength(file) + 1, 0),
+      0,
+    );
+    // Bound SHA-256 arguments for Windows and target half the 16 MiB output cap.
+    batchSize = Math.max(32, Math.min(256, Math.floor((8 * 1024 * 1024 * batch.length) / bytes)));
     for (let index = 0; index < batch.length; index++) {
       const [after, before] = batch[index];
       const files = changed[index].filter(overlaps);
@@ -414,6 +435,7 @@ export async function inspectChange(
         for (const file of files) overlap.add(file);
       }
     }
+    offset += batch.length;
   }
   if (!overlap.size) return undefined;
   let preview = "";

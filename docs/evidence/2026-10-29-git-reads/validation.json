@@ -1,0 +1,44 @@
+{
+  "baseCommit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+  "branch": "sheny/performance-optimization",
+  "uncommitted": true,
+  "command": "npm run check",
+  "exitCode": 0,
+  "includes": [
+    "format:check",
+    "typecheck",
+    "check:release",
+    "npm test",
+    "npm pack --dry-run"
+  ],
+  "testSummary": {
+    "tests": 756,
+    "pass": 755,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "todo": 0
+  },
+  "sourceSha256": "4e73c6b6a48d0d19e89765650339cc467cffda63391ba638dc1fae4a8932e2a2",
+  "buildSha256": "c0b8bdd07fbc9901a81f9b5bb245390bee844518a6cf733076942799a15ce960",
+  "verifiedBenchmarkRecords": [
+    "candidate-concurrency.json",
+    "candidate-delivery.json",
+    "candidate-git-reads.json",
+    "candidate-history.json",
+    "candidate-hooks.json",
+    "candidate-mailbox.json",
+    "candidate-maintenance.json",
+    "candidate-sync.json"
+  ],
+  "comparisonChecks": [
+    "history candidate module SHA-256 matches tested dist",
+    "wide-history candidate module SHA-256 matches tested dist"
+  ],
+  "limitations": [
+    "Local macOS arm64 validation only",
+    "No hosted CI or native agent/model latency test",
+    "No cold-cache, network-filesystem, physical-I/O or per-variant peak-memory comparison",
+    "Existing POSIX/UTF-8 wrapper tests skip Windows"
+  ]
+}

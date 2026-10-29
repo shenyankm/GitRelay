@@ -1,0 +1,46 @@
+{
+  "startedAt": "2026-10-29T02:04:07.501Z",
+  "completedAt": "2026-10-29T02:04:23.657Z",
+  "source": {
+    "commit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+    "dirty": false,
+    "sha256": "771e5725dfc2ac1e8b4bcea7b95c71118252b0b22e4053bc46c190149ea470c7",
+    "buildSha256": "de2e638687debee1045352552eadad70af9615d2be3853234b1d4bcd4731c3ac"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-history.mjs"
+  ],
+  "results": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "platform": "darwin",
+      "arch": "arm64",
+      "samples": 3,
+      "workload": "first-parent history; two overlapping commits including a revert; setup excluded"
+    },
+    {
+      "commits": 10,
+      "inspectMs": 78.3
+    },
+    {
+      "commits": 100,
+      "inspectMs": 121.3
+    },
+    {
+      "commits": 500,
+      "inspectMs": 299
+    }
+  ],
+  "stdout": "{\"node\":\"v22.23.2\",\"git\":\"git version 2.54.0 (Apple Git-157)\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"samples\":3,\"workload\":\"first-parent history; two overlapping commits including a revert; setup excluded\"}\n{\"commits\":10,\"inspectMs\":78.3}\n{\"commits\":100,\"inspectMs\":121.3}\n{\"commits\":500,\"inspectMs\":299}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

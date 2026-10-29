@@ -1,0 +1,50 @@
+{
+  "completedAt": "2026-10-29T16:01:33.229Z",
+  "baseCommit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+  "baseline": "Working tree including prior Git-read and status-history optimizations; saved before changing upstream-event ordering",
+  "command": "npm run check",
+  "exitCode": 0,
+  "includes": [
+    "format:check",
+    "typecheck",
+    "check:release",
+    "npm test",
+    "npm pack --dry-run"
+  ],
+  "testSummary": {
+    "tests": 757,
+    "pass": 756,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "todo": 0
+  },
+  "focusedTests": {
+    "tests": 21,
+    "pass": 21,
+    "fail": 0
+  },
+  "regression": {
+    "events": 134,
+    "baselineHashes": 8324,
+    "hashLimit": 1072,
+    "baselineRejected": true,
+    "candidatePassed": true
+  },
+  "sourceSha256": "471c0bbc2e00a6140e741ee4d6e9569b64c47656be307350dc6aa5edde7d53b1",
+  "buildSha256": "b9983a9f093caa63310eead85e106cbde9c9a43afb03be290a718e4edb6c0345",
+  "baselineBuildSha256": "25dd23ff0d143967778829bd07fca78dda61dd86b2a886df6af1d4fbe579d016",
+  "changedBuildFiles": [
+    "dist/core/mailbox.js"
+  ],
+  "testFileSha256": "2d349199c5eef436c675f8a71a88c9b743883f4c1f678a527be53ff03eb17fe9",
+  "verifiedBenchmarkRecords": [
+    "baseline.json",
+    "candidate.json"
+  ],
+  "limitations": [
+    "Local macOS arm64 validation",
+    "Benchmark measures synthetic valid-event inbox scanning and ordering, not full backlog delivery",
+    "No hosted CI, Windows, cold-cache, network-filesystem, native-agent latency or per-variant peak-memory comparison"
+  ]
+}

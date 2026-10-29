@@ -1,0 +1,45 @@
+{
+  "startedAt": "2026-10-29T02:27:08.262Z",
+  "completedAt": "2026-10-29T02:27:11.258Z",
+  "source": {
+    "commit": "a4623bb205dc078f7c254a88b561c4c8822ed87c",
+    "dirty": true,
+    "sha256": "4e73c6b6a48d0d19e89765650339cc467cffda63391ba638dc1fae4a8932e2a2",
+    "buildSha256": "c0b8bdd07fbc9901a81f9b5bb245390bee844518a6cf733076942799a15ce960"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-maintenance.mjs"
+  ],
+  "results": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "samples": 3,
+      "recipients": 3,
+      "workload": "session discovery and retained-event GC; setup excluded; warm filesystem cache"
+    },
+    {
+      "sessions": 100,
+      "events": 100,
+      "sessionScanMs": 2.4,
+      "retainedGcMs": 62.4
+    },
+    {
+      "sessions": 1000,
+      "events": 1000,
+      "sessionScanMs": 25.3,
+      "retainedGcMs": 422.2
+    }
+  ],
+  "stdout": "{\"node\":\"v22.23.2\",\"git\":\"git version 2.54.0 (Apple Git-157)\",\"samples\":3,\"recipients\":3,\"workload\":\"session discovery and retained-event GC; setup excluded; warm filesystem cache\"}\n{\"sessions\":100,\"events\":100,\"sessionScanMs\":2.4,\"retainedGcMs\":62.4}\n{\"sessions\":1000,\"events\":1000,\"sessionScanMs\":25.3,\"retainedGcMs\":422.2}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

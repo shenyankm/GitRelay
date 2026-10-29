@@ -1,0 +1,81 @@
+{
+  "baselineCommit": "a4623bb",
+  "order": [
+    "baseline",
+    "candidate",
+    "candidate",
+    "baseline",
+    "baseline",
+    "candidate"
+  ],
+  "workload": "unchanged benchmark-sync.mjs, local-file remote, linked worktree already up to date, one warm-up then seven calls per run",
+  "limitations": "Three alternating runs per variant, warm caches, uncontrolled external load; no network or real-client latency claim. Build provenance is in baseline-sync.json and candidate-sync.json.",
+  "results": [
+    {
+      "variant": "baseline",
+      "run": 0,
+      "result": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "samples": 7,
+        "medianMs": 387.7812920000001,
+        "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+      }
+    },
+    {
+      "variant": "candidate",
+      "run": 1,
+      "result": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "samples": 7,
+        "medianMs": 311.08054200000015,
+        "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+      }
+    },
+    {
+      "variant": "candidate",
+      "run": 2,
+      "result": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "samples": 7,
+        "medianMs": 313.94829200000004,
+        "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+      }
+    },
+    {
+      "variant": "baseline",
+      "run": 3,
+      "result": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "samples": 7,
+        "medianMs": 353.5573330000002,
+        "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+      }
+    },
+    {
+      "variant": "baseline",
+      "run": 4,
+      "result": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "samples": 7,
+        "medianMs": 321.7016249999999,
+        "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+      }
+    },
+    {
+      "variant": "candidate",
+      "run": 5,
+      "result": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "samples": 7,
+        "medianMs": 265.70899999999995,
+        "workload": "up-to-date linked worktree with local file remote; one warm-up and setup excluded"
+      }
+    }
+  ]
+}
