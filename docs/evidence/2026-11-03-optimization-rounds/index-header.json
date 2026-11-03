@@ -1,0 +1,532 @@
+{
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-12-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-baseline-wallMs": 17.647438000000008,
+    "0-baseline-cpuMs": 4.098,
+    "0-candidate-wallMs": 17.383208500000023,
+    "0-candidate-cpuMs": 3.899,
+    "1000-baseline-wallMs": 18.98720800000001,
+    "1000-baseline-cpuMs": 4.3465,
+    "1000-candidate-wallMs": 19.176354000000003,
+    "1000-candidate-cpuMs": 4.146,
+    "100000-baseline-wallMs": 280.5501664999997,
+    "100000-baseline-cpuMs": 97.4065,
+    "100000-candidate-wallMs": 279.60585400000014,
+    "100000-candidate-cpuMs": 87.4545
+  },
+  "results": [
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 18.374208999999993,
+      "cpuMs": 4.833
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 17.684584,
+      "cpuMs": 4.12
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 18.310292000000004,
+      "cpuMs": 3.754
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 16.799042000000014,
+      "cpuMs": 3.75
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 17.47429199999999,
+      "cpuMs": 3.906
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 17.738416,
+      "cpuMs": 4.402
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 18.13300000000001,
+      "cpuMs": 4.076
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 17.56412500000002,
+      "cpuMs": 4.27
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 17.469708000000026,
+      "cpuMs": 3.722
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 17.817417000000034,
+      "cpuMs": 4.336
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 17.610292000000015,
+      "cpuMs": 3.701
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 17.090374999999995,
+      "cpuMs": 3.827
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 17.452292,
+      "cpuMs": 3.892
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 17.277166999999963,
+      "cpuMs": 4.165
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 16.95266700000002,
+      "cpuMs": 3.5
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 17.233083000000022,
+      "cpuMs": 3.582
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 17.195375000000013,
+      "cpuMs": 3.499
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 17.169790999999975,
+      "cpuMs": 4.356
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 16.9615,
+      "cpuMs": 3.525
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 17.314125000000047,
+      "cpuMs": 4.002
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 17.22187500000001,
+      "cpuMs": 4.024
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 17.772582999999997,
+      "cpuMs": 4.257
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 17.277250000000038,
+      "cpuMs": 3.583
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 18.06766700000003,
+      "cpuMs": 4.167
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 20.298541,
+      "cpuMs": 4.191
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 19.028999999999996,
+      "cpuMs": 7.094
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 18.693750000000023,
+      "cpuMs": 4.375
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 19.606167000000028,
+      "cpuMs": 4.101
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 19.369166999999948,
+      "cpuMs": 4.468
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 18.85170800000003,
+      "cpuMs": 7.986
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 18.54525000000001,
+      "cpuMs": 7.467
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 19.278999999999996,
+      "cpuMs": 4.101
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 18.36166700000001,
+      "cpuMs": 5.307
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 19.617208000000005,
+      "cpuMs": 4.036
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 20.069958000000042,
+      "cpuMs": 7.4
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 18.690917000000013,
+      "cpuMs": 5.203
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 19.379916999999978,
+      "cpuMs": 3.826
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 19.240625000000023,
+      "cpuMs": 3.976
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 18.945416000000023,
+      "cpuMs": 3.989
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 19.07370800000001,
+      "cpuMs": 3.855
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 18.764916000000085,
+      "cpuMs": 3.927
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 19.24208299999998,
+      "cpuMs": 4.77
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 18.891624999999976,
+      "cpuMs": 3.893
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 18.74283300000002,
+      "cpuMs": 3.842
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 19.42716699999994,
+      "cpuMs": 4.788
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 19.095416999999998,
+      "cpuMs": 4.318
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 18.828500000000076,
+      "cpuMs": 4.037
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 18.489540999999917,
+      "cpuMs": 4.625
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 278.96133299999997,
+      "cpuMs": 86.278
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 281.8292919999999,
+      "cpuMs": 66.137
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 281.37941599999976,
+      "cpuMs": 81.987
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 280.2100830000004,
+      "cpuMs": 76.91
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 282.7542910000002,
+      "cpuMs": 113.899
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 279.5090829999999,
+      "cpuMs": 109.839
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 279.3107500000001,
+      "cpuMs": 115.972
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 278.5876669999998,
+      "cpuMs": 85.918
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 278.7081250000001,
+      "cpuMs": 84.831
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 278.65625,
+      "cpuMs": 118.742
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 280.4784579999996,
+      "cpuMs": 81.496
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 280.8704580000003,
+      "cpuMs": 109.283
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 279.0016249999999,
+      "cpuMs": 92.666
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 282.93604200000027,
+      "cpuMs": 112.016
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 285.18112500000007,
+      "cpuMs": 97.067
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 280.690834,
+      "cpuMs": 103.674
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 280.2151249999997,
+      "cpuMs": 83.41
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 288.00324999999975,
+      "cpuMs": 102.524
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 277.16508299999987,
+      "cpuMs": 88.809
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 280.6374999999998,
+      "cpuMs": 102.647
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 276.85745899999984,
+      "cpuMs": 79.065
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 280.6218749999998,
+      "cpuMs": 97.746
+    },
+    {
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 276.85675000000083,
+      "cpuMs": 96.302
+    },
+    {
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 278.04954200000066,
+      "cpuMs": 88.631
+    }
+  ],
+  "limitations": "Real Git index; absent ordinary files create staged and unstaged relevance; one uninitialized gitlink. Warm caches and uncontrolled host load. Node CPU excludes Git children. No cold caches, peak memory, Windows or native-client latency."
+}

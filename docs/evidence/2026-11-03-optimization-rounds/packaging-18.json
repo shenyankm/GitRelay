@@ -1,0 +1,35 @@
+{
+  "round": 18,
+  "recordedAt": "2026-11-03T07:58:41.743572+00:00",
+  "npm": {
+    "size": 171706,
+    "unpackedSize": 609826,
+    "entryCount": 74,
+    "shasum": "4b6c7f435b09334f0df9a1b7cace3d89595fca38",
+    "integrity": "sha512-bJDScHLq58iEJpJiGXAeJBM5/2/1mvWIIWKtlN+q+rv+MDcBU+y284RGH3JjjOAVinZvKMHjXqdOqDX86y7KJQ=="
+  },
+  "plugin": {
+    "files": 61,
+    "bytes": 584014
+  },
+  "originalNpm": {
+    "size": 405958,
+    "unpackedSize": 1943130,
+    "entryCount": 188
+  },
+  "originalPlugin": {
+    "files": 120,
+    "bytes": 1499951
+  },
+  "assertions": [
+    "Every tarball runtime byte matches the fully tested build",
+    "Npm contains no TS sources, build scripts, top-level vendor or raw evidence",
+    "Sdk declarations and Codex hook JSON remain",
+    "Plugin runtime bytes match tested build and excludes declarations and historical archives",
+    "Production installation, CLI/installer imports, SDK transaction and type-consumer smoke test passed"
+  ],
+  "limitations": [
+    "Plugin bytes are summed file sizes, not compressed or physical I/O bytes",
+    "Npm development/build/benchmark commands intentionally require a source checkout"
+  ]
+}

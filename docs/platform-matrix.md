@@ -24,7 +24,7 @@ regressions are separate from the historical native acceptance below.
 The new activation behavior requires rebuilding and refreshing
 installed copies; source changes alone do not update clients.
 
-The [2026-10-27 acceptance record](evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27)
+The [2026-10-27 acceptance record](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27)
 covers explicit opt-in/out, messages, real upstream commits, normal deduplication,
 restart/identity isolation, offline recovery,
 reinstallation and separate-repository isolation. It does not establish every

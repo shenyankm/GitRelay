@@ -1,0 +1,1199 @@
+{
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-15-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "false-0-baseline-wallMs": 17.72056249999997,
+    "false-0-baseline-cpuMs": 4,
+    "false-0-candidate-wallMs": 17.749645999999984,
+    "false-0-candidate-cpuMs": 3.7705,
+    "false-1000-baseline-wallMs": 18.75647950000001,
+    "false-1000-baseline-cpuMs": 4.7695,
+    "false-1000-candidate-wallMs": 19.220062499999983,
+    "false-1000-candidate-cpuMs": 6.0535,
+    "false-10000-baseline-wallMs": 27.54287499999998,
+    "false-10000-baseline-cpuMs": 12.1025,
+    "false-10000-candidate-wallMs": 27.70639600000004,
+    "false-10000-candidate-cpuMs": 11.057,
+    "true-0-baseline-wallMs": 17.39706250000006,
+    "true-0-baseline-cpuMs": 3.33,
+    "true-0-candidate-wallMs": 17.275833499999976,
+    "true-0-candidate-cpuMs": 3.3890000000000002,
+    "true-1000-baseline-wallMs": 19.466604499999903,
+    "true-1000-baseline-cpuMs": 4.7265,
+    "true-1000-candidate-wallMs": 19.404250000000275,
+    "true-1000-candidate-cpuMs": 4.6005,
+    "true-10000-baseline-wallMs": 35.40600050000012,
+    "true-10000-baseline-cpuMs": 18.7085,
+    "true-10000-candidate-wallMs": 33.91887500000007,
+    "true-10000-candidate-cpuMs": 18.617
+  },
+  "results": [
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 21.58883399999999,
+      "cpuMs": 5.857
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 19.15020899999999,
+      "cpuMs": 4.185
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 19.162042000000014,
+      "cpuMs": 4.029
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 18.274666999999994,
+      "cpuMs": 3.693
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 18.079416999999978,
+      "cpuMs": 3.777
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 17.336749999999995,
+      "cpuMs": 4.339
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 17.111208000000005,
+      "cpuMs": 3.824
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 18.224542000000014,
+      "cpuMs": 3.935
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 17.216625000000022,
+      "cpuMs": 3.589
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 17.17191600000001,
+      "cpuMs": 3.818
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 17.14195799999999,
+      "cpuMs": 3.766
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 16.795458999999994,
+      "cpuMs": 3.662
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 17.583665999999994,
+      "cpuMs": 3.764
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 17.692957999999976,
+      "cpuMs": 4.053
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 17.761916999999983,
+      "cpuMs": 3.463
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 16.47608299999996,
+      "cpuMs": 3.548
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 17.858875000000012,
+      "cpuMs": 3.826
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 17.988124999999968,
+      "cpuMs": 4.188
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 17.93354199999999,
+      "cpuMs": 3.771
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 17.245874999999955,
+      "cpuMs": 4.458
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 17.995834000000002,
+      "cpuMs": 3.643
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 17.55241699999999,
+      "cpuMs": 4.127
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 17.748166999999967,
+      "cpuMs": 3.971
+    },
+    {
+      "conflicted": false,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 17.640416999999957,
+      "cpuMs": 4.14
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 19.52083300000004,
+      "cpuMs": 5.248
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 18.89291700000001,
+      "cpuMs": 5.68
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 19.20562499999994,
+      "cpuMs": 5.297
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 19.187749999999937,
+      "cpuMs": 6.859
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 19.634249999999952,
+      "cpuMs": 4.563
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 18.542084000000045,
+      "cpuMs": 4.127
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 17.92750000000001,
+      "cpuMs": 5.323
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 20.346708000000035,
+      "cpuMs": 8.074
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 19.445124999999962,
+      "cpuMs": 7.189
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 18.87354199999993,
+      "cpuMs": 5.383
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 18.967540999999983,
+      "cpuMs": 5.59
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 18.179540999999972,
+      "cpuMs": 7.336
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 17.326832999999965,
+      "cpuMs": 4.686
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 18.825166999999965,
+      "cpuMs": 4.566
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 18.760042,
+      "cpuMs": 4.06
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 18.47133299999996,
+      "cpuMs": 4.111
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 19.25237500000003,
+      "cpuMs": 9.636
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 18.50470800000005,
+      "cpuMs": 3.947
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 18.752917000000025,
+      "cpuMs": 4.199
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 17.959500000000048,
+      "cpuMs": 4.237
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 18.238166999999976,
+      "cpuMs": 4.463
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 18.641208000000006,
+      "cpuMs": 4.798
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 18.639999999999873,
+      "cpuMs": 4.741
+    },
+    {
+      "conflicted": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 19.25645899999995,
+      "cpuMs": 7.097
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 27.516833000000133,
+      "cpuMs": 18.553
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 28.364707999999837,
+      "cpuMs": 25.471
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 28.393792000000076,
+      "cpuMs": 9.254
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 28.41854199999989,
+      "cpuMs": 20.784
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 28.30899999999997,
+      "cpuMs": 10.042
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 27.178707999999915,
+      "cpuMs": 19.013
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 28.09895800000004,
+      "cpuMs": 15.049
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 27.9212500000001,
+      "cpuMs": 15.554
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 27.03412500000013,
+      "cpuMs": 10.566
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 27.81229099999996,
+      "cpuMs": 16.54
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 27.588291000000027,
+      "cpuMs": 13.21
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 27.752250000000004,
+      "cpuMs": 17.408
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 27.633084000000053,
+      "cpuMs": 9.697
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 27.33029099999999,
+      "cpuMs": 10.995
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 27.462125000000015,
+      "cpuMs": 10.146
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 27.660542000000078,
+      "cpuMs": 9.266
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 27.25520800000004,
+      "cpuMs": 10.292
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 27.489499999999907,
+      "cpuMs": 10.134
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 27.301333000000113,
+      "cpuMs": 8.681
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 28.653917000000092,
+      "cpuMs": 11.548
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 27.536374999999907,
+      "cpuMs": 10.539
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 27.497458999999935,
+      "cpuMs": 8.756
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 28.304125000000113,
+      "cpuMs": 26.633
+    },
+    {
+      "conflicted": false,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 28.904666000000134,
+      "cpuMs": 18.67
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 16.989125000000058,
+      "cpuMs": 3.46
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 16.773083999999926,
+      "cpuMs": 3.398
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 17.447417000000087,
+      "cpuMs": 3.405
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 17.250999999999976,
+      "cpuMs": 5.287
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 16.856791999999814,
+      "cpuMs": 3.349
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 16.326958999999988,
+      "cpuMs": 3.332
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 16.905500000000075,
+      "cpuMs": 3.328
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 17.21641599999998,
+      "cpuMs": 3.258
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 17.722916999999825,
+      "cpuMs": 3.51
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 17.77608299999997,
+      "cpuMs": 5.464
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 18.401875000000018,
+      "cpuMs": 3.25
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 17.329041999999845,
+      "cpuMs": 3.252
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 17.75520800000004,
+      "cpuMs": 3.285
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 17.19750000000022,
+      "cpuMs": 3.311
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 18.076792000000296,
+      "cpuMs": 3.683
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 16.654875000000175,
+      "cpuMs": 3.66
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 17.300666999999976,
+      "cpuMs": 4.973
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 17.167374999999993,
+      "cpuMs": 3.28
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 17.539999999999964,
+      "cpuMs": 3.286
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 17.796916999999667,
+      "cpuMs": 3.416
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 17.362583000000086,
+      "cpuMs": 3.362
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 17.346708000000035,
+      "cpuMs": 3.356
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 17.57841600000029,
+      "cpuMs": 3.3
+    },
+    {
+      "conflicted": true,
+      "count": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 17.178165999999692,
+      "cpuMs": 3.312
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 19.544875000000047,
+      "cpuMs": 4.405
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 19.51000000000022,
+      "cpuMs": 6.804
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 19.363250000000335,
+      "cpuMs": 4.877
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 20.044624999999996,
+      "cpuMs": 5.856
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 18.251999999999953,
+      "cpuMs": 4.937
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 20.065999999999804,
+      "cpuMs": 4.667
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 19.466499999999996,
+      "cpuMs": 4.773
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 19.64437500000031,
+      "cpuMs": 4.622
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 19.396458000000166,
+      "cpuMs": 4.579
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 18.803875000000062,
+      "cpuMs": 5.541
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 19.89779200000021,
+      "cpuMs": 5.116
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 19.161875000000236,
+      "cpuMs": 4.678
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 19.412042000000383,
+      "cpuMs": 4.565
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 19.31708299999991,
+      "cpuMs": 4.602
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 19.702041999999892,
+      "cpuMs": 5.715
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 19.370082999999795,
+      "cpuMs": 4.672
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 18.984958000000006,
+      "cpuMs": 4.513
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 19.721792000000278,
+      "cpuMs": 4.616
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 19.211707999999817,
+      "cpuMs": 4.615
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 19.431125000000065,
+      "cpuMs": 6.063
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 19.738792000000103,
+      "cpuMs": 4.538
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 18.99654099999998,
+      "cpuMs": 4.581
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 19.46670899999981,
+      "cpuMs": 4.68
+    },
+    {
+      "conflicted": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 19.036541999999827,
+      "cpuMs": 4.469
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 34.270166999999674,
+      "cpuMs": 24.174
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 35.43883300000016,
+      "cpuMs": 22.299
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 35.3083330000004,
+      "cpuMs": 18.58
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 33.5554589999997,
+      "cpuMs": 19.291
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 33.92900000000009,
+      "cpuMs": 16.748
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 35.3950420000001,
+      "cpuMs": 27.659
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 35.41695900000013,
+      "cpuMs": 17.637
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 34.546957999999904,
+      "cpuMs": 21.853
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 33.62762500000008,
+      "cpuMs": 17.48
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 35.11900000000014,
+      "cpuMs": 17.264
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 35.03749999999991,
+      "cpuMs": 17.913
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 33.240084000000024,
+      "cpuMs": 17.541
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 33.908750000000055,
+      "cpuMs": 16.387
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 36.39762499999961,
+      "cpuMs": 33.758
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 35.22729100000015,
+      "cpuMs": 25.923
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 35.18962499999998,
+      "cpuMs": 22.686
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 34.09933299999966,
+      "cpuMs": 26
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 35.48516699999982,
+      "cpuMs": 18.062
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 35.49675000000025,
+      "cpuMs": 18.837
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 33.874624999999924,
+      "cpuMs": 17.943
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 33.52216599999974,
+      "cpuMs": 16.703
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 35.56200000000035,
+      "cpuMs": 27.38
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 35.01083299999982,
+      "cpuMs": 17.757
+    },
+    {
+      "conflicted": true,
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 35.11958300000015,
+      "cpuMs": 25.03
+    }
+  ],
+  "limitations": "Real Git index with normal or three-stage conflicted gitlinks; uninitialized directories. Warm caches and uncontrolled host load. Node CPU excludes Git children. No cold caches, peak memory, Windows or native-client latency.",
+  "decision": "Rejected: mixed CPU controls and only a small conflicted-index wall-time change; no consistent general speedup or memory improvement was established.",
+  "candidateSourceSha256": "5431a4bef70bd3859ac92988f204e6512ea1daeeef07c200cad69da99334e4b8",
+  "candidatePatch": {
+    "links": "const links = new Set<string>();",
+    "add": "links.add(decoder.decode(row.subarray(tab + 1)));",
+    "result": "resolve([...links].join(\"\\0\"));"
+  }
+}

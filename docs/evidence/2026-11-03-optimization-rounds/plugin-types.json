@@ -1,0 +1,62 @@
+{
+  "round": 12,
+  "before": {
+    "files": 73,
+    "bytes": 632703
+  },
+  "after": {
+    "files": 62,
+    "bytes": 618181
+  },
+  "removed": {
+    "dist/index.d.ts": {
+      "bytes": 621,
+      "sha256": "47e10e4413638dff0427b6cddf234a86dc727bd22b85e98f6b6d31aa183a8d07"
+    },
+    "dist/core/activation.d.ts": {
+      "bytes": 886,
+      "sha256": "ea458df465f5e79ae7c2468bc070d8f73f253b1afc7c7935e8fafa12f94005d9"
+    },
+    "dist/core/publisher.d.ts": {
+      "bytes": 553,
+      "sha256": "a3529f551b03fbbbcbdaaba6d1ad271c8829fe6a7b7b54b6433d416e74002d0f"
+    },
+    "dist/core/mailbox.d.ts": {
+      "bytes": 3338,
+      "sha256": "217a83777ccd5f1851f5da123c3b666040fef3c9a0d6348bb7459e87e83c5f9c"
+    },
+    "dist/core/sessions.d.ts": {
+      "bytes": 1267,
+      "sha256": "d28f92d0c7359d9c111ee7fdea9e6eaeb2fb5825d8211af21fb1f735ed4deda6"
+    },
+    "dist/core/store.d.ts": {
+      "bytes": 1272,
+      "sha256": "74d5de6fbc11619f59e49c4e50a17c54ef40da0ee96df009170ba94c40011633"
+    },
+    "dist/core/repository.d.ts": {
+      "bytes": 1811,
+      "sha256": "cea085f18c852fbd6c80a359fbf5eb28429ca0ee595d0b685fbadadc8a018c4d"
+    },
+    "dist/core/consumer.d.ts": {
+      "bytes": 1900,
+      "sha256": "18badaf0e559dc547f7fc5c5ee3d28db8fa73049dec0bdb9ec25569479751138"
+    },
+    "dist/core/session-lifecycle.d.ts": {
+      "bytes": 493,
+      "sha256": "d99218e1ab7e0fc333a00b513689daac7fdd2721a593f4bb2fdf1117b37685f7"
+    },
+    "dist/core/changes.d.ts": {
+      "bytes": 1170,
+      "sha256": "6bfded651be74a89c57ce6dbbb53eb9a9f1cd607b36335c84b7e56be572e1b09"
+    },
+    "dist/core/git.d.ts": {
+      "bytes": 1211,
+      "sha256": "ffd5ddbddb3f29971292a1d1d6a64383428eb5f6f8447373013299b03e41bc3d"
+    }
+  },
+  "assertions": [
+    "Only declaration files removed; every remaining file hash unchanged",
+    "Plugin manifest has no types/export entry; executable SDK remains",
+    "Npm SDK declarations remain and are separately typechecked by sdk.test.ts"
+  ]
+}

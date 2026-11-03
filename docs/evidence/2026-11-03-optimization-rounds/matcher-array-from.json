@@ -1,0 +1,805 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-12-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "false-1000-baseline-wallMs": 7.981208499999994,
+    "false-1000-baseline-cpuMs": 1.0445,
+    "false-1000-candidate-wallMs": 7.7337289999999825,
+    "false-1000-candidate-cpuMs": 1.059,
+    "false-100000-baseline-wallMs": 20.403437499999995,
+    "false-100000-baseline-cpuMs": 12.7095,
+    "false-100000-candidate-wallMs": 21.076749999999947,
+    "false-100000-candidate-cpuMs": 13.686,
+    "true-1000-baseline-wallMs": 7.346916499999963,
+    "true-1000-baseline-cpuMs": 0.747,
+    "true-1000-candidate-wallMs": 7.3901670000000195,
+    "true-1000-candidate-cpuMs": 0.806,
+    "true-100000-baseline-wallMs": 24.828458999999953,
+    "true-100000-baseline-cpuMs": 20.5405,
+    "true-100000-candidate-wallMs": 26.59406249999995,
+    "true-100000-candidate-cpuMs": 23.097
+  },
+  "results": [
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 8.213291999999996,
+      "cpuMs": 1.242
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 8.080874999999992,
+      "cpuMs": 1.236
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 7.639375000000001,
+      "cpuMs": 1.241
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 6.732624999999999,
+      "cpuMs": 1.282
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 6.957374999999999,
+      "cpuMs": 1.347
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 9.539040999999997,
+      "cpuMs": 1.987
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 10.403208000000006,
+      "cpuMs": 2.566
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 8.870249999999999,
+      "cpuMs": 1.172
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 8.456582999999995,
+      "cpuMs": 1.027
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 9.168125000000003,
+      "cpuMs": 1.297
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 7.881541999999996,
+      "cpuMs": 1.04
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 8.125957999999997,
+      "cpuMs": 0.963
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 9.008292000000012,
+      "cpuMs": 1.091
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 9.133874999999989,
+      "cpuMs": 1.049
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 8.249082999999985,
+      "cpuMs": 0.988
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 7.789082999999977,
+      "cpuMs": 1.198
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 7.452334000000008,
+      "cpuMs": 0.797
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 7.772375000000011,
+      "cpuMs": 1.006
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 7.698250000000002,
+      "cpuMs": 0.769
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 7.46241599999999,
+      "cpuMs": 0.758
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 7.425041999999991,
+      "cpuMs": 0.757
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 7.68870800000002,
+      "cpuMs": 0.79
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 7.837500000000006,
+      "cpuMs": 0.885
+    },
+    {
+      "ignoreCase": false,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 7.678374999999988,
+      "cpuMs": 0.845
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 20.898540999999966,
+      "cpuMs": 12.951
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 20.699332999999967,
+      "cpuMs": 13.381
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 19.90533400000004,
+      "cpuMs": 11.909
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 20.139250000000004,
+      "cpuMs": 13.358
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 21.401542000000006,
+      "cpuMs": 13.757
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 19.863458000000037,
+      "cpuMs": 12.152
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 21.68158299999999,
+      "cpuMs": 13.968
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 22.064917000000037,
+      "cpuMs": 13.729
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 20.178624999999954,
+      "cpuMs": 13.679
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 19.80824999999993,
+      "cpuMs": 12.009
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 20.82579199999998,
+      "cpuMs": 13.183
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 21.980166999999938,
+      "cpuMs": 14.271
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 20.854458000000022,
+      "cpuMs": 13.029
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 20.386750000000006,
+      "cpuMs": 13.236
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 20.018459000000007,
+      "cpuMs": 12.289
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 20.792125000000055,
+      "cpuMs": 13.848
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 21.660875000000033,
+      "cpuMs": 31.017
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 21.011750000000006,
+      "cpuMs": 14.35
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 20.420124999999985,
+      "cpuMs": 12.171
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 21.274,
+      "cpuMs": 13.693
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 20.904957999999965,
+      "cpuMs": 12.977
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 21.02633299999991,
+      "cpuMs": 13.13
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 20.02875000000006,
+      "cpuMs": 12.153
+    },
+    {
+      "ignoreCase": false,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 21.24854199999993,
+      "cpuMs": 13.622
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 7.444165999999996,
+      "cpuMs": 0.834
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 7.711541000000011,
+      "cpuMs": 0.806
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 7.81737499999997,
+      "cpuMs": 0.878
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 7.092708000000016,
+      "cpuMs": 1.888
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 6.995375000000081,
+      "cpuMs": 1.754
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 7.404999999999973,
+      "cpuMs": 0.795
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 7.38799999999992,
+      "cpuMs": 0.746
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 7.756708000000003,
+      "cpuMs": 0.759
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 7.338334000000032,
+      "cpuMs": 0.747
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 7.2700419999999895,
+      "cpuMs": 0.717
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 7.308166999999912,
+      "cpuMs": 0.73
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 7.575417000000016,
+      "cpuMs": 0.819
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 7.738334000000009,
+      "cpuMs": 1.016
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 7.150792000000024,
+      "cpuMs": 0.724
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 7.351499999999987,
+      "cpuMs": 0.748
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 7.394167000000039,
+      "cpuMs": 0.729
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 7.386167,
+      "cpuMs": 0.793
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 7.34233299999994,
+      "cpuMs": 0.86
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 7.46083299999998,
+      "cpuMs": 0.796
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 7.423666999999909,
+      "cpuMs": 0.787
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 7.121167000000014,
+      "cpuMs": 0.729
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 6.966415999999981,
+      "cpuMs": 0.697
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 6.548458000000096,
+      "cpuMs": 0.724
+    },
+    {
+      "ignoreCase": true,
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 6.906000000000063,
+      "cpuMs": 0.842
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 25.661082999999962,
+      "cpuMs": 41.759
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 26.377207999999882,
+      "cpuMs": 22.395
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 24.246708000000126,
+      "cpuMs": 16.15
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 27.883542000000034,
+      "cpuMs": 24.242
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 26.850750000000062,
+      "cpuMs": 21.406
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 26.58170899999982,
+      "cpuMs": 22.145
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 23.79429099999993,
+      "cpuMs": 15.769
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 26.58425000000011,
+      "cpuMs": 22.771
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 26.60387499999979,
+      "cpuMs": 21.837
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 24.326708999999937,
+      "cpuMs": 36.734
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 25.330208999999968,
+      "cpuMs": 18.615
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 26.39083400000004,
+      "cpuMs": 22.678
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 27.973166999999876,
+      "cpuMs": 23.748
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 24.207583000000113,
+      "cpuMs": 15.927
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 27.20591599999989,
+      "cpuMs": 25.442
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 26.172917000000098,
+      "cpuMs": 23.423
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 28.20066699999984,
+      "cpuMs": 23.448
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 23.88283299999989,
+      "cpuMs": 32.607
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 25.811208999999963,
+      "cpuMs": 18.936
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 26.012500000000045,
+      "cpuMs": 22.632
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 27.56275000000005,
+      "cpuMs": 23.959
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 23.423249999999825,
+      "cpuMs": 15.33
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 25.68662500000005,
+      "cpuMs": 24.883
+    },
+    {
+      "ignoreCase": true,
+      "count": 100000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 26.335207999999966,
+      "cpuMs": 22.655
+    }
+  ],
+  "limitations": "Synthetic path sets with real Git ignorecase configuration; setup/assertions excluded. Warm local caches and uncontrolled host load. Node CPU excludes Git children. No allocation, peak-RSS, cold-cache, Windows or native-client latency comparison.",
+  "decision": "Rejected: 100,000-path controls are slower (3.3% case-sensitive, 7.1% case-folded); Node CPU also increases. No allocation saving was established.",
+  "candidateSourceSha256": "855ecea70c40166a0e11730ab4486a9a378cb169499dd4ec7ca8856ffa62de9b",
+  "candidatePatch": {
+    "before": "new Set([...files].map((file) => normalize(file.endsWith(\"/\") ? file.slice(0, -1) : file)))",
+    "after": "new Set(Array.from(files, (file) => normalize(file.endsWith(\"/\") ? file.slice(0, -1) : file)))"
+  }
+}

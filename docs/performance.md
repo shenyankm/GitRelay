@@ -1,5 +1,8 @@
 # GitRelay performance benchmarks
 
+The active 50-round I/O and size optimization is tracked in
+[optimization rounds](optimization-rounds.md).
+
 These are measurements of the named historical source snapshots, not new
 benchmarks of the Codex-only revision. Some snapshots include retired clients
 and old synchronization or session behavior. Preserve their numbers as evidence;
@@ -14,7 +17,7 @@ and each event's legacy-migration identity is classified once per scan. The
 existing causal traversal, cycle detection and message positions are preserved.
 Message-only scans return before allocating upstream-ordering maps.
 
-The [alternating comparison](evidence/2026-10-29-event-ordering/comparison.json)
+The [alternating comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-event-ordering/comparison.json)
 compares the preceding working tree, including the status-history optimization,
 with this change. Both include uncommitted changes on `a4623bb`; only
 `dist/core/mailbox.js` differs between the runtime builds. Each workload uses
@@ -40,8 +43,8 @@ transitions, not every possible quadratic graph: many distinct transitions
 sharing a commit, or migration-parent fanout, can still require many comparisons
 or edges. No persistent index, dependency, API or state format was added.
 
-The [baseline](evidence/2026-10-29-event-ordering/baseline.json) and
-[candidate](evidence/2026-10-29-event-ordering/candidate.json) recorder runs retain
+The [baseline](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-event-ordering/baseline.json) and
+[candidate](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-event-ordering/candidate.json) recorder runs retain
 source/build fingerprints; their standalone timings are separate from the
 alternating comparison. Reproduce with saved runtime builds:
 
@@ -56,7 +59,7 @@ acknowledged prefixes. Its hash-count bound failed before the change: 134 mixed
 events required 8,324 hashes. The candidate passes that bound while preserving
 exact per-ref order and message positions.
 
-[`npm run check` passed](evidence/2026-10-29-event-ordering/validation.json):
+[`npm run check` passed](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-event-ordering/validation.json):
 formatting, types, release checks, 756 passed tests, one skipped test, zero
 failures and package dry-run. The validation record rechecks both saved build
 fingerprints and confirms that only the mailbox runtime module changed.
@@ -73,7 +76,7 @@ returned counts still come from the selected branch's pinned commit comparison.
 Both the initial status read and the ambiguous-HEAD recheck use this option;
 worktree changes and branch identity are still read normally.
 
-The [alternating comparison](evidence/2026-10-29-status-history/comparison.json)
+The [alternating comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-status-history/comparison.json)
 uses the existing uncommitted adaptive-history candidate described below as its
 baseline, based on `a4623bb`. Only `dist/core/branch-status.js` differs between
 the two runtime builds. Each workload has one warm-up followed by 20 samples
@@ -96,8 +99,8 @@ already make the redundant traversal cheap; these measurements do not establish
 a general speedup for that case. Small differences and unchanged worktree-read
 timings should be treated as noise. No dependency, API or state format changed.
 
-The separate [baseline recorder](evidence/2026-10-29-status-history/baseline.json)
-and [candidate recorder](evidence/2026-10-29-status-history/candidate.json)
+The separate [baseline recorder](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-status-history/baseline.json)
+and [candidate recorder](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-status-history/candidate.json)
 retain source/build fingerprints. Their standalone timings are not the
 alternating comparison. Reproduce with both builds saved first:
 
@@ -106,7 +109,7 @@ node scripts/benchmark-git-reads.mjs /absolute/baseline/dist
 node scripts/record-benchmark.mjs git-reads /absolute/new-status-result.json
 ```
 
-[`npm run check` passed](evidence/2026-10-29-status-history/validation.json):
+[`npm run check` passed](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-status-history/validation.json):
 formatting, types, release checks, 755 passed tests, one skipped test, zero
 failures and package dry-run. The validation record confirms the tested build
 matches the candidate recorder and lists the sole changed runtime module.
@@ -135,15 +138,15 @@ cancellation and error propagation remain in place.
 
 The following comparisons use a saved build of `a4623bb` and the final candidate
 on macOS arm64, Node 22.23.2 and Git 2.54.0. The
-[history comparison](evidence/2026-10-29-git-reads/history-comparison.json) and
-[wide-history comparison](evidence/2026-10-29-git-reads/wide-history-comparison.json)
+[history comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-git-reads/history-comparison.json) and
+[wide-history comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-git-reads/wide-history-comparison.json)
 each use six alternating samples per variant on the same real Git repository.
-The [Git-read comparison](evidence/2026-10-29-git-reads/git-reads-comparison.json)
+The [Git-read comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-git-reads/git-reads-comparison.json)
 uses 20 alternating samples after a warm-up. Setup is excluded and caches are
 warm. All ordered-commit, filename, patch/revert, dirty-state and divergence
 assertions passed.
 
-The [protected-sync comparison](evidence/2026-10-29-git-reads/sync-comparison.json)
+The [protected-sync comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-git-reads/sync-comparison.json)
 uses three alternating runs per variant, each reporting the median of seven
 up-to-date calls after a warm-up against a local-file remote. HEAD, file contents
 and clean-worktree assertions passed for every call.
@@ -185,7 +188,7 @@ ignored files. Mailbox polling/recovery through 10,000 retained events, GC,
 deduplication passed. Their standalone timings are coverage records, not
 controlled speedup claims for unchanged paths.
 
-[`npm run check` passed](evidence/2026-10-29-git-reads/validation.json): formatting,
+[`npm run check` passed](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-29-git-reads/validation.json): formatting,
 types, release metadata, 755 passed tests, one skipped test, zero failures and
 package dry-run. The validation record rechecks all eight source/build
 fingerprints after the full gate. New regressions cover adaptive batch boundaries,
@@ -206,11 +209,11 @@ Node 22.23.2 and Git 2.54.0 with a local-file remote and a linked worktree that
 was already up to date. Each run excludes setup and one warm-up, then reports
 the median of seven core calls with warm local caches.
 
-| Run | Median per call | Record                                                                    |
-| --- | --------------: | ------------------------------------------------------------------------- |
-| 1   |        381.7 ms | [Source/build and output](evidence/2026-10-28-protected-sync/sync-1.json) |
-| 2   |        471.6 ms | [Source/build and output](evidence/2026-10-28-protected-sync/sync-2.json) |
-| 3   |        520.5 ms | [Source/build and output](evidence/2026-10-28-protected-sync/sync-3.json) |
+| Run | Median per call | Record                                                                                                                         |
+| --- | --------------: | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1   |        381.7 ms | [Source/build and output](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-protected-sync/sync-1.json) |
+| 2   |        471.6 ms | [Source/build and output](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-protected-sync/sync-2.json) |
+| 3   |        520.5 ms | [Source/build and output](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-protected-sync/sync-3.json) |
 
 All 24 calls, including warm-ups, passed result, HEAD, file-content and clean
 worktree assertions. The three records have identical source/build fingerprints.
@@ -240,7 +243,7 @@ strict UTF-8, regular-file checks, symlink handling and descriptor cleanup are
 unchanged. This is not a total-memory bound: old and new buffers can coexist
 during growth, and decoding and parsing allocate separately.
 
-[The comparison](evidence/2026-10-28-state-reader/comparison.json) uses the
+[The comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-state-reader/comparison.json) uses the
 unchanged mailbox benchmark against a saved build of `ab9c407` and the
 candidate. Only `dist/core/store.js` differs between the two builds. Six
 sequential runs used baseline/candidate/candidate/baseline/baseline/candidate
@@ -262,7 +265,7 @@ At 10,000 events, observed idle-time reductions were 8.5–12.7%, and recovery
 reductions were 9.1–11.8%. Small workloads include regressions; these are not
 general speedup guarantees. All six runs passed delivery, receipt,
 deduplication and daemon-liveness assertions. The included
-[recorder run](evidence/2026-10-28-state-reader/candidate.json) retains source
+[recorder run](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-state-reader/candidate.json) retains source
 and build fingerprints. Reproduce with prebuilt baseline and candidate copies,
 running the following pair, its reverse, then the pair again:
 
@@ -286,7 +289,7 @@ concurrency cannot hide an unlock failure. Receipt validation, migration
 checks, retention and deletion journaling remain in place. Trash membership
 also reuses the existing ID set instead of scanning an array per event.
 
-[The comparison](evidence/2026-10-28-gc/comparison.json) uses the unchanged
+[The comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-gc/comparison.json) uses the unchanged
 `benchmark-maintenance.mjs` against a saved build of `e470782` and the candidate
 on macOS arm64, Node 22.23.2 and Git 2.54.0. Six sequential runs used
 baseline/candidate/candidate/baseline/baseline/candidate order, with warm local
@@ -301,8 +304,8 @@ recipients, with 100 and 1,000 registered sessions respectively.
 
 All six runs passed exact session discovery, retention, unread-event
 preservation, acknowledged-event deletion, receipt cleanup and empty-trash
-assertions. Separate [baseline](evidence/2026-10-28-gc/baseline.json) and
-[candidate](evidence/2026-10-28-gc/candidate.json) recorder runs retain source
+assertions. Separate [baseline](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-gc/baseline.json) and
+[candidate](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-gc/candidate.json) recorder runs retain source
 and build fingerprints; their individual timings are outside the comparison.
 Reproduce with a prebuilt baseline source snapshot and the candidate, running
 the following pair, its reverse, then the pair again, without concurrent builds
@@ -323,7 +326,7 @@ another recipient fails.
 
 ## Codex hook overhead: 2026-10-28
 
-[The alternating comparison](evidence/2026-10-28-hook-overhead/comparison.json)
+[The alternating comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-hook-overhead/comparison.json)
 compares a saved build of `7afbf93` with the optimized runtime on macOS arm64,
 Node 22.23.2 and Git 2.54.0. Each variant ran 15 full CLI `PostToolUse` samples
 in alternating order, using one session, warm filesystem caches and a healthy
@@ -354,7 +357,7 @@ mailbox poll is throttled. Installation, cleanup and other command-specific
 modules are loaded only when requested.
 
 The benchmark asserts immediate message delivery, Stop continuation and
-receipt-based deduplication. [The recorded candidate run](evidence/2026-10-28-hook-overhead/candidate.json)
+receipt-based deduplication. [The recorded candidate run](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-28-hook-overhead/candidate.json)
 provides an additional current-build sample, not another baseline comparison.
 To reproduce the comparison, retain a prebuilt baseline and run sequentially:
 
@@ -396,10 +399,10 @@ Two recorded runs used a clean checkout of implementation commit
 Git `2.54.0`. The recorder verified unchanged source and build fingerprints.
 All benchmark delivery, receipt and deduplication assertions passed.
 
-- [CLI delivery record](evidence/2026-10-27-standardization/delivery-benchmark.json):
+- [CLI delivery record](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-27-standardization/delivery-benchmark.json):
   one sender/receiver in linked worktrees, warm caches and no daemon. The medians
   were 52.1 ms send, 69.9 ms check and 121.1 ms send-through-check completion.
-- [Mailbox record](evidence/2026-10-27-standardization/mailbox-benchmark.json):
+- [Mailbox record](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-10-27-standardization/mailbox-benchmark.json):
   three sessions, 100/1,000/10,000 retained events and a 32-message offline backlog.
   At 10,000 events without a daemon, three-session idle polling measured
   1,660.4 ms and backlog recovery 2,144.5 ms.

@@ -1,0 +1,12 @@
+{
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "environment": {
+    "GIT_DIR": ".git",
+    "GIT_WORK_TREE": "/private/var/folders/1b/b19xbzjx7xqc4kl0k9x_y4y80000gp/T/gitrelay-discovery-probe-SNbNqW"
+  },
+  "pinnedRoot": "/private/var/folders/1b/b19xbzjx7xqc4kl0k9x_y4y80000gp/T/gitrelay-discovery-probe-SNbNqW",
+  "sequentialCommon": "/private/var/folders/1b/b19xbzjx7xqc4kl0k9x_y4y80000gp/T/gitrelay-discovery-probe-SNbNqW/.git",
+  "speculativeCommon": "/private/var/folders/1b/b19xbzjx7xqc4kl0k9x_y4y80000gp/T/gitrelay-discovery-probe-SNbNqW/nested/.git",
+  "decision": "Rejected: parallel discovery from the original cwd changes repository identity with relative GIT_DIR and an explicit worktree. Retain the common-directory query from the pinned root. No runtime change or speedup claim."
+}

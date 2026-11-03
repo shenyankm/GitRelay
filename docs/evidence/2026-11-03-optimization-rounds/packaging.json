@@ -1,0 +1,41 @@
+{
+  "baseCommit": "f71f6f45cc0b736d78e886b1d20d5ddebbd67e0e",
+  "baseline": {
+    "baseCommit": "f71f6f4",
+    "npm": {
+      "size": 405958,
+      "unpackedSize": 1943130,
+      "entryCount": 188
+    },
+    "plugin": {
+      "files": 120,
+      "bytes": 1499951
+    }
+  },
+  "candidate": {
+    "npm": {
+      "size": 274916,
+      "unpackedSize": 1074726,
+      "entryCount": 141,
+      "shasum": "9f3c02fa744b37fe17b974ab1a97f96396c6c1ac",
+      "integrity": "sha512-wgvpI0Wam31O4juDEpv/6TBQ/YFymQHJ+XJanM2cG/tQ9bC/wdM2HOncpMg7iVLoKxOvNgkDW0731sHH9vWabQ=="
+    },
+    "plugin": {
+      "files": 73,
+      "bytes": 631382
+    }
+  },
+  "npmArchiveFilesRemoved": 48,
+  "npmArchiveBytesRemoved": 875946,
+  "assertions": [
+    "Only docs/evidence entries removed from original npm file list",
+    "Runtime, declarations, source/build inputs, licenses and acceptance-results.json retained",
+    "Historical evidence remains in source checkout; shipped links point to repository",
+    "Extracted real tarball CLI --help exits 0 and SDK exports load",
+    "Installed plugin hook and SDK transaction tests pass"
+  ],
+  "limitations": [
+    "Plugin bytes are summed file sizes, not a compressed archive or physical disk usage",
+    "Artifact sizes include documentation changes and the new rounds report"
+  ]
+}

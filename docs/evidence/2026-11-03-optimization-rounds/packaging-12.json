@@ -1,0 +1,84 @@
+{
+  "round": 12,
+  "recordedAt": "2026-11-03T07:22:53.256798+00:00",
+  "npm": {
+    "size": 276452,
+    "unpackedSize": 1080630,
+    "entryCount": 141,
+    "shasum": "70f3acc3075a73b7888ba52be941c9e0f66ca0da",
+    "integrity": "sha512-HIu82js82mtniIJxr+dEGfqhwYatV/HVatCXEGRgR6WHSDscK6Z34J7r8HTm32/N3XGCl+ABoZ1VYb3crSPt1g=="
+  },
+  "plugin": {
+    "files": 62,
+    "bytes": 621414
+  },
+  "originalNpm": {
+    "size": 405958,
+    "unpackedSize": 1943130,
+    "entryCount": 188
+  },
+  "originalPlugin": {
+    "files": 120,
+    "bytes": 1499951
+  },
+  "npmRemovedFiles": {
+    "docs/evidence/2026-10-27-standardization/delivery-benchmark.json": 10998,
+    "docs/evidence/2026-10-27-standardization/mailbox-benchmark.json": 2669,
+    "docs/evidence/2026-10-27-standardization/native-traces.json": 434133,
+    "docs/evidence/2026-10-27-standardization/summary.json": 3772,
+    "docs/evidence/2026-10-28-automatic-lifecycle/summary.json": 1566,
+    "docs/evidence/2026-10-28-gc/baseline.json": 1609,
+    "docs/evidence/2026-10-28-gc/candidate.json": 1604,
+    "docs/evidence/2026-10-28-gc/comparison.json": 5791,
+    "docs/evidence/2026-10-28-hook-overhead/candidate.json": 12395,
+    "docs/evidence/2026-10-28-hook-overhead/comparison.json": 10257,
+    "docs/evidence/2026-10-28-protected-sync/sync-1.json": 1231,
+    "docs/evidence/2026-10-28-protected-sync/sync-2.json": 1245,
+    "docs/evidence/2026-10-28-protected-sync/sync-3.json": 1231,
+    "docs/evidence/2026-10-28-state-reader/candidate.json": 2670,
+    "docs/evidence/2026-10-28-state-reader/comparison.json": 11639,
+    "docs/evidence/2026-10-29-event-ordering/baseline.json": 13822,
+    "docs/evidence/2026-10-29-event-ordering/candidate.json": 13818,
+    "docs/evidence/2026-10-29-event-ordering/comparison.json": 8408,
+    "docs/evidence/2026-10-29-event-ordering/validation.json": 1530,
+    "docs/evidence/2026-10-29-git-reads/baseline-concurrency.json": 4341,
+    "docs/evidence/2026-10-29-git-reads/baseline-delivery.json": 11045,
+    "docs/evidence/2026-10-29-git-reads/baseline-history.json": 1605,
+    "docs/evidence/2026-10-29-git-reads/baseline-hooks.json": 12441,
+    "docs/evidence/2026-10-29-git-reads/baseline-mailbox.json": 2718,
+    "docs/evidence/2026-10-29-git-reads/baseline-maintenance.json": 1652,
+    "docs/evidence/2026-10-29-git-reads/baseline-sync.json": 1289,
+    "docs/evidence/2026-10-29-git-reads/candidate-concurrency.json": 4330,
+    "docs/evidence/2026-10-29-git-reads/candidate-delivery.json": 11044,
+    "docs/evidence/2026-10-29-git-reads/candidate-git-reads.json": 26775,
+    "docs/evidence/2026-10-29-git-reads/candidate-history.json": 1608,
+    "docs/evidence/2026-10-29-git-reads/candidate-hooks.json": 12388,
+    "docs/evidence/2026-10-29-git-reads/candidate-mailbox.json": 2705,
+    "docs/evidence/2026-10-29-git-reads/candidate-maintenance.json": 1651,
+    "docs/evidence/2026-10-29-git-reads/candidate-sync.json": 1290,
+    "docs/evidence/2026-10-29-git-reads/candidate-worktree.json": 390,
+    "docs/evidence/2026-10-29-git-reads/compare-history.mjs": 4347,
+    "docs/evidence/2026-10-29-git-reads/git-reads-comparison.json": 26079,
+    "docs/evidence/2026-10-29-git-reads/history-comparison.json": 4778,
+    "docs/evidence/2026-10-29-git-reads/sync-comparison.json": 2499,
+    "docs/evidence/2026-10-29-git-reads/validation.json": 1298,
+    "docs/evidence/2026-10-29-git-reads/wide-history-comparison.json": 2041,
+    "docs/evidence/2026-10-29-status-history/baseline.json": 63387,
+    "docs/evidence/2026-10-29-status-history/candidate.json": 63383,
+    "docs/evidence/2026-10-29-status-history/comparison.json": 44126,
+    "docs/evidence/2026-10-29-status-history/validation.json": 1194,
+    "docs/evidence/2026-11-03-codex-architecture/summary.json": 14559,
+    "docs/evidence/acceptance-history.md": 9633,
+    "docs/evidence/README.md": 962
+  },
+  "assertions": [
+    "Original npm file removals confined to historical evidence; all build/runtime/user-documentation inputs retained",
+    "Every tarball runtime file matches the tested build byte for byte",
+    "Npm SDK declarations unchanged from original baseline",
+    "Plugin excludes evidence and declarations; scripts and runtime load without declarations"
+  ],
+  "limitations": [
+    "Plugin bytes are summed file sizes, not compressed bytes or physical I/O",
+    "Package sizes include the growing round report"
+  ]
+}

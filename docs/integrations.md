@@ -297,7 +297,7 @@ Release verified owned locks and remove recovery data only after reconciliation.
 Subsequent automatic attempts remain blocked while those guards are present.
 
 The restored integration cases and deterministic boundary/interruption checks
-are described in [acceptance](evidence/acceptance-history.md#protected-opt-in-synchronization-2026-10-28).
+are described in [acceptance](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/acceptance-history.md#protected-opt-in-synchronization-2026-10-28).
 Rebuild/reinstall updated runtime copies; stop older auto-sync processes in
 their own terminals before replacing them.
 

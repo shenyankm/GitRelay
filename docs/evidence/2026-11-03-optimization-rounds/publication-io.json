@@ -1,0 +1,308 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "callsPerSample": 100,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-15-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "existing-baseline": 0.10486791500000024,
+    "existing-candidate": 0.08464521000000019,
+    "new-baseline": 0.23233999999999982,
+    "new-candidate": 0.20308270499999992
+  },
+  "results": [
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.08987750000000005
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.12090375000000002
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.10757625000000004
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.08857540999999998
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.08912625000000006
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.11611833000000005
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.10278582999999998
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.08546875
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.08715999999999995
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.10424333000000019
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.10285957999999994
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.08177374999999984
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.08711916000000003
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.11784459000000026
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.10708459000000005
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.08372124999999983
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.0821870899999999
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.10294457999999991
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.10289208000000002
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.08172459000000004
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.08125957999999997
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.10196000000000026
+    },
+    {
+      "workload": "existing",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.1054925000000003
+    },
+    {
+      "workload": "existing",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.08382167000000038
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.21388082999999994
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.24200165999999967
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.25745499999999993
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.2084899999999999
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.2029858300000001
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.2307620800000001
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.2331904099999997
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.20557374999999978
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.2103458299999994
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.24049916000000052
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.23052415999999995
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.20230125000000043
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.19690958000000022
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.2314895899999999
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.23372834000000012
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.2019799999999998
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.2108291699999995
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.23762292000000002
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.23027000000000045
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.19524334000000068
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.1978637500000002
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.2280062499999997
+    },
+    {
+      "workload": "new",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.2305329100000006
+    },
+    {
+      "workload": "new",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.20317957999999975
+    }
+  ],
+  "limitations": "In-process publication with publication lock held throughout all samples, no contention; existing events reuse ten recipients; new publications have unique salts. Warm filesystem caches and uncontrolled host load. Includes equality assertions, excludes setup. No cold-cache, peak-RSS, Windows, concurrent-writer or native-client latency comparison."
+}

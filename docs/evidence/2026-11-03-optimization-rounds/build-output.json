@@ -1,0 +1,153 @@
+{
+  "node": "v22.23.2",
+  "files": 31,
+  "samples": 12,
+  "results": [
+    {
+      "variant": "transform",
+      "sample": 1,
+      "bytes": 290383,
+      "wallMs": 17.125375000000005
+    },
+    {
+      "variant": "strip",
+      "sample": 1,
+      "bytes": 291784,
+      "wallMs": 7.862207999999995
+    },
+    {
+      "variant": "strip",
+      "sample": 2,
+      "bytes": 291784,
+      "wallMs": 7.483583999999993
+    },
+    {
+      "variant": "transform",
+      "sample": 2,
+      "bytes": 290383,
+      "wallMs": 15.096999999999994
+    },
+    {
+      "variant": "transform",
+      "sample": 3,
+      "bytes": 290383,
+      "wallMs": 14.798624999999987
+    },
+    {
+      "variant": "strip",
+      "sample": 3,
+      "bytes": 291784,
+      "wallMs": 7.222499999999997
+    },
+    {
+      "variant": "strip",
+      "sample": 4,
+      "bytes": 291784,
+      "wallMs": 7.225500000000011
+    },
+    {
+      "variant": "transform",
+      "sample": 4,
+      "bytes": 290383,
+      "wallMs": 14.937041000000022
+    },
+    {
+      "variant": "transform",
+      "sample": 5,
+      "bytes": 290383,
+      "wallMs": 14.530708000000004
+    },
+    {
+      "variant": "strip",
+      "sample": 5,
+      "bytes": 291784,
+      "wallMs": 7.236457999999999
+    },
+    {
+      "variant": "strip",
+      "sample": 6,
+      "bytes": 291784,
+      "wallMs": 7.225083000000012
+    },
+    {
+      "variant": "transform",
+      "sample": 6,
+      "bytes": 290383,
+      "wallMs": 14.62337500000001
+    },
+    {
+      "variant": "transform",
+      "sample": 7,
+      "bytes": 290383,
+      "wallMs": 14.539125000000013
+    },
+    {
+      "variant": "strip",
+      "sample": 7,
+      "bytes": 291784,
+      "wallMs": 7.263417000000004
+    },
+    {
+      "variant": "strip",
+      "sample": 8,
+      "bytes": 291784,
+      "wallMs": 7.145667000000003
+    },
+    {
+      "variant": "transform",
+      "sample": 8,
+      "bytes": 290383,
+      "wallMs": 14.350625000000036
+    },
+    {
+      "variant": "transform",
+      "sample": 9,
+      "bytes": 290383,
+      "wallMs": 14.47245799999996
+    },
+    {
+      "variant": "strip",
+      "sample": 9,
+      "bytes": 291784,
+      "wallMs": 7.086166999999989
+    },
+    {
+      "variant": "strip",
+      "sample": 10,
+      "bytes": 291784,
+      "wallMs": 7.039083000000005
+    },
+    {
+      "variant": "transform",
+      "sample": 10,
+      "bytes": 290383,
+      "wallMs": 14.263417000000004
+    },
+    {
+      "variant": "transform",
+      "sample": 11,
+      "bytes": 290383,
+      "wallMs": 14.27833400000003
+    },
+    {
+      "variant": "strip",
+      "sample": 11,
+      "bytes": 291784,
+      "wallMs": 7.018832999999972
+    },
+    {
+      "variant": "strip",
+      "sample": 12,
+      "bytes": 291784,
+      "wallMs": 6.951750000000004
+    },
+    {
+      "variant": "transform",
+      "sample": 12,
+      "bytes": 290383,
+      "wallMs": 14.22075000000001
+    }
+  ],
+  "decision": "Rejected: a marginal size reduction does not justify reprinting every runtime module without runtime-equivalence acceptance.",
+  "limitations": "In-memory TypeScript erasure only; excludes file I/O, vendor code and declarations. Not a runtime benchmark."
+}

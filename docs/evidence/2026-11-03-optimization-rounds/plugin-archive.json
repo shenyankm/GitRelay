@@ -1,0 +1,21 @@
+{
+  "round": 15,
+  "before": {
+    "files": 62,
+    "bytes": 621552
+  },
+  "after": {
+    "files": 61,
+    "bytes": 580228
+  },
+  "removed": {
+    "docs/acceptance-results.json": {
+      "bytes": 41324,
+      "sha256": "115bcbc12f6b900e9fe08c3fb61d58d8448be9a600285991959d99529328ae53"
+    }
+  },
+  "assertions": [
+    "Only historical acceptance JSON removed; all remaining file hashes identical",
+    "Source archive retained and documentation link points to repository"
+  ]
+}

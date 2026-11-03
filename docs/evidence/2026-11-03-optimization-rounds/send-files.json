@@ -1,0 +1,599 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-06-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-baseline": 17.731895999999978,
+    "0-candidate": 17.804062500000015,
+    "1-baseline": 18.758895999999993,
+    "1-candidate": 17.70908350000002,
+    "100-baseline": 18.572854500000062,
+    "100-candidate": 18.327333499999895,
+    "1000-baseline": 25.996500000000083,
+    "1000-candidate": 21.201187499999946
+  },
+  "results": [
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 18.642875000000004
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 17.508667000000003
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 18.390291999999988
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 17.934125000000023
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 17.376292000000007
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 18.531458000000015
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 17.247374999999977
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 17.932124999999985
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 17.427999999999997
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 17.246582999999987
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 17.73729099999997
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 18.989666
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 18.50679200000002
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 18.072208999999987
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 17.736999999999966
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 17.48004099999997
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 17.027958000000012
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 17.72679199999999
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 17.101625000000013
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 17.678292
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 16.850082999999984
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 18.087625000000003
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 17.243541999999934
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 17.92983300000003
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 18.63737500000002
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 18.796375000000012
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 18.263374999999996
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 17.682542000000012
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 20.685707999999977
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 20.219959000000017
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 19.820333000000005
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 17.264583000000016
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 17.30041600000004
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 17.516709000000105
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 18.721416999999974
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 17.59645899999998
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 17.735625000000027
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 19.03049999999996
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 17.25720799999999
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 19.00154100000009
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 17.2377919999999
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 17.636750000000006
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 20.05279100000007
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 19.44495799999993
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 19.367958000000044
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 18.558250000000044
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 18.989958
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 17.38779099999988
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 18.174375000000055
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 18.18054099999995
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 18.406166000000212
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 18.5659169999999
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 19.417958
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 18.45570900000007
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 18.936707999999953
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 17.757749999999987
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 18.200624999999945
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 19.475124999999935
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 17.861625000000004
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 18.594958000000133
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 18.157832999999982
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 18.293333000000075
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 19.064750000000004
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 17.825708000000077
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 18.59741599999984
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 19.470291999999972
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 19.011291999999912
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 18.454041999999845
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 17.50741599999992
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 18.078125
+    },
+    {
+      "count": 100,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 18.690000000000055
+    },
+    {
+      "count": 100,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 19.060500000000047
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 20.98629200000005
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 26.019375000000082
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 27.47516699999983
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 22.03300000000013
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 21.623499999999922
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 25.69374999999991
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 25.46829200000002
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 21.33637500000009
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 20.60674999999992
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 25.773374999999987
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 25.973625000000084
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 21.156165999999985
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 21.246208999999908
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 26.82158400000003
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 24.478582999999844
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 20.98824999999988
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 20.026791000000003
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 26.286624999999958
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 25.0272080000002
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 21.941542000000254
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 22.93379099999993
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 31.136833999999908
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 28.05049999999983
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 20.964166000000205
+    }
+  ],
+  "limitations": "Warm local filesystem; uncontrolled host load. Full in-process send including repository discovery and publication, not native-client/model latency. Setup and assertions excluded. No cold-cache, Windows, network-filesystem, peak memory or physical I/O measurement."
+}

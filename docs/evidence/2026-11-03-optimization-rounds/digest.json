@@ -1,0 +1,329 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "medians": {
+    "small-files-baseline": 82.98847899999998,
+    "small-files-candidate": 82.59706299999993,
+    "mixed-files-baseline": 82.55381250000005,
+    "mixed-files-candidate": 82.4241454999999
+  },
+  "allocations": [
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "bytes": 4097000,
+      "count": 1000
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "bytes": 65536,
+      "count": 1
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "bytes": 4711390,
+      "count": 1000
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "bytes": 65536,
+      "count": 1
+    }
+  ],
+  "results": [
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 1,
+      "wallMs": 84.409625
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 1,
+      "wallMs": 83.73483299999998
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 2,
+      "wallMs": 82.98299999999995
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 2,
+      "wallMs": 82.41425000000004
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 3,
+      "wallMs": 83.29324999999994
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 3,
+      "wallMs": 88.15370900000005
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 4,
+      "wallMs": 82.68050000000005
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 4,
+      "wallMs": 83.02012500000001
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 5,
+      "wallMs": 82.06958299999997
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 5,
+      "wallMs": 82.36704099999997
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 6,
+      "wallMs": 81.555208
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 6,
+      "wallMs": 81.18429199999991
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 7,
+      "wallMs": 81.98350000000005
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 7,
+      "wallMs": 81.19787500000007
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 8,
+      "wallMs": 84.08291700000018
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 8,
+      "wallMs": 84.19558299999994
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 9,
+      "wallMs": 82.678584
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 9,
+      "wallMs": 83.20633300000009
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 10,
+      "wallMs": 82.50099999999998
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 10,
+      "wallMs": 83.28612500000008
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 11,
+      "wallMs": 82.51554199999987
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 11,
+      "wallMs": 83.191417
+    },
+    {
+      "variant": "baseline",
+      "workload": "small-files",
+      "sample": 12,
+      "wallMs": 82.99395800000002
+    },
+    {
+      "variant": "candidate",
+      "workload": "small-files",
+      "sample": 12,
+      "wallMs": 82.26583299999993
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 1,
+      "wallMs": 83.73374999999987
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 1,
+      "wallMs": 78.20595800000001
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 2,
+      "wallMs": 82.6537500000004
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 2,
+      "wallMs": 82.97629099999995
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 3,
+      "wallMs": 82.34654100000034
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 3,
+      "wallMs": 82.42683399999987
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 4,
+      "wallMs": 82.07312500000035
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 4,
+      "wallMs": 82.18354200000022
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 5,
+      "wallMs": 82.25366699999995
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 5,
+      "wallMs": 82.02845900000011
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 6,
+      "wallMs": 82.81041600000026
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 6,
+      "wallMs": 82.33050000000003
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 7,
+      "wallMs": 82.98775000000023
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 7,
+      "wallMs": 84.64170799999965
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 8,
+      "wallMs": 82.83087499999965
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 8,
+      "wallMs": 83.52433399999973
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 9,
+      "wallMs": 83.57349999999997
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 9,
+      "wallMs": 82.4538749999997
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 10,
+      "wallMs": 82.43445799999972
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 10,
+      "wallMs": 82.20633300000009
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 11,
+      "wallMs": 82.50174999999945
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 11,
+      "wallMs": 82.75133399999959
+    },
+    {
+      "variant": "baseline",
+      "workload": "mixed-files",
+      "sample": 12,
+      "wallMs": 82.77079200000026
+    },
+    {
+      "variant": "candidate",
+      "workload": "mixed-files",
+      "sample": 12,
+      "wallMs": 82.24562499999956
+    }
+  ],
+  "limitations": "Warm local caches, uncontrolled host load. Timings exclude allocation instrumentation and setup. Allocations are calls to Buffer.allocUnsafe, not peak RSS. No cold caches, network filesystems, Windows or native client timing."
+}
