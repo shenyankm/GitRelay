@@ -179,15 +179,22 @@ export async function priorRepositories(repo: Repository): Promise<string[]> {
     if (error.code === "ENOENT") return [];
     throw error;
   });
-  for (const name of new Set([hash(repo.common), ...names])) {
-    if (!isId(name) || name === repo.id) continue;
-    if (
-      await lstat(join(parent, name)).catch((error) => {
-        if (error.code === "ENOENT") return undefined;
-        throw error;
-      })
-    )
-      found.push(name);
+  const candidates = [...new Set([hash(repo.common), ...names])].filter((name) => isId(name) && name !== repo.id);
+  for (let offset = 0; offset < candidates.length; offset += 32) {
+    const reads = await Promise.allSettled(
+      candidates.slice(offset, offset + 32).map(async (name) =>
+        (await lstat(join(parent, name)).catch((error) => {
+          if (error.code === "ENOENT") return undefined;
+          throw error;
+        }))
+          ? name
+          : undefined,
+      ),
+    );
+    for (const result of reads) {
+      if (result.status === "rejected") throw result.reason;
+      if (result.value) found.push(result.value);
+    }
   }
   return found;
 }
