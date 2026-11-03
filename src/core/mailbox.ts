@@ -5,6 +5,10 @@ import { formatChange, type Change } from "./changes.ts";
 import { checkStateDirectory, hash, isCommit, isId, readJson, withLock, writeJson } from "./store.ts";
 import { repository, repositoryMetadata, type Repository } from "./repository.ts";
 
+// Use a true end check: `$` also matches before a final line terminator.
+const parentPath = /(?:^|[\\/])\.\.(?![^\\/])/;
+const posixParentPath = /(?:^|\/)\.\.(?![^/])/;
+
 export interface Identity {
   adapter: string;
   session: string;
@@ -465,7 +469,7 @@ function validateMessage(text: unknown, files: unknown, strict = true, posixPath
         file.length <= 4096 &&
         !file.includes("\0") &&
         !(posixPaths ? file.startsWith("/") : /^(?:[\\/]|[A-Za-z]:)/.test(file)) &&
-        !file.split(posixPaths ? /\// : /[\\/]/).includes(".."),
+        !(posixPaths ? posixParentPath : parentPath).test(file),
     )
   )
     throw new Error("Message files must be repository-relative paths (max 1000), without parent traversal.");
@@ -494,8 +498,7 @@ export async function sendMessage(
   validateIdentity(identity);
   const files = validateMessage(text, options.files ?? [], true, process.platform !== "win32");
   const posixPaths =
-    process.platform !== "win32" &&
-    files.some((file) => /^(?:[\\/]|[A-Za-z]:)/.test(file) || file.split(/[\\/]/).includes(".."));
+    process.platform !== "win32" && files.some((file) => /^(?:[\\/]|[A-Za-z]:)/.test(file) || parentPath.test(file));
   const repo = await repository(cwd, signal);
   for (let offset = 0; offset < files.length; offset += 32) {
     const checks = await Promise.allSettled(
