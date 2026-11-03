@@ -27,6 +27,7 @@ for (const path of [
     filter: (source) =>
       source !== join(root, "docs/evidence") &&
       source !== join(root, "docs/acceptance-results.json") &&
+      source !== join(root, "docs/optimization-rounds.md") &&
       !source.endsWith(".d.ts"),
   });
 }

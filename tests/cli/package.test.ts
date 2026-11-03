@@ -113,6 +113,7 @@ test(
     await assert.rejects(access(join(installed, "dist/index.d.ts")), { code: "ENOENT" });
     await assert.rejects(access(join(installed, "docs/evidence")), { code: "ENOENT" });
     await assert.rejects(access(join(installed, "docs/acceptance-results.json")), { code: "ENOENT" });
+    await assert.rejects(access(join(installed, "docs/optimization-rounds.md")), { code: "ENOENT" });
     await assert.rejects(access(join(installed, "node_modules")));
     assert.match(await readFile(join(installed, "dist/vendor/smol-toml/LICENSE"), "utf8"), /Redistribution and use/);
     const hooks = JSON.parse(await readFile(join(installed, plugin.hooks), "utf8"));

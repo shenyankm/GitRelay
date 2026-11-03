@@ -14,6 +14,7 @@
     "src/adapters/codex/*.json",
     "skills",
     "docs/*.md",
+    "!docs/optimization-rounds.md",
     "README.md",
     "CONTRIBUTING.md",
     "CHANGELOG.md",
