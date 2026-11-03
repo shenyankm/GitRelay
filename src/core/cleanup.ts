@@ -186,7 +186,13 @@ export async function collectRepository(repo: Repository, options: CleanupOption
                   proofFiles.set(key, byEvent);
                 }
                 await rm(join(directory, `${event.id}.json`), { force: true });
-                for (const proof of byEvent.get(event.id) ?? []) await rm(join(directory, proof), { force: true });
+                const proofs = byEvent.get(event.id) ?? [];
+                for (let offset = 0; offset < proofs.length; offset += 4) {
+                  const removed = await Promise.allSettled(
+                    proofs.slice(offset, offset + 4).map((proof) => rm(join(directory, proof), { force: true })),
+                  );
+                  for (const result of removed) if (result.status === "rejected") throw result.reason;
+                }
               }),
             );
             for (const deletion of deletions) if (deletion.status === "rejected") throw deletion.reason;

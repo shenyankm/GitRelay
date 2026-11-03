@@ -76,61 +76,74 @@ test("GC groups proof files by event and preserves unrelated names", async (t) =
     assert.equal(await readFile(join(directory, name), "utf8"), "preserve unrelated proof");
 });
 
-test(
-  "GC drains deletion peers before releasing its lock and can resume the trash journal",
-  { timeout: 10_000 },
-  async (t) => {
-    const f = await fixture(t),
-      trash = join(f.repo.directory, "trash", `${f.event.id}.json`),
-      content = JSON.stringify(f.event);
-    await writeFile(join(f.repo.directory, "events", `${f.event.id}.json`), content);
-    const gate = Promise.withResolvers<void>(),
-      started = Promise.withResolvers<void>(),
-      original = fs.promises.rm;
-    const patch = t.mock.method(fs.promises, "rm", async (...args: Parameters<typeof original>) => {
-      if (args[0] === f.receipt(0)) throw new Error("first deletion failure");
-      if (args[0] === f.receipt(2)) throw new Error("later deletion failure");
-      if (args[0] === f.receipt(1)) {
-        started.resolve();
-        await gate.promise;
-      }
-      return original(...args);
-    });
-    syncBuiltinESMExports();
-    let settled = false,
-      pending: ReturnType<typeof collectRepository> | undefined;
-    try {
-      pending = collectRepository(f.repo, { apply: true, retentionDays: 0 });
-      pending.then(
-        () => {
-          settled = true;
-        },
-        () => {
-          settled = true;
-        },
-      );
-      await started.promise;
-      await new Promise((resolve) => setImmediate(resolve));
-      assert.equal(settled, false);
-      await assert.rejects(
-        withLock(f.lock, async () => {}),
-        /busy/i,
-      );
-      assert.equal(await readFile(trash, "utf8"), content);
-      gate.resolve();
-      await assert.rejects(pending, /first deletion failure/);
-      assert.equal(await readFile(trash, "utf8"), content);
-      await assert.rejects(access(f.receipt(1)), { code: "ENOENT" });
-    } finally {
-      gate.resolve();
-      await pending?.catch(() => {});
-      patch.mock.restore();
+for (const kind of ["receipt", "proof"])
+  test(
+    `GC drains ${kind} deletion peers before releasing its lock and can resume the trash journal`,
+    { timeout: 10_000 },
+    async (t) => {
+      const f = await fixture(t),
+        trash = join(f.repo.directory, "trash", `${f.event.id}.json`),
+        content = JSON.stringify(f.event);
+      await writeFile(join(f.repo.directory, "events", `${f.event.id}.json`), content);
+      const paths =
+        kind === "receipt"
+          ? [f.receipt(0), f.receipt(1), f.receipt(2)]
+          : [0, 1, 2].map((index) =>
+              join(
+                f.repo.directory,
+                "receipts",
+                f.recipients[0],
+                `${f.event.id}.${String(index).padStart(64, "0")}.pi-proof`,
+              ),
+            );
+      if (kind === "proof") for (const path of paths) await writeFile(path, "proof");
+      const gate = Promise.withResolvers<void>(),
+        started = Promise.withResolvers<void>(),
+        original = fs.promises.rm;
+      const patch = t.mock.method(fs.promises, "rm", async (...args: Parameters<typeof original>) => {
+        if (args[0] === paths[0]) throw new Error("first deletion failure");
+        if (args[0] === paths[2]) throw new Error("later deletion failure");
+        if (args[0] === paths[1]) {
+          started.resolve();
+          await gate.promise;
+        }
+        return original(...args);
+      });
       syncBuiltinESMExports();
-    }
-    assert.deepEqual((await collectRepository(f.repo, { apply: true, retentionDays: 0 })).removed, [f.event.id]);
-    await assert.rejects(access(trash), { code: "ENOENT" });
-  },
-);
+      let settled = false,
+        pending: ReturnType<typeof collectRepository> | undefined;
+      try {
+        pending = collectRepository(f.repo, { apply: true, retentionDays: 0 });
+        pending.then(
+          () => {
+            settled = true;
+          },
+          () => {
+            settled = true;
+          },
+        );
+        await started.promise;
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.equal(settled, false);
+        await assert.rejects(
+          withLock(f.lock, async () => {}),
+          /busy/i,
+        );
+        assert.equal(await readFile(trash, "utf8"), content);
+        gate.resolve();
+        await assert.rejects(pending, /first deletion failure/);
+        assert.equal(await readFile(trash, "utf8"), content);
+        await assert.rejects(access(paths[1]), { code: "ENOENT" });
+      } finally {
+        gate.resolve();
+        await pending?.catch(() => {});
+        patch.mock.restore();
+        syncBuiltinESMExports();
+      }
+      assert.deepEqual((await collectRepository(f.repo, { apply: true, retentionDays: 0 })).removed, [f.event.id]);
+      await assert.rejects(access(trash), { code: "ENOENT" });
+    },
+  );
 
 test(
   "trash recovery drains receipt peers and preserves a missing-first decision over corrupt later data",
