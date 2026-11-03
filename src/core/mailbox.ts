@@ -250,7 +250,9 @@ function orderUpstream(events: SharedEvent[]): SharedEvent[] {
       if (state.get(current.id) === 1) throw new Error("Cyclic upstream event history; unread events were preserved.");
       state.set(current.id, 1);
       stack.push([current, true]);
-      for (const parent of [...parents.get(current.id)!].reverse()) stack.push([parent, false]);
+      const prior = parents.get(current.id)!;
+      for (const parent of [...prior].reverse())
+        if (prior.length === 1 || state.get(parent.id) !== 2) stack.push([parent, false]);
     }
   }
   let index = 0;

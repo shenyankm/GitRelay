@@ -9,6 +9,52 @@ import { hash, withLock, writeJson } from "../../src/core/store.ts";
 import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
+test("shared migration parents remain before every child without duplicating output", async (t) => {
+  const f = await fixture(t),
+    repo = await repository(f.b),
+    key = hash("receiver"),
+    ref = "refs/heads/main";
+  await mkdir(join(repo.directory, "receipts", key));
+  const sender = { adapter: "test", session: "sender", root: f.main },
+    previous = "a".repeat(40),
+    commit = "b".repeat(40);
+  const parents: UpstreamEvent[] = Array.from({ length: 3 }, (_, i) => {
+    const recipient = hash(["migration", i]);
+    return {
+      id: hash(["upstream", ref, previous, commit, `migration:${recipient}`]),
+      kind: "upstream",
+      ref,
+      previous,
+      commit,
+      createdAt: "2020-01-02T00:00:00.000Z",
+      sender,
+      recipients: [recipient],
+    };
+  });
+  const children: UpstreamEvent[] = Array.from({ length: 3 }, (_, i) => {
+    const next = (i + 12).toString(16).padStart(40, "0");
+    return {
+      id: hash(["upstream", ref, commit, next, ""]),
+      kind: "upstream",
+      ref,
+      previous: commit,
+      commit: next,
+      createdAt: "2020-01-01T00:00:00.000Z",
+      sender,
+      recipients: [key],
+    };
+  });
+  for (const event of [...parents, ...children])
+    await writeJson(join(repo.directory, "events", event.id + ".json"), event);
+  const ordered = await withLock(join(repo.directory, "sessions", `${key}.lock`), () => eventsIn(repo, key));
+  const ids = (events: UpstreamEvent[]) => events.map((event) => event.id).sort((a, b) => a.localeCompare(b));
+  assert.deepEqual(
+    ordered.map((event) => event.id),
+    [...ids(parents), ...ids(children)],
+  );
+  assert.deepEqual(await readdir(join(repo.directory, "receipts", key)), []);
+});
+
 test("repeated transitions preserve causal order with bounded hashing, messages and receipt filtering", async (t) => {
   const f = await fixture(t),
     repo = await repository(f.b),
