@@ -137,6 +137,8 @@ GitHub 查询额外依赖已认证的 `gh`。ahead/behind 使用本地缓存引�
 
 ## 开发与验证
 
+以下命令在源码仓库中运行。npm 包仅包含构建好的运行文件和 SDK 类型声明。
+
 ```sh
 npm ci --ignore-scripts
 npm run check
@@ -149,7 +151,7 @@ macOS/Linux、Node.js 22.19.0 和 24。
 
 本地回归、真实客户端及模型验收、远端 CI 分别记录。历史验收早于本次重构。按需启用
 流程已完成 Codex 0.164.0 的针对性真实客户端验收，具体场景和
-未验证边界见[验收记录](docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27)。
+未验证边界见[验收记录](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27)。
 
 ## 文档索引
 

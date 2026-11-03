@@ -153,6 +153,8 @@ See [maintenance](docs/maintenance.md) for daemon and cleanup operations.
 
 ## Development and validation
 
+Run these commands in a source checkout. The npm package contains the prebuilt runtime and SDK declarations.
+
 ```sh
 npm ci --ignore-scripts
 npm run check
@@ -168,7 +170,7 @@ credential-like values. CI checks macOS/Linux on Node.js 22.19.0 and 24.
 Local regressions, real-client/model acceptance, and hosted CI are recorded
 separately. Historical evidence predates this refactor. Targeted native
 acceptance for the on-demand flow is recorded for Codex 0.164.0; see its exact scenarios and limits in
-[acceptance](docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27).
+[acceptance](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27).
 
 ## Documentation
 

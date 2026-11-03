@@ -22,7 +22,13 @@ for (const path of [
   "CHANGELOG.md",
   "LICENSE",
 ]) {
-  await cp(join(root, path), join(target, path), { recursive: true });
+  await cp(join(root, path), join(target, path), {
+    recursive: true,
+    filter: (source) =>
+      source !== join(root, "docs/evidence") &&
+      source !== join(root, "docs/acceptance-results.json") &&
+      !source.endsWith(".d.ts"),
+  });
 }
 await writeFile(
   join(target, "package.json"),

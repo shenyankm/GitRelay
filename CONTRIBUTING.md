@@ -94,4 +94,4 @@ release acceptance checklist. A normal contribution does not publish a release.
 
 By contributing, you agree that your contributions are licensed under the
 project's [MIT License](LICENSE). Retain existing third-party copyright and
-license notices, including [`vendor/smol-toml/LICENSE`](vendor/smol-toml/LICENSE).
+license notices, including [`vendor/smol-toml/LICENSE`](https://github.com/shenyankm/GitRelay/blob/main/vendor/smol-toml/LICENSE).

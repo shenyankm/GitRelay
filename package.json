@@ -10,20 +10,16 @@
     "coding-agent"
   ],
   "files": [
-    "src",
-    "vendor",
     "dist",
-    "scripts",
+    "src/adapters/codex/*.json",
     "skills",
-    "docs",
+    "docs/*.md",
     "README.md",
     "CONTRIBUTING.md",
     "CHANGELOG.md",
     "LICENSE",
     ".codex-plugin",
-    "assets",
-    "tsconfig.json",
-    "tsconfig.build.json"
+    "assets"
   ],
   "bin": {
     "git-relay": "./dist/cli/main.js",

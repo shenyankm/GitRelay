@@ -58,7 +58,7 @@ for the exact pushed commit and its supported Node/OS matrix.
 
 Codex CLI `0.166.0` and the existing `gpt-6.1-sol` configuration completed
 14 real model turns in disposable worktrees with isolated Codex configuration
-and GitRelay state. See the sanitized [native acceptance summary](evidence/2026-11-03-codex-architecture/summary.json)
+and GitRelay state. See the sanitized [native acceptance summary](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-03-codex-architecture/summary.json)
 for source/build fingerprints, independent checks and synthetic model markers.
 
 - The four configured hook events were reviewed and trusted through the normal
@@ -105,10 +105,10 @@ every item or completed the requested adaptation.
 
 ## Historical evidence
 
-The [dated acceptance archive](evidence/acceptance-history.md) retains earlier
+The [dated acceptance archive](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/acceptance-history.md) retains earlier
 synchronization, hook-overhead, lifecycle and native-host results. The raw
-[`acceptance-results.json`](acceptance-results.json) and
-[evidence files](evidence/README.md) include retired clients, old test counts,
+[`acceptance-results.json`](https://github.com/shenyankm/GitRelay/blob/main/docs/acceptance-results.json) and
+[evidence files](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/README.md) include retired clients, old test counts,
 and source/build hashes. They do not verify current compatibility or behavior.
 
 Forced termination, power-loss durability, Windows client lifecycle and completed
