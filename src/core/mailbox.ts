@@ -407,9 +407,15 @@ export async function publishUpstream(
     const event = validateEvent(discarded, id);
     if (event.kind !== "upstream" || event.ref !== ref || event.previous !== previous || event.commit !== commit)
       throw new Error(`Upstream trash does not match publication: ${id}`);
-    for (const key of event.recipients)
-      if (!(await readReceipt(repository, key, id)))
-        throw new Error(`Upstream trash has missing receipt; manual recovery required: ${id}`);
+    for (let offset = 0; offset < event.recipients.length; offset += 32) {
+      const receipts = await Promise.allSettled(
+        event.recipients.slice(offset, offset + 32).map((key) => readReceipt(repository, key, id)),
+      );
+      for (const receipt of receipts) {
+        if (receipt.status === "rejected") throw receipt.reason;
+        if (!receipt.value) throw new Error(`Upstream trash has missing receipt; manual recovery required: ${id}`);
+      }
+    }
     await rename(trash, path);
     existing = discarded;
   }

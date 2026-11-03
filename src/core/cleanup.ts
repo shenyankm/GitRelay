@@ -41,7 +41,7 @@ export async function collectRepository(repo: Repository, options: CleanupOption
     join(repo.directory, "publish.lock"),
     async () => {
       // Session metadata cannot change through the relay while this publication lock is held.
-      const migrated = new Set<string>();
+      const migrated = new Map<string, boolean>();
       const proofFiles = new Map<string, Map<string, string[]>>();
       const approved: SharedEvent[] = [];
       const trashNames = await readdir(join(repo.directory, "trash"));
@@ -128,21 +128,31 @@ export async function collectRepository(repo: Repository, options: CleanupOption
           }
           if (!committed) {
             let latest = Date.parse(event.createdAt);
-            for (const key of event.recipients) {
-              const receipt = await readReceipt(repo, key, event.id);
-              if (!receipt) {
-                report.kept.push({ id: event.id, reason: "unconfirmed" });
-                continue eventLoop;
-              }
-              if (!migrated.has(key)) {
-                const session = await readSession(repo, key);
-                if (!session?.migrated) {
+            for (let offset = 0; offset < event.recipients.length;) {
+              // Preserve the cheap first-recipient stop before starting a batch.
+              const batch = event.recipients.slice(offset, offset + (offset === 0 ? 1 : 32));
+              const checks = await Promise.allSettled(
+                batch.map(async (key) => {
+                  const receipt = await readReceipt(repo, key, event.id);
+                  const session = receipt && !migrated.has(key) ? await readSession(repo, key) : undefined;
+                  return { key, receipt, session };
+                }),
+              );
+              for (const check of checks) {
+                if (check.status === "rejected") throw check.reason;
+                const { key, receipt, session } = check.value;
+                if (!receipt) {
+                  report.kept.push({ id: event.id, reason: "unconfirmed" });
+                  continue eventLoop;
+                }
+                if (!migrated.has(key)) migrated.set(key, session?.migrated === true);
+                if (!migrated.get(key)) {
                   report.kept.push({ id: event.id, reason: "migration" });
                   continue eventLoop;
                 }
-                migrated.add(key);
+                latest = Math.max(latest, Date.parse(receipt.at));
               }
-              latest = Math.max(latest, Date.parse(receipt.at));
+              offset += batch.length;
             }
             if (latest > cutoff) {
               report.kept.push({ id: event.id, reason: "retention" });
