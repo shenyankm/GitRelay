@@ -168,13 +168,11 @@ async function gitlinkFiles(root: string, signal?: AbortSignal): Promise<string>
             row = pending.subarray(0, pendingLength);
           }
           if (end < 0) break;
-          const tab = row.indexOf(9);
-          if (
-            tab < 0 ||
-            !/^[0-7]{6} (?:[0-9a-f]{40}|[0-9a-f]{64}) [0-3]$/.test(row.subarray(0, tab).toString("latin1"))
-          )
+          const tab = row.indexOf(9),
+            header = tab < 0 ? "" : row.subarray(0, tab).toString("latin1");
+          if (!/^[0-7]{6} (?:[0-9a-f]{40}|[0-9a-f]{64}) [0-3]$/.test(header))
             throw new Error("Invalid Git index output.");
-          if (row.subarray(0, 6).toString("latin1") === "160000") {
+          if (header.startsWith("160000 ")) {
             bytes += row.length - tab;
             if (bytes > 16 * 1024 * 1024) throw new Error("Gitlink paths exceed 16 MiB.");
             try {
