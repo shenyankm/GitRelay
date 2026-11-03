@@ -4,19 +4,20 @@ Only Codex has a maintained integration. Loaded root sessions
 participate automatically unless explicitly disabled. Existing clients need to
 reload updated code; hook trust is still required.
 
-| Capability                    | Codex                                                           |
-| ----------------------------- | --------------------------------------------------------------- |
-| Entry point                   | Lifecycle hooks / bundled plugin                                |
-| Enable                        | First native hook; explicit rejoin after disable                |
-| Explicitly disabled           | Command hook retains the saved disable                          |
-| Busy delivery                 | Additional context after tools; Stop continuation               |
-| Already idle                  | Waits for next hook                                             |
-| Disable                       | Explicit prompt or `leave`; unread events preserved             |
-| Resume                        | Same native session retains choice                              |
-| Recreated native ID           | Depends on host session-ID uniqueness                           |
-| Installation                  | Managed user hooks, with separate `/hooks` trust; manual plugin |
-| Historical real-host evidence | CLI 0.164.0 on earlier source snapshots                         |
-| Historical on-demand flow     | Local regressions and targeted native acceptance on 0.164.0     |
+| Capability                    | Codex                                                                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Entry point                   | Lifecycle hooks / bundled plugin                                                                                                            |
+| Enable                        | First native hook; explicit rejoin after disable                                                                                            |
+| Explicitly disabled           | Command hook retains the saved disable                                                                                                      |
+| Busy delivery                 | Additional context after tools; Stop continuation                                                                                           |
+| Already idle                  | Waits for next hook                                                                                                                         |
+| Disable                       | Explicit prompt or `leave`; unread events preserved                                                                                         |
+| Resume                        | Same native session retains choice                                                                                                          |
+| Recreated native ID           | Depends on host session-ID uniqueness                                                                                                       |
+| Installation                  | Managed user hooks, with separate `/hooks` trust; manual plugin                                                                             |
+| Targeted current CLI evidence | 0.166.0 on the Codex-only architecture refactor; see [native acceptance](acceptance.md#native-codex-cli-architecture-acceptance-2026-11-03) |
+| Historical real-host evidence | CLI 0.164.0 on earlier source snapshots                                                                                                     |
+| Historical on-demand flow     | Local regressions and targeted native acceptance on 0.164.0                                                                                 |
 
 Automatic daemon lifecycle uses macOS/Linux process discovery. Its current local
 regressions are separate from the historical native acceptance below.

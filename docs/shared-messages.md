@@ -156,11 +156,12 @@ A check selects at most eight events and targets roughly 64K characters. A singl
 
 ## SDK integration
 
-Node hosts import built JavaScript:
+Install the package and import its public SDK by name. The root entry provides
+JavaScript and TypeScript declarations; consumers do not need TypeScript source
+stripping or `allowImportingTsExtensions`:
 
 ```js
-import { consumeMailbox } from './dist/core/consumer.js';
-import { sendMessage, formatNotifications } from './dist/core/mailbox.js';
+import { consumeMailbox, sendMessage, formatNotifications } from 'git-relay';
 
 await consumeMailbox({
   cwd: '/project/worktree-B',
@@ -173,6 +174,20 @@ await consumeMailbox({
   },
 });
 ```
+
+The supported root exports are `consumeMailbox`, `consumeChanges`, `sendMessage`,
+`listSessions`, `formatNotifications`, `enableSession`, `disableSession`, and
+`HistoryUnavailableError`, together with their public input and event types.
+`enableSession` commits explicit activation with enrollment and rolls back a
+failed enrollment; a concurrent disable can return no session. `disableSession`
+persists opt-out and closes enrollment without acknowledging unread events.
+Both snapshot their options before asynchronous work.
+
+The formerly documented `git-relay/dist/core/consumer.js`,
+`git-relay/dist/core/mailbox.js`, and `git-relay/dist/core/sessions.js` imports
+remain compatibility paths. Other package subpaths are private. New integrations
+must use the root SDK; the low-level legacy session helpers do not coordinate
+activation and enrollment as one operation.
 
 `signal` cancels Git checks and lock waits; sending, join/leave, and GC also support cancellation. Repository publication locks normally retry with jitter for up to five seconds, then report the lock path and PID. During a fresh identifiable GC, consumers instead skip a round and join/leave report busy; long or unverifiable locks fall back to the normal wait. An active per-session consumption lock skips that round to prevent duplicate delivery. Lock age does not prove a stalled owner; locks are not stolen. See [maintenance](maintenance.md) for the GC barrier and its limits.
 

@@ -11,7 +11,8 @@ import {
   type Identity,
   type UpstreamEvent,
 } from "./mailbox.ts";
-import { hash, isCommit, isId, readJson, writeJson, type Repository } from "./store.ts";
+import { hash, isCommit, isId, readJson, writeJson } from "./store.ts";
+import { type Repository } from "./repository.ts";
 
 export async function readRef(
   repo: Repository,

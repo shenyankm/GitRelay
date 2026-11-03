@@ -21,18 +21,8 @@ import {
   type Notification,
   type SharedEvent,
 } from "./mailbox.ts";
-import {
-  BusyError,
-  GC_LOCK_TOKEN,
-  checkStateDirectory,
-  isId,
-  readJson,
-  repository,
-  repositoryMetadata,
-  withLock,
-  writeJson,
-  type Repository,
-} from "./store.ts";
+import { BusyError, GC_LOCK_TOKEN, checkStateDirectory, isId, readJson, withLock, writeJson } from "./store.ts";
+import { repository, repositoryMetadata, type Repository } from "./repository.ts";
 import { synchronizeRef } from "./publisher.ts";
 
 export interface DeliveryLocation {

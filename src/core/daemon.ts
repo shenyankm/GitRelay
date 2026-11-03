@@ -6,20 +6,17 @@ import { collectRepository, retentionDays } from "./cleanup.ts";
 import { sessionsIn } from "./mailbox.ts";
 import { synchronizeRef } from "./publisher.ts";
 import {
-  assertMigrationReady,
   BusyError,
   checkManagedRoot,
-  checkRepositoryDirectories,
   checkStateDirectory,
   hash,
   isId,
   readJson,
-  repositoryIdentity,
   stateDirectory,
   withLock,
   writeJson,
-  type Repository,
 } from "./store.ts";
+import { assertMigrationReady, checkRepositoryDirectories, repositoryIdentity, type Repository } from "./repository.ts";
 
 export interface DaemonOptions {
   signal: AbortSignal;

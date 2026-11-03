@@ -153,6 +153,8 @@ macOS/Linux、Node.js 22.19.0 和 24。
 
 ## 文档索引
 
+- [架构说明](docs/architecture.md)：模块边界、事务归属与公开 SDK。
+
 | 主题     | 文档                                               |
 | -------- | -------------------------------------------------- |
 | 接入指南 | [docs/integrations.md](docs/integrations.md)       |

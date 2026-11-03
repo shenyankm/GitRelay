@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { consumeMailbox } from "../core/consumer.ts";
 import { watchRoot } from "../core/changes.ts";
 import { formatNotifications } from "../core/mailbox.ts";
@@ -7,7 +6,7 @@ import { formatBranchStatus } from "../core/status-format.ts";
 import { git, GitPathOutputError } from "../core/git.ts";
 import { parse } from "node:path";
 import { requestedActivation, sessionActivation } from "../core/activation.ts";
-import { joinSession, leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../core/sessions.ts";
+import { enableSession, disableSession } from "../core/session-lifecycle.ts";
 
 export type HookInput = Record<string, unknown>;
 
@@ -64,9 +63,7 @@ export async function runHook(
     await git(parse(process.execPath).root, ["check-ref-format", ref], signal);
   }
   if (request === false) {
-    const checked = await preflightLeaveSession(options);
-    await sessionActivation(options, false, checked);
-    await leaveSessionIfRepository(options, checked);
+    await disableSession(options);
     await output({});
     return;
   }
@@ -88,44 +85,9 @@ export async function runHook(
       return;
     }
   }
-  if (request === true) {
-    const token = randomUUID();
-    const disabled = Symbol();
-    let joined: Awaited<ReturnType<typeof joinSession>> | undefined;
-    await sessionActivation(options, true, undefined, {
-      token,
-      phase: "begin",
-      priorEnabled: await sessionActivation({ ...options, defaultEnabled: false }),
-    });
-    try {
-      await joinSession(options, async (register, repositoryId, subscriptionKey) => {
-        const prepared = await sessionActivation(options, true, undefined, {
-          token,
-          phase: "prepare",
-          repositoryId,
-          subscriptionKey,
-          run: async () => {
-            joined = await register(token);
-          },
-        });
-        if (!prepared) throw disabled;
-        if (!joined) throw new Error("GitRelay subscription was not registered.");
-        return joined;
-      });
-    } catch (error) {
-      if (!joined)
-        await sessionActivation({ ...options, signal: undefined }, true, undefined, { token, phase: "failure" });
-      if (error === disabled) {
-        await output({});
-        return;
-      }
-      throw error;
-    }
-    if (!(await sessionActivation(options))) {
-      await leaveSession(options);
-      await output({});
-      return;
-    }
+  if (request === true && !(await enableSession(options))) {
+    await output({});
+    return;
   }
   let summary = "";
   if (showBranchStatus && ["SessionStart", "UserPromptSubmit"].includes(event)) {

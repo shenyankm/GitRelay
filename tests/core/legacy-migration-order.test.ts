@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { registerSession, sessionKey, type Notification } from "../../src/core/mailbox.ts";
-import { repository, withLock, writeJson } from "../../src/core/store.ts";
+import { withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("legacy migration precedes later upstream events", async (t) => {

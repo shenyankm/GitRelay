@@ -7,20 +7,15 @@ import { promisify } from "node:util";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { sessionKey } from "../../src/core/mailbox.ts";
 import { leaveSession } from "../../src/core/sessions.ts";
-import {
-  hash,
-  recoverRepositoryInitialization,
-  repository,
-  stateDirectory,
-  withRepositoryIdentity,
-} from "../../src/core/store.ts";
+import { hash, stateDirectory } from "../../src/core/store.ts";
+import { recoverRepositoryInitialization, repository, withRepositoryIdentity } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 const exec = promisify(execFile);
 
 test("concurrent processes publish one identity shared across worktrees", async (t) => {
   const f = await fixture(t);
-  const moduleUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+  const moduleUrl = new URL("../../src/core/repository.ts", import.meta.url).href;
   const source = `import { repository } from ${JSON.stringify(moduleUrl)}; console.log(JSON.stringify(await repository(process.argv[1])));`;
   const trees = [f.main, f.a, f.b, f.c];
   const outputs = await Promise.all(
@@ -47,7 +42,7 @@ test("concurrent processes publish one identity shared across worktrees", async 
 
 test("initialization publishes its owner on the repository state filesystem", async (t) => {
   const f = await fixture(t);
-  const moduleUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+  const moduleUrl = new URL("../../src/core/repository.ts", import.meta.url).href;
   const source = `
     import fs from "node:fs/promises";
     import { syncBuiltinESMExports } from "node:module";
@@ -86,7 +81,7 @@ test("initialization publishes its owner on the repository state filesystem", as
 
 test("failure writing the initial owner leaves no unowned state directory", async (t) => {
   const f = await fixture(t);
-  const moduleUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+  const moduleUrl = new URL("../../src/core/repository.ts", import.meta.url).href;
   const source = `
     import fs from "node:fs/promises";
     import { syncBuiltinESMExports } from "node:module";
@@ -113,7 +108,7 @@ test("failure writing the initial owner leaves no unowned state directory", asyn
 
 test("interruption after publishing the owner can be recovered without deleting it", async (t) => {
   const f = await fixture(t);
-  const moduleUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+  const moduleUrl = new URL("../../src/core/repository.ts", import.meta.url).href;
   const source = `
     import fs from "node:fs/promises";
     import { syncBuiltinESMExports } from "node:module";
@@ -143,7 +138,7 @@ test("interruption after publishing the owner can be recovered without deleting 
 
 test("a failed ready write is archived intact before initialization is retried", async (t) => {
   const f = await fixture(t);
-  const moduleUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+  const moduleUrl = new URL("../../src/core/repository.ts", import.meta.url).href;
   const source = `
     import fs from "node:fs/promises";
     import { syncBuiltinESMExports } from "node:module";
@@ -195,7 +190,7 @@ test("recovery rejects malformed ready temporaries and symlinks", async (t) => {
 for (const code of ["EPERM", "EACCES", "EOPNOTSUPP", "ENOTSUP", "EXDEV"]) {
   test(`unsupported owner hard link reports ${code} and preserves unowned state`, async (t) => {
     const f = await fixture(t);
-    const moduleUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+    const moduleUrl = new URL("../../src/core/repository.ts", import.meta.url).href;
     const source = `
       import fs from "node:fs/promises";
       import { syncBuiltinESMExports } from "node:module";

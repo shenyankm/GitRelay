@@ -19,7 +19,8 @@ import {
   sessionKey,
 } from "../../src/core/mailbox.ts";
 import { joinSession, leaveSession } from "../../src/core/sessions.ts";
-import { repository, withLock, writeJson } from "../../src/core/store.ts";
+import { withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const ref = "refs/heads/main";

@@ -8,7 +8,8 @@ import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { eventsIn, publishUpstream, sessionKey, type Notification } from "../../src/core/mailbox.ts";
 import { readRef, synchronizeRef } from "../../src/core/publisher.ts";
-import { hash, repository, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { hash, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const ref = "refs/heads/main";
@@ -122,13 +123,15 @@ test(
   async (t) => {
     const state = await interruptedPublication(t);
     const storeUrl = new URL("../../src/core/store.ts", import.meta.url).href;
+    const repositoryUrl = new URL("../../src/core/repository.ts", import.meta.url).href;
     const publisherUrl = new URL("../../src/core/publisher.ts", import.meta.url).href;
     const script = `
     import fs from "node:fs";
     import { readFile } from "node:fs/promises";
     import { syncBuiltinESMExports } from "node:module";
     import { join, sep } from "node:path";
-    import { repository, withLock } from ${JSON.stringify(storeUrl)};
+    import { withLock } from ${JSON.stringify(storeUrl)};
+    import { repository } from ${JSON.stringify(repositoryUrl)};
     import { synchronizeRef } from ${JSON.stringify(publisherUrl)};
     const identity = { cwd: process.env.TEST_CWD, ref: ${JSON.stringify(ref)}, adapter: "test", session: "b" };
     const repo = await repository(identity.cwd);

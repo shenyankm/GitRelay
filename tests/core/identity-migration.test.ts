@@ -8,16 +8,13 @@ import { test } from "node:test";
 import { migrateLegacyState } from "../../src/core/identity-migration.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { sessionKey } from "../../src/core/mailbox.ts";
+import { hash, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
 import {
   chooseFreshRepository,
-  hash,
   recoverRepositoryInitialization,
   repository,
-  stateDirectory,
-  withLock,
   withRepositoryIdentity,
-  writeJson,
-} from "../../src/core/store.ts";
+} from "../../src/core/repository.ts";
 import { fixture as gitFixture } from "../helpers.ts";
 
 async function fixture(t: { after(fn: () => Promise<void>): void }) {

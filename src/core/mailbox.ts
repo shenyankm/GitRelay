@@ -2,18 +2,8 @@ import { randomUUID } from "node:crypto";
 import { lstat, readdir, rename } from "node:fs/promises";
 import { join, posix } from "node:path";
 import { formatChange, type Change } from "./changes.ts";
-import {
-  checkStateDirectory,
-  hash,
-  isCommit,
-  isId,
-  readJson,
-  repository,
-  repositoryMetadata,
-  withLock,
-  writeJson,
-  type Repository,
-} from "./store.ts";
+import { checkStateDirectory, hash, isCommit, isId, readJson, withLock, writeJson } from "./store.ts";
+import { repository, repositoryMetadata, type Repository } from "./repository.ts";
 
 export interface Identity {
   adapter: string;
@@ -76,7 +66,7 @@ export async function listSessions(cwd: string, signal?: AbortSignal): Promise<S
   return sessionsIn(await repository(cwd, signal));
 }
 
-export async function readSession(repo: Repository, key: string): Promise<Session | undefined> {
+export async function readSession(repo: Pick<Repository, "directory">, key: string): Promise<Session | undefined> {
   if (!isId(key)) throw new Error("Invalid session key.");
   const value = await readJson(join(repo.directory, "sessions", `${key}.json`));
   if (value === undefined) return;
@@ -127,7 +117,7 @@ export async function sessionsIn(repo: Repository): Promise<Session[]> {
 
 /** Caller owns publish.lock, also held by GC while reusing validated migration state. */
 export async function registerSession(
-  repo: Repository,
+  repo: Pick<Repository, "root" | "directory">,
   identity: Identity,
   ref: string,
   baseline?: string,
@@ -139,7 +129,7 @@ export async function registerSession(
   validateIdentity({ adapter, session: "snapshot" });
   identity = { adapter, session: identity.session, instance: identity.instance };
   validateIdentity(identity);
-  repo = { root: repo.root, directory: repo.directory } as Repository;
+  repo = { root: repo.root, directory: repo.directory };
   const key = sessionKey(repo, identity, ref);
   const path = join(repo.directory, "sessions", `${key}.json`);
   const previous = await readSession(repo, key);

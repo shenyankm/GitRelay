@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { collectRepository } from "../dist/core/cleanup.js";
 import { sessionKey, sessionsIn } from "../dist/core/mailbox.js";
-import { hash, repository } from "../dist/core/store.js";
+import { hash } from "../dist/core/store.js";
+import { repository } from "../dist/core/repository.js";
 
 const temporary = await mkdtemp(join(tmpdir(), "git-relay-maintenance-bench-"));
 const previousState = process.env.WORKTREE_SYNC_STATE_DIR;

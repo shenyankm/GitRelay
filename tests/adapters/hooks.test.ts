@@ -9,7 +9,8 @@ import { sessionActivation } from "../../src/core/activation.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { joinSession, leaveSessionIfRepository, preflightLeaveSession } from "../../src/core/sessions.ts";
 import { listSessions, readReceipt, readSession, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { chooseFreshRepository, hash, repository, withLock } from "../../src/core/store.ts";
+import { hash, withLock } from "../../src/core/store.ts";
+import { chooseFreshRepository, repository } from "../../src/core/repository.ts";
 import { setTimeout as delay } from "node:timers/promises";
 import { fixture, git } from "../helpers.ts";
 

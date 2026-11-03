@@ -21,7 +21,9 @@
     "CHANGELOG.md",
     "LICENSE",
     ".codex-plugin",
-    "assets"
+    "assets",
+    "tsconfig.json",
+    "tsconfig.build.json"
   ],
   "bin": {
     "git-relay": "./dist/cli/main.js",
@@ -47,5 +49,15 @@
     "@types/node": "22.19.7",
     "prettier": "3.9.10",
     "typescript": "5.9.3"
+  },
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./dist/core/consumer.js": "./dist/core/consumer.js",
+    "./dist/core/mailbox.js": "./dist/core/mailbox.js",
+    "./dist/core/sessions.js": "./dist/core/sessions.js"
   }
 }

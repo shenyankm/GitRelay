@@ -9,7 +9,8 @@ import { promisify } from "node:util";
 import { collectGarbage } from "../../src/core/cleanup.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { eventsIn, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { BusyError, GC_LOCK_TOKEN, repository, withLock } from "../../src/core/store.ts";
+import { BusyError, GC_LOCK_TOKEN, withLock } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("callback BusyError is propagated without acknowledging the event", async (t) => {

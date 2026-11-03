@@ -64,6 +64,26 @@ The former help, synchronization and coordination skills are consolidated into t
 
 After changing bundled code, documentation, or skills, rebuild and repeat `codex plugin add git-relay@git-relay-local --json` to refresh the installed copy. CLI installation/enabled status and actual App rendering are separate checks. See [integration details](integrations.md#codex-app-status-and-actions).
 
+## SDK and command-boundary update
+
+New integrations import the public SDK from `git-relay`; JavaScript and TypeScript
+declarations are shipped together. Use `enableSession` and `disableSession` for
+complete activation/enrollment changes. The formerly documented consumer, mailbox
+and session deep imports remain compatibility paths; other package subpaths are
+private. Code importing repository or file-lock internals by package subpath must
+migrate to the public SDK. See [SDK integration](shared-messages.md#sdk-integration).
+
+Internal source imports now use `core/repository.ts` for repository discovery,
+identity, initialization and recovery; `core/store.ts` contains file storage and
+lock primitives. These module changes require no state-file migration. Source
+builds require the existing development dependencies to generate SDK declarations:
+run `npm ci --ignore-scripts` before `npm run build`.
+
+Commands now reject explicitly supplied options unrelated to that command.
+Remove flags previously ignored by accident, such as `status --apply` or
+`status --retention-days 7`. Supported command behavior and option defaults are
+unchanged; check `git-relay --help` for command usage.
+
 ## Repository identity and existing state
 
 The state root, `WORKTREE_SYNC_STATE_DIR`, `WORKTREE_MAIN_REF`, session IDs, and event types remain unchanged. The retired `/worktree` commands have been removed. The repository state key now includes both the canonical Git common-directory path and a persistent identity. See [shared storage](shared-messages.md#storage-and-isolation) for the marker and the read-only configuration. Moving a checkout can still change repository or session identity; renaming the GitHub repository does not move a local checkout.

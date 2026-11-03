@@ -9,15 +9,8 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { daemonStatus } from "../../src/core/daemon-state.ts";
 import { runDaemon } from "../../src/core/daemon.ts";
 import { eventsIn, registerSession, sendMessage } from "../../src/core/mailbox.ts";
-import {
-  GC_LOCK_TOKEN,
-  hash,
-  readJson,
-  repository,
-  stateDirectory,
-  withLock,
-  writeJson,
-} from "../../src/core/store.ts";
+import { GC_LOCK_TOKEN, hash, readJson, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 async function waitFor(check: () => Promise<boolean>) {

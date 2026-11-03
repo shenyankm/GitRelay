@@ -7,7 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { hash, readJson, repository, writeJson } from "../../src/core/store.ts";
+import { hash, readJson, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const cli = fileURLToPath(new URL("../../dist/cli/main.js", import.meta.url));

@@ -9,7 +9,8 @@ import { test, type TestContext } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { publishUpstream, sessionKey } from "../../src/core/mailbox.ts";
 import { readRef, synchronizeRef } from "../../src/core/publisher.ts";
-import { hash, withLock, type Repository } from "../../src/core/store.ts";
+import { hash, withLock } from "../../src/core/store.ts";
+import { type Repository } from "../../src/core/repository.ts";
 
 const ref = "refs/heads/main",
   agent = { adapter: "test", session: "receiver" },

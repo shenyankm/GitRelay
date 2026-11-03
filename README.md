@@ -172,6 +172,8 @@ acceptance for the on-demand flow is recorded for Codex 0.164.0; see its exact s
 
 ## Documentation
 
+- [Architecture](docs/architecture.md): module boundaries, transactions and public SDK.
+
 | Topic           | Document                                           |
 | --------------- | -------------------------------------------------- |
 | Integrations    | [docs/integrations.md](docs/integrations.md)       |

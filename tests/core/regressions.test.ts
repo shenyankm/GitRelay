@@ -19,7 +19,8 @@ import {
   type Notification,
 } from "../../src/core/mailbox.ts";
 import { readRef, synchronizeRef } from "../../src/core/publisher.ts";
-import { chooseFreshRepository, repository, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { chooseFreshRepository, repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";

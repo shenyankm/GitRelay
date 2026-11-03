@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { consumeChanges, consumeMailbox } from "../../src/core/consumer.ts";
 import { eventsIn, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { readJson, repository, writeJson } from "../../src/core/store.ts";
+import { readJson, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("persistent per-session checkpoints deduplicate, resume and retry failed delivery", async (t) => {

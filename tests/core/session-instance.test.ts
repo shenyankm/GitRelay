@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { listSessions, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
 import { joinSession, leaveSession } from "../../src/core/sessions.ts";
-import { hash, repository } from "../../src/core/store.ts";
+import { hash } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("native instances keep separate inboxes, resumes and leave state", async (t) => {

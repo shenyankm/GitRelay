@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { sendMessage } from "../../src/core/mailbox.ts";
-import { repository } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";

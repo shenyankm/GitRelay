@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- Centralize session enable/disable transactions shared by Codex hooks and CLI controls.
+- Separate status command handling and reject options unrelated to the selected command.
+- Separate repository identity and recovery from file storage primitives; narrow session storage types.
+- Provide a public package SDK with TypeScript declarations and explicit legacy import compatibility.
+
 - Remove OpenCode integration, installer, SDK dependency, and dedicated tests; support Codex only.
 
 - Consolidate plugin guidance into one GitRelay skill.

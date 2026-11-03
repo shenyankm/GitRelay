@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { eventsIn, publishUpstream } from "../../src/core/mailbox.ts";
-import { hash, repository, withLock } from "../../src/core/store.ts";
+import { hash, withLock } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 
 test("invalid upstream input never publishes or changes an existing event", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "upstream-input-")),

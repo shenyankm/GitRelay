@@ -8,7 +8,8 @@ import { consumeMailbox } from "../dist/core/consumer.js";
 import { runDaemon } from "../dist/core/daemon.js";
 import { daemonStatus } from "../dist/core/daemon-state.js";
 import { sessionKey } from "../dist/core/mailbox.js";
-import { hash, repository } from "../dist/core/store.js";
+import { hash } from "../dist/core/store.js";
+import { repository } from "../dist/core/repository.js";
 
 const temporary = await mkdtemp(join(tmpdir(), "git-relay-bench-"));
 const previousState = process.env.WORKTREE_SYNC_STATE_DIR;

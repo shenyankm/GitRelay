@@ -5,7 +5,8 @@ import { syncBuiltinESMExports } from "node:module";
 import { basename, join, sep } from "node:path";
 import { test } from "node:test";
 import { migrateLegacyState } from "../../src/core/identity-migration.ts";
-import { chooseFreshRepository, hash, repository, repositoryIdentity, writeJson } from "../../src/core/store.ts";
+import { hash, writeJson } from "../../src/core/store.ts";
+import { chooseFreshRepository, repository, repositoryIdentity } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 for (const kind of ["identity", "choice", "owner", "migration"] as const) {

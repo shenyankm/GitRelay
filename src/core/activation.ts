@@ -1,7 +1,8 @@
 import { lstat, mkdir, realpath } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { sessionKey, validateSession, type Identity } from "./mailbox.ts";
-import { checkStateDirectory, isId, readJson, repository, stateDirectory, withLock, writeJson } from "./store.ts";
+import { checkStateDirectory, isId, readJson, stateDirectory, withLock, writeJson } from "./store.ts";
+import { repository } from "./repository.ts";
 import { watchRoot } from "./changes.ts";
 import { GitPathOutputError } from "./git.ts";
 import { preflightLeaveSession } from "./sessions.ts";

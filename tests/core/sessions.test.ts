@@ -6,7 +6,8 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { collectGarbage } from "../../src/core/cleanup.ts";
 import { listSessions, sendMessage, sessionKey, sessionsIn, type Notification } from "../../src/core/mailbox.ts";
 import { joinSession, leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../../src/core/sessions.ts";
-import { repository, withLock, writeJson } from "../../src/core/store.ts";
+import { withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const ref = "refs/heads/main";

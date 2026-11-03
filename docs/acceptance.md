@@ -37,19 +37,56 @@ establish hosted CI status or actual hook discovery/trust in a client.
 
 ## Codex-only local validation: 2026-11-03
 
-`npm run check` passed on the Codex-only working tree: 639 tests passed,
-zero failed, one skipped and zero TODOs (640 total). Formatting, TypeScript,
+`npm run check` passed on the Codex-only working tree after the architecture refactor: 641 tests passed,
+zero failed, one skipped and zero TODOs (642 total). Formatting, TypeScript,
 release metadata and npm packaging checks also passed. The bundled Codex plugin
 was built and its generated hook command exercised by the package tests.
+The installed SDK was exercised without source files and its declarations were
+compiled by a separate TypeScript consumer. Command-option regressions reject
+unrelated flags before initializing state or starting work.
 
 The regressions verify rejection of the removed platform in install/uninstall,
 absence of its adapter and installer in source/build output, Codex installation
 and recovery, and daemon shutdown after the last Codex client exits even if a
 retired client remains. Shared state and legacy inbox identities are retained.
 
-This is local CLI/core and generated-package evidence. Real Codex discovery,
-normal hook trust, native delivery and model behavior were not rerun for this
-revision. Hosted CI and the supported Node/OS matrix were not verified locally.
+These are local CLI/core and generated-package results. Native CLI acceptance
+was subsequently completed as recorded below. Hosted CI remains a separate gate
+for the exact pushed commit and its supported Node/OS matrix.
+
+## Native Codex CLI architecture acceptance: 2026-11-03
+
+Codex CLI `0.166.0` and the existing `gpt-6.1-sol` configuration completed
+14 real model turns in disposable worktrees with isolated Codex configuration
+and GitRelay state. See the sanitized [native acceptance summary](evidence/2026-11-03-codex-architecture/summary.json)
+for source/build fingerprints, independent checks and synthetic model markers.
+
+- The four configured hook events were reviewed and trusted through the normal
+  CLI `/hooks` interface, including again after managed installation changed the
+  launcher. No hook-trust bypass was used. See the [official trust flow](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks).
+- Two real sessions registered automatically and independently received the same
+  peer message and real upstream-commit diff. The models returned unpredictable
+  synthetic markers; receipts were checked separately and local dirty work survived.
+- A message published while a native terminal tool was running reached the model
+  in the same turn. A distinct forced Stop-continuation race was not isolated.
+- Native disable survived resume, closed sessions were excluded from broadcasts,
+  and explicit re-enable did not replay closed-period broadcasts. Shared lifecycle
+  leave preserved an unread message; native re-enable delivered it, and a later
+  retry did not rewrite its receipt.
+- Managed uninstall/reinstall preserved the same native identity and receipts.
+  Both manually copied and managed installed runtime files matched the current
+  build byte-for-byte.
+
+The first isolated plugin-list inspection exceeded the installer's 60-second
+bound; a later standalone inspection and install retry succeeded. Installation
+used `--allow-unverified` because `0.166.0` is outside the installer's previously
+recorded version. This targeted result does not establish every newer version.
+
+Automatic daemon startup was observed. Last-user-client shutdown was not forced
+while other real user Codex processes remained. The test-owned daemon was stopped
+only after checking its kernel command and working directory, and temporary Codex
+credentials were removed. Native desktop rendering, Windows lifecycle, power-loss
+durability and completed production work remain outside this acceptance.
 
 ## Repeat for runtime changes
 

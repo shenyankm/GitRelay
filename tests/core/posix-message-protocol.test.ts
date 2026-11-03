@@ -15,7 +15,8 @@ import {
   validateEvent,
 } from "../../src/core/mailbox.ts";
 import { joinSession } from "../../src/core/sessions.ts";
-import { hash, repository, withLock } from "../../src/core/store.ts";
+import { hash, withLock } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";

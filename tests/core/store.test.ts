@@ -27,7 +27,8 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { collectGarbage } from "../../src/core/cleanup.ts";
 import { installCodex } from "../../src/cli/install-codex.ts";
 import { sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { BusyError, GC_LOCK_TOKEN, readJson, repository, withLock, writeJson } from "../../src/core/store.ts";
+import { BusyError, GC_LOCK_TOKEN, readJson, withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const ref = "refs/heads/main";

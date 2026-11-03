@@ -14,7 +14,8 @@ import {
   type UpstreamEvent,
 } from "../../src/core/mailbox.ts";
 import { readRef, synchronizeRef } from "../../src/core/publisher.ts";
-import { hash, readJson, repository, withLock, writeJson } from "../../src/core/store.ts";
+import { hash, readJson, withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const limit = 2 * 1024 * 1024;

@@ -8,7 +8,8 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { collectGarbage } from "../../src/core/cleanup.ts";
 import { eventsIn, listSessions, sendMessage, sessionKey, type Notification } from "../../src/core/mailbox.ts";
 import { synchronizeRef } from "../../src/core/publisher.ts";
-import { repository, withLock } from "../../src/core/store.ts";
+import { withLock } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";

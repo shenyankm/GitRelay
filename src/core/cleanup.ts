@@ -10,17 +10,8 @@ import {
   type SharedEvent,
 } from "./mailbox.ts";
 import { readRef } from "./publisher.ts";
-import {
-  BusyError,
-  GC_LOCK_TOKEN,
-  checkRepositoryDirectories,
-  checkStateDirectory,
-  hash,
-  readJson,
-  repository,
-  withLock,
-  type Repository,
-} from "./store.ts";
+import { BusyError, GC_LOCK_TOKEN, checkStateDirectory, hash, readJson, withLock } from "./store.ts";
+import { checkRepositoryDirectories, repository, type Repository } from "./repository.ts";
 
 export interface CleanupOptions {
   apply?: boolean;

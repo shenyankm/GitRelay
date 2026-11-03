@@ -8,7 +8,8 @@ import { consumeMailbox } from "../../src/core/consumer.ts";
 import { runDaemon } from "../../src/core/daemon.ts";
 import { readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
 import { leaveSession } from "../../src/core/sessions.ts";
-import { BusyError, hash, readJson, repository, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { BusyError, hash, readJson, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";

@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { consumeMailbox, type MailboxOptions } from "../../src/core/consumer.ts";
 import { readReceipt, sessionKey, type UpstreamEvent } from "../../src/core/mailbox.ts";
-import { writeJson, type Repository } from "../../src/core/store.ts";
+import { writeJson } from "../../src/core/store.ts";
+import { type Repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("upstream events cannot acknowledge a recipient subscribed to another ref", async (t) => {

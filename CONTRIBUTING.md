@@ -19,7 +19,7 @@ npm ci --ignore-scripts
 npm run build
 ```
 
-The build generates `dist/` using Node's built-in TypeScript stripping. Edit
+The build generates runnable `dist/` JavaScript using Node's built-in TypeScript stripping and emits SDK declarations with the installed TypeScript compiler. Edit
 source files rather than generated output. Do not commit `dist/`,
 `node_modules/`, or `.codex/plugin-build/`.
 
@@ -27,6 +27,7 @@ source files rather than generated output. Do not commit `dist/`,
 
 - Keep the change focused and reuse existing helpers. The runtime uses Node's
   standard library and local Git; avoid adding runtime dependencies.
+- See [architecture](docs/architecture.md) for transaction ownership, storage boundaries and the public SDK.
 - Shared Git, state, and delivery logic lives in `src/core/`; Codex integration
   belongs in `src/adapters/`, and CLI behavior in `src/cli/`.
 - Add a regression test for a bug fix. Tests live in `tests/core/`,

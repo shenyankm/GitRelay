@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { access, copyFile, readdir, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import { join, resolve } from "node:path";
@@ -34,3 +35,9 @@ const vendor = join(root, "dist/vendor/smol-toml");
 await mkdir(vendor, { recursive: true });
 for (const name of await readdir(toml)) if (name.endsWith(".js")) await copyFile(join(toml, name), join(vendor, name));
 await copyFile(join(toml, "LICENSE"), join(vendor, "LICENSE"));
+
+execFileSync(
+  process.execPath,
+  [join(root, "node_modules/typescript/bin/tsc"), "-p", join(root, "tsconfig.build.json")],
+  { stdio: "inherit" },
+);

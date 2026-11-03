@@ -5,7 +5,8 @@ import { test } from "node:test";
 import { formatChange } from "../../src/core/changes.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { sendMessage, sessionKey, type Notification } from "../../src/core/mailbox.ts";
-import { repository, writeJson } from "../../src/core/store.ts";
+import { writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 for (const local of ["tracked", "ignored", "uninitialized", "clean", "staged-delete"] as const) {

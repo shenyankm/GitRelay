@@ -13,7 +13,8 @@ import {
   type Notification,
 } from "../../src/core/mailbox.ts";
 import { readRef, synchronizeRef } from "../../src/core/publisher.ts";
-import { hash, readJson, repository, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { hash, readJson, stateDirectory, withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture, git } from "../helpers.ts";
 
 const ref = "refs/heads/main";

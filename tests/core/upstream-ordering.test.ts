@@ -5,7 +5,8 @@ import { syncBuiltinESMExports } from "node:module";
 import { join } from "node:path";
 import { test } from "node:test";
 import { eventsIn, type SharedEvent, type UpstreamEvent } from "../../src/core/mailbox.ts";
-import { hash, repository, withLock, writeJson } from "../../src/core/store.ts";
+import { hash, withLock, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("repeated transitions preserve causal order with bounded hashing, messages and receipt filtering", async (t) => {

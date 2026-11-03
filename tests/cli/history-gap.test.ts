@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { eventsIn, readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { repository } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { sessionActivation } from "../../src/core/activation.ts";
 import { runHook } from "../../src/adapters/hooks.ts";
 import { fixture, git } from "../helpers.ts";

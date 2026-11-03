@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { sessionActivation } from "../../src/core/activation.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { repository } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));

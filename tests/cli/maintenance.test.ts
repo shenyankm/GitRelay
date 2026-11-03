@@ -7,7 +7,8 @@ import { promisify } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
 import { test } from "node:test";
 import { eventsIn, registerSession } from "../../src/core/mailbox.ts";
-import { readJson, repository, stateDirectory } from "../../src/core/store.ts";
+import { readJson, stateDirectory } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const cli = fileURLToPath(new URL("../../dist/cli/main.js", import.meta.url));

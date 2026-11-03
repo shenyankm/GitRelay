@@ -10,7 +10,8 @@ import { collectRepository } from "../dist/core/cleanup.js";
 import { runDaemon } from "../dist/core/daemon.js";
 import { daemonStatus } from "../dist/core/daemon-state.js";
 import { sessionKey } from "../dist/core/mailbox.js";
-import { hash, repository } from "../dist/core/store.js";
+import { hash } from "../dist/core/store.js";
+import { repository } from "../dist/core/repository.js";
 
 const exec = promisify(execFile);
 const cli = fileURLToPath(new URL("../dist/cli/main.js", import.meta.url));

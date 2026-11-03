@@ -6,7 +6,7 @@ import { runHook } from "../../src/adapters/hooks.ts";
 import { branchStatus } from "../../src/core/branch-status.ts";
 import { GitPathOutputError, git, gitPathLine } from "../../src/core/git.ts";
 import { readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
-import { repository } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 const ref = "refs/heads/main";

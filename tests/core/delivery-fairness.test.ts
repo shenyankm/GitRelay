@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { sendMessage, type Notification } from "../../src/core/mailbox.ts";
-import { readJson, repository, writeJson } from "../../src/core/store.ts";
+import { readJson, writeJson } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("rejected messages do not indefinitely starve later messages", async (t) => {

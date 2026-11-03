@@ -9,7 +9,8 @@ import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { registerSession, sessionKey, sessionsIn } from "../../src/core/mailbox.ts";
 import { joinSession, leaveSession } from "../../src/core/sessions.ts";
-import { hash, withLock, type Repository } from "../../src/core/store.ts";
+import { hash, withLock } from "../../src/core/store.ts";
+import { type Repository } from "../../src/core/repository.ts";
 
 async function fixture(t: { after(fn: () => void | Promise<void>): void }) {
   const dir = await mkdtemp(join(tmpdir(), "git-relay-consumer-input-"));

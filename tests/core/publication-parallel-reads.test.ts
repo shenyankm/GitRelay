@@ -6,7 +6,8 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { synchronizeRef } from "../../src/core/publisher.ts";
-import { hash, repository, withLock } from "../../src/core/store.ts";
+import { hash, withLock } from "../../src/core/store.ts";
+import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
 test("a failed ref lookup waits for an in-flight scan before releasing its lock", { timeout: 10_000 }, async (t) => {

@@ -14,30 +14,32 @@ import {
 } from "./mailbox.ts";
 import { synchronizeRef } from "./publisher.ts";
 import {
-  assertMigrationReady,
   GC_LOCK_TOKEN,
   checkManagedRoot,
-  checkRepositoryDirectories,
   checkStateDirectory,
   hash,
   isId,
   readJson,
-  repository,
-  repositoryMetadata,
   stateDirectory,
   withLock,
-  withRepositoryIdentity,
   writeJson,
-  type Repository,
 } from "./store.ts";
+import {
+  assertMigrationReady,
+  checkRepositoryDirectories,
+  repository,
+  repositoryMetadata,
+  withRepositoryIdentity,
+  type Repository,
+} from "./repository.ts";
 
-interface SessionOptions extends Identity {
+export interface SessionOptions extends Identity {
   cwd: string;
   ref: string;
   signal?: AbortSignal;
 }
 
-interface LeaveOptions extends SessionOptions {
+export interface LeaveOptions extends SessionOptions {
   repositoryId?: string;
 }
 

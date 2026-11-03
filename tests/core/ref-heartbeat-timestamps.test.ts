@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { test } from "node:test";
 import { daemonStatus } from "../../src/core/daemon-state.ts";
-import { hash, type Repository } from "../../src/core/store.ts";
+import { hash } from "../../src/core/store.ts";
+import { type Repository } from "../../src/core/repository.ts";
 import { readRef, synchronizeRef } from "../../src/core/publisher.ts";
 
 const ref = "refs/heads/main",
