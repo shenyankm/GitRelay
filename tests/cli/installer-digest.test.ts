@@ -38,6 +38,33 @@ test("installer digest keeps the published runtime format, including large and U
   assert.equal(await installerDigest(join(root, "dist")), expected([["中", large]]));
 });
 
+test("installer digest reuses one bounded read buffer across small and large files", async (t) => {
+  const root = await fixture(t),
+    directory = join(root, "src"),
+    large = Buffer.alloc(128 * 1024, 137),
+    original = Buffer.allocUnsafe,
+    allocations: number[] = [];
+  await writeFile(join(directory, "b"), large);
+  Buffer.allocUnsafe = (size) => {
+    allocations.push(size);
+    return original(size);
+  };
+  let digest: string;
+  try {
+    digest = await installerDigest(directory);
+  } finally {
+    Buffer.allocUnsafe = original;
+  }
+  assert.equal(
+    digest,
+    expected([
+      ["a", Buffer.from([0, 255])],
+      ["b", large],
+    ]),
+  );
+  assert.deepEqual(allocations, [65_536]);
+});
+
 test("installer digest is independent of the process locale", async (t) => {
   const root = await fixture(t);
   const directory = join(root, "src");

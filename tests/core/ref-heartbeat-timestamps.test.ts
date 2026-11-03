@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { test } from "node:test";
+import { syncBuiltinESMExports } from "node:module";
 import { daemonStatus } from "../../src/core/daemon-state.ts";
 import { hash } from "../../src/core/store.ts";
 import { type Repository } from "../../src/core/repository.ts";
@@ -11,6 +13,36 @@ import { readRef, synchronizeRef } from "../../src/core/publisher.ts";
 const ref = "refs/heads/main",
   token = "a".repeat(64),
   commit = "b".repeat(40);
+
+test("daemon status skips the heartbeat without a readable lock", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "heartbeat-no-lock-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const previous = process.env.WORKTREE_SYNC_STATE_DIR,
+    originalOpen = fs.promises.open,
+    heartbeat = join(root, "daemon.json");
+  process.env.WORKTREE_SYNC_STATE_DIR = root;
+  let heartbeatReads = 0;
+  fs.promises.open = async function (path, ...args) {
+    if (String(path) === heartbeat) heartbeatReads++;
+    return originalOpen(path, ...args);
+  } as typeof fs.promises.open;
+  syncBuiltinESMExports();
+  try {
+    for (const content of [undefined, "{broken", "null"]) {
+      if (content !== undefined) await writeFile(join(root, "daemon.lock"), content);
+      assert.deepEqual(await daemonStatus(), { running: false });
+    }
+    assert.equal(heartbeatReads, 0);
+    await writeFile(join(root, "daemon.lock"), JSON.stringify({ pid: process.pid, token }));
+    assert.deepEqual(await daemonStatus(), { running: false });
+    assert.equal(heartbeatReads, 1);
+  } finally {
+    fs.promises.open = originalOpen;
+    syncBuiltinESMExports();
+    if (previous === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
+    else process.env.WORKTREE_SYNC_STATE_DIR = previous;
+  }
+});
 
 test("ref cursor accepts valid legacy timestamps and rejects non-string values without modifying state", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "cursor-types-"));

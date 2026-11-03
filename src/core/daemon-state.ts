@@ -14,9 +14,9 @@ export async function daemonStatus(): Promise<{ running: boolean; state?: Daemon
   // A lock can be empty between open and write, or left corrupt after a crash.
   const lock = (await readJson(join(root, "daemon.lock")).catch(() => undefined)) as
     { pid?: number; token?: string } | undefined;
+  if (!lock) return { running: false };
   const state = (await readJson(join(root, "daemon.json")).catch(() => undefined)) as DaemonState | undefined;
   if (
-    !lock ||
     !state ||
     !Number.isInteger(state.pid) ||
     state.pid <= 0 ||

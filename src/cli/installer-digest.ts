@@ -10,6 +10,7 @@ export async function installerDigest(
   legacyLocale?: string | null,
 ): Promise<string> {
   const hash = createHash("sha256");
+  let buffer: Buffer | undefined;
   const witnesses: {
     path: string;
     follow: boolean;
@@ -54,7 +55,7 @@ export async function installerDigest(
           .update(`${Buffer.byteLength(relative)}:`)
           .update(relative)
           .update(`${before.size}:`);
-        const buffer = Buffer.allocUnsafe(Number(before.size < 65_536n ? before.size + 1n : 65_536n));
+        buffer ??= Buffer.allocUnsafe(65_536);
         let size = 0n;
         for (;;) {
           signal?.throwIfAborted();
