@@ -8,6 +8,7 @@ import { join, sep } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { test, type TestContext } from "node:test";
 import { synchronizeRef } from "../../src/core/publisher.ts";
+import { collectRepository } from "../../src/core/cleanup.ts";
 import { hash, withLock } from "../../src/core/store.ts";
 import { type Repository } from "../../src/core/repository.ts";
 
@@ -270,5 +271,130 @@ test(
       syncBuiltinESMExports();
     }
     assert.equal(await readFile(f.cursor, "utf8"), before);
+  },
+);
+
+test(
+  "GC settles its four trash reads before failing and releasing the publication lock",
+  { timeout: 15_000, skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t);
+    for (const id of ids) await writeFile(join(f.trash, `${id}.json`), JSON.stringify(f.event(id)));
+    await writeFile(join(f.trash, `${ids[0]}.json`), "{broken");
+    const gate = deferred(),
+      original = fs.promises.open;
+    let started = 0,
+      active = 0,
+      peak = 0,
+      settled = false;
+    const patch = t.mock.method(fs.promises, "open", async (...args: Parameters<typeof original>) => {
+      if (typeof args[0] !== "string" || !args[0].startsWith(`${f.trash}${sep}`)) return original(...args);
+      started++;
+      active++;
+      peak = Math.max(peak, active);
+      try {
+        if (args[0] !== join(f.trash, `${ids[0]}.json`)) await gate.promise;
+        return await original(...args);
+      } finally {
+        active--;
+      }
+    });
+    syncBuiltinESMExports();
+    let pending: ReturnType<typeof collectRepository> | undefined;
+    try {
+      pending = collectRepository(f.repo, { apply: true });
+      pending.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+      await waitUntil(() => started === 4);
+      assert.equal(settled, false);
+      await assert.rejects(
+        withLock(f.lock, async () => {}),
+        /busy/i,
+      );
+      gate.release();
+      await assert.rejects(pending, SyntaxError);
+      assert.equal(started, 4);
+      assert.equal(active, 0);
+      assert.ok(peak <= 4);
+      assert.equal(await readFile(join(f.trash, `${ids[0]}.json`), "utf8"), "{broken");
+      for (const id of ids.slice(1))
+        assert.equal(JSON.parse(await readFile(join(f.trash, `${id}.json`), "utf8")).id, id);
+    } finally {
+      gate.release();
+      await pending?.catch(() => {});
+      patch.mock.restore();
+      syncBuiltinESMExports();
+    }
+  },
+);
+
+test(
+  "GC settles ref cursor reads before a malformed cursor releases its publication lock",
+  { timeout: 15_000, skip: process.platform === "win32" },
+  async (t) => {
+    const f = await fixture(t),
+      gate = deferred(),
+      original = fs.promises.open;
+    const refs = ["refs/heads/one", "refs/heads/two"];
+    for (let i = 0; i < refs.length; i++) {
+      await writeFile(
+        join(f.state, "events", `${ids[i]}.json`),
+        JSON.stringify({
+          ...f.event(ids[i]),
+          kind: "upstream",
+          ref: refs[i],
+          previous: f.commit,
+          commit: "c".repeat(40),
+        }),
+      );
+      await writeFile(
+        join(f.state, "refs", `${hash(refs[i])}.json`),
+        i ? JSON.stringify({ ref: refs[i], commit: "c".repeat(40) }) : "{broken",
+      );
+    }
+    let entered = false,
+      settled = false;
+    const second = join(f.state, "refs", `${hash(refs[1])}.json`);
+    const patch = t.mock.method(fs.promises, "open", async (...args: Parameters<typeof original>) => {
+      if (args[0] === second) {
+        entered = true;
+        await gate.promise;
+      }
+      return original(...args);
+    });
+    syncBuiltinESMExports();
+    let pending: ReturnType<typeof collectRepository> | undefined;
+    try {
+      pending = collectRepository(f.repo, { apply: true });
+      pending.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+      await waitUntil(() => entered);
+      assert.equal(settled, false);
+      await assert.rejects(
+        withLock(f.lock, async () => {}),
+        /busy/i,
+      );
+      gate.release();
+      await assert.rejects(pending, SyntaxError);
+      for (const id of ids.slice(0, 2))
+        assert.equal(JSON.parse(await readFile(join(f.state, "events", `${id}.json`), "utf8")).id, id);
+    } finally {
+      gate.release();
+      await pending?.catch(() => {});
+      patch.mock.restore();
+      syncBuiltinESMExports();
+    }
   },
 );

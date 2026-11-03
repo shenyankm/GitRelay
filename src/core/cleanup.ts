@@ -44,12 +44,21 @@ export async function collectRepository(repo: Repository, options: CleanupOption
       const migrated = new Set<string>();
       const proofFiles = new Map<string, Map<string, string[]>>();
       const approved: SharedEvent[] = [];
-      for (const name of await readdir(join(repo.directory, "trash"))) {
+      const trashNames = await readdir(join(repo.directory, "trash"));
+      for (let offset = 0; offset < trashNames.length; offset += 4) {
         options.signal?.throwIfAborted();
-        const parsed = parseEventFilename(name);
-        if (!parsed) continue;
-        const value = await readJson(join(repo.directory, "trash", name));
-        if (value !== undefined) approved.push(validateEvent(value, parsed.id, parsed.posixPaths));
+        const reads = await Promise.allSettled(
+          trashNames.slice(offset, offset + 4).map(async (name) => {
+            const parsed = parseEventFilename(name);
+            if (!parsed) return;
+            const value = await readJson(join(repo.directory, "trash", name));
+            return value === undefined ? undefined : validateEvent(value, parsed.id, parsed.posixPaths);
+          }),
+        );
+        for (const result of reads) {
+          if (result.status === "rejected") throw result.reason;
+          if (result.value) approved.push(result.value);
+        }
       }
       const events = await eventsIn(repo, undefined, options.signal); // Validate before making any deletion.
       const trashIds = new Set(approved.map(({ id }) => id));
@@ -61,9 +70,17 @@ export async function collectRepository(repo: Repository, options: CleanupOption
       // its receipts until recovery has committed the cursor, including old trash.
       // Read every cursor before deleting anything so a damaged one fails closed.
       const cursors = new Map<string, Awaited<ReturnType<typeof readRef>>>();
-      for (const event of [...approved, ...events]) {
-        if (event.kind === "upstream" && !cursors.has(event.ref))
-          cursors.set(event.ref, await readRef(repo, event.ref));
+      const refs = [
+        ...new Set([...approved, ...events].flatMap((event) => (event.kind === "upstream" ? [event.ref] : []))),
+      ];
+      for (let offset = 0; offset < refs.length; offset += 32) {
+        options.signal?.throwIfAborted();
+        const batch = refs.slice(offset, offset + 32);
+        const reads = await Promise.allSettled(batch.map((ref) => readRef(repo, ref)));
+        for (const [index, result] of reads.entries()) {
+          if (result.status === "rejected") throw result.reason;
+          cursors.set(batch[index], result.value);
+        }
       }
       const recipientSet = new Set<string>();
       for (const event of [...approved, ...events]) for (const key of event.recipients) recipientSet.add(key);
