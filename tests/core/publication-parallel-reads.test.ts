@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { synchronizeRef } from "../../src/core/publisher.ts";
+import { publishUpstream } from "../../src/core/mailbox.ts";
 import { hash, withLock } from "../../src/core/store.ts";
 import { repository } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
@@ -133,3 +134,68 @@ test("cancellation waits for an in-flight scan without advancing the ref", { tim
   assert.equal(await readFile(cursor, "utf8"), before);
   assert.equal(await readFile(event, "utf8"), content);
 });
+
+for (const folder of ["events", "trash"])
+  test(
+    `publication format conflict in ${folder} drains peer reads and keeps error priority`,
+    { timeout: 10_000 },
+    async (t) => {
+      const f = await fixture(t),
+        repo = await repository(f.b),
+        ref = "refs/heads/main";
+      const id = hash(["upstream", ref, f.initial, f.initial, ""]),
+        lock = join(repo.directory, "publish.lock");
+      const regular = join(repo.directory, "events", `${id}.json`),
+        conflict = join(repo.directory, folder, `${id}.posix.json`);
+      await writeFile(regular, "{broken");
+      await writeFile(conflict, "preserved conflict");
+      let release!: () => void,
+        entered!: () => void,
+        settled = false;
+      const gate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const started = new Promise<void>((resolve) => {
+        entered = resolve;
+      });
+      const original = fs.promises.open;
+      const patch = t.mock.method(fs.promises, "open", async (...args: Parameters<typeof original>) => {
+        if (args[0] === regular) {
+          entered();
+          await gate;
+        }
+        return original(...args);
+      });
+      syncBuiltinESMExports();
+      let pending: ReturnType<typeof publishUpstream> | undefined;
+      try {
+        pending = withLock(lock, () =>
+          publishUpstream(repo, { adapter: "test", session: "sender" }, ref, f.initial, f.initial, []),
+        );
+        pending.then(
+          () => {
+            settled = true;
+          },
+          () => {
+            settled = true;
+          },
+        );
+        await started;
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.equal(settled, false);
+        await assert.rejects(
+          withLock(lock, async () => {}),
+          /busy/i,
+        );
+        release();
+        await assert.rejects(pending, /ID conflicts with POSIX message/);
+        assert.equal(await readFile(regular, "utf8"), "{broken");
+        assert.equal(await readFile(conflict, "utf8"), "preserved conflict");
+      } finally {
+        release();
+        await pending?.catch(() => {});
+        patch.mock.restore();
+        syncBuiltinESMExports();
+      }
+    },
+  );

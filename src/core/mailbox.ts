@@ -268,30 +268,33 @@ export async function eventsIn(repo: Repository, key?: string, signal?: AbortSig
   );
   // shortcut: directory names and receipts are still scanned; add an index if safe GC is insufficient.
   const names = (await readdir(join(repo.directory, "events"))).filter((name) => parseEventFilename(name));
-  const paths = new Map<string, string[]>();
-  for (const [folder, entries] of [
-    ["events", names],
-    ["trash", await readdir(join(repo.directory, "trash"))],
-  ] as const) {
-    for (const name of entries) {
-      const event = parseEventFilename(name);
-      if (event) paths.set(event.id, [...(paths.get(event.id) ?? []), join(repo.directory, folder, name)]);
+  const trash = await readdir(join(repo.directory, "trash"));
+  if (names.some((name) => name.endsWith(".posix.json")) || trash.some((name) => name.endsWith(".posix.json"))) {
+    const paths = new Map<string, string[]>();
+    for (const [folder, entries] of [
+      ["events", names],
+      ["trash", trash],
+    ] as const) {
+      for (const name of entries) {
+        const event = parseEventFilename(name);
+        if (event) paths.set(event.id, [...(paths.get(event.id) ?? []), join(repo.directory, folder, name)]);
+      }
     }
-  }
-  const exists = async (path: string) =>
-    !!(await lstat(path).catch((error) => {
-      if (error.code === "ENOENT") return undefined;
-      throw error;
-    }));
-  for (const candidates of paths.values()) {
-    if (candidates.length < 2 || !candidates.some((path) => path.endsWith(".posix.json"))) continue;
-    const present: string[] = [];
-    for (const path of candidates) if (await exists(path)) present.push(path);
-    // GC can move an event between the directory scans without ever duplicating it.
-    if (present.length > 1 && (await exists(present[0])))
-      throw new Error(
-        "Duplicate events or event formats, including events in both events and trash; preserve state for inspection.",
-      );
+    const exists = async (path: string) =>
+      !!(await lstat(path).catch((error) => {
+        if (error.code === "ENOENT") return undefined;
+        throw error;
+      }));
+    for (const candidates of paths.values()) {
+      if (candidates.length < 2 || !candidates.some((path) => path.endsWith(".posix.json"))) continue;
+      const present: string[] = [];
+      for (const path of candidates) if (await exists(path)) present.push(path);
+      // GC can move an event between the directory scans without ever duplicating it.
+      if (present.length > 1 && (await exists(present[0])))
+        throw new Error(
+          "Duplicate events or event formats, including events in both events and trash; preserve state for inspection.",
+        );
+    }
   }
   const events: SharedEvent[] = [];
   for (let offset = 0; offset < names.length; offset += 32) {
@@ -376,7 +379,9 @@ export async function publishUpstream(
   )
     throw new Error("Invalid upstream publication input.");
   const id = hash(["upstream", ref, previous, commit, salt]);
-  for (const folder of ["events", "trash"]) {
+  const path = join(repository.directory, "events", `${id}.json`),
+    trash = join(repository.directory, "trash", `${id}.json`);
+  const checkFormat = async (folder: string) => {
     const other = join(repository.directory, folder, `${id}.posix.json`);
     if (
       await lstat(other).catch((error) => {
@@ -385,13 +390,18 @@ export async function publishUpstream(
       })
     )
       throw new Error(`Upstream event ID conflicts with POSIX message: ${id}`);
-  }
-  const path = join(repository.directory, "events", `${id}.json`);
-  let existing = await readJson(path);
+  };
+  const reads = await Promise.allSettled([
+    checkFormat("events"),
+    checkFormat("trash"),
+    readJson(path),
+    readJson(trash),
+  ] as const);
+  for (const result of reads) if (result.status === "rejected") throw result.reason;
+  let existing = (reads[2] as PromiseFulfilledResult<unknown>).value;
   // Recover a pre-fix GC journal only when all original acknowledgements are
   // still present. Missing receipts cannot be reconstructed safely.
-  const trash = join(repository.directory, "trash", `${id}.json`);
-  const discarded = await readJson(trash);
+  const discarded = (reads[3] as PromiseFulfilledResult<unknown>).value;
   if (discarded !== undefined) {
     if (existing !== undefined) throw new Error(`Upstream event exists in both events and trash: ${id}`);
     const event = validateEvent(discarded, id);
@@ -408,7 +418,8 @@ export async function publishUpstream(
     if (event.kind !== "upstream") throw new Error(`Expected upstream event: ${id}`);
     if (event.ref !== ref || event.previous !== previous || event.commit !== commit)
       throw new Error(`Upstream event does not match publication: ${id}`);
-    const added = targetRecipients.filter((key) => !event.recipients.includes(key));
+    const existingRecipients = new Set(event.recipients);
+    const added = targetRecipients.filter((key) => !existingRecipients.has(key));
     if (added.length) {
       event.recipients = [...new Set([...event.recipients, ...added])];
       await writeJson(path, event);
@@ -480,13 +491,20 @@ export async function sendMessage(
     process.platform !== "win32" &&
     files.some((file) => /^(?:[\\/]|[A-Za-z]:)/.test(file) || file.split(/[\\/]/).includes(".."));
   const repo = await repository(cwd, signal);
-  for (const file of files) {
-    signal?.throwIfAborted();
-    const info = await lstat(join(repo.root, file)).catch((error) => {
-      if (error.code === "ENOENT" || error.code === "ENOTDIR") return undefined; // Targets may exist only in another worktree.
-      throw new Error(`Cannot inspect message file path: ${file} (${error.code ?? "unknown error"})`, { cause: error });
-    });
-    if (info?.isDirectory()) throw new Error(`Message files must name files, not directories: ${file}`);
+  for (let offset = 0; offset < files.length; offset += 32) {
+    const checks = await Promise.allSettled(
+      files.slice(offset, offset + 32).map(async (file) => {
+        signal?.throwIfAborted();
+        const info = await lstat(join(repo.root, file)).catch((error) => {
+          if (error.code === "ENOENT" || error.code === "ENOTDIR") return undefined; // Targets may exist only in another worktree.
+          throw new Error(`Cannot inspect message file path: ${file} (${error.code ?? "unknown error"})`, {
+            cause: error,
+          });
+        });
+        if (info?.isDirectory()) throw new Error(`Message files must name files, not directories: ${file}`);
+      }),
+    );
+    for (const result of checks) if (result.status === "rejected") throw result.reason;
   }
   return withLock(
     join(repo.directory, "publish.lock"),
