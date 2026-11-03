@@ -1,0 +1,18 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "tarball": "/tmp/gitrelay-optimization-20261103/git-relay-0.1.0.tgz",
+  "npmOutput": "added 1 package in 179ms",
+  "assertions": [
+    "Real offline production installation without ignore-scripts",
+    "Only GitRelay installed; no build/development dependencies",
+    "CLI help, built installer/TOML imports and Codex hook files work without source or build scripts",
+    "Actual installed SDK sends and consumes a message once across real Git worktrees",
+    "Actual installed SDK declarations compile in a consumer with Node types"
+  ],
+  "limitations": [
+    "Local POSIX smoke test with test adapter; no real Codex/model or remote CI acceptance",
+    "TypeScript and Node types are test tools from the source checkout, not production dependencies"
+  ]
+}

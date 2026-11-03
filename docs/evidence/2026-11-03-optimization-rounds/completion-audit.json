@@ -1,0 +1,623 @@
+{
+  "recordedAt": "2026-11-03T10:44:36.052Z",
+  "localAudit": "passed",
+  "evaluatedRounds": 50,
+  "retainedRounds": 29,
+  "rejectedRounds": 21,
+  "rounds": [
+    {
+      "round": 1,
+      "title": "Exclude historical evidence from the npm package",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/acceptance-results.json",
+          "sha256": "115bcbc12f6b900e9fe08c3fb61d58d8448be9a600285991959d99529328ae53"
+        },
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/packaging.json",
+          "sha256": "310b76e5a313387060b9c9097da52660da71eab52fa59b58015229ca9eb2b8b1"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "title": "Exclude the same archive from the Codex plugin",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/packaging.json",
+          "sha256": "310b76e5a313387060b9c9097da52660da71eab52fa59b58015229ca9eb2b8b1"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "title": "Return before heartbeat I/O when the daemon lock is absent or unreadable",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/daemon.json",
+          "sha256": "2a94865105444af3cb8645d099b88f027bcaf88c31437c134c8f0ac58efb5edd"
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "title": "Reuse one bounded buffer during installer digest traversal",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/digest.json",
+          "sha256": "5d1e8c423f3662a99aee22205b0af49b3807c76532650f03f97ded2c37442a1b"
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "title": "Reprint stripped TypeScript using Node's transform mode",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/build-output.json",
+          "sha256": "10d6006e5c765eeaef316cc308d90386596caaaf79bb54f823b9e36922adbf2a"
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "title": "Discover the Git root and common directory concurrently from the original cwd",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/discovery.json",
+          "sha256": "9b57deb23dac5270953d72ec66eb46df8ff5e79e2d76e42afdb5e61f738ec7f3"
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "title": "Build the event-format conflict map only when a POSIX record name is present",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/mailbox.json",
+          "sha256": "ad2c7de510f2d81263e694f8691bcde5b930ca2b66a1e53b6dbfc2bfa1707819"
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "title": "Use a set for existing upstream recipients during repeated publication",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/mailbox.json",
+          "sha256": "ad2c7de510f2d81263e694f8691bcde5b930ca2b66a1e53b6dbfc2bfa1707819"
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "title": "Inspect message file paths in settled batches of at most 32",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/send-files.json",
+          "sha256": "ff4bc36597094b26b485b657779cf5c7f9bb57538aad45ef25a946f7e7f61fb4"
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "title": "Read GC trash records in settled batches of at most four",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/gc.json",
+          "sha256": "bca4b7eaa46e89d7c6b353cb27ddc8696b49c8f5f2cecbb729188b4a5bdedbfe"
+        }
+      ]
+    },
+    {
+      "round": 11,
+      "title": "Read unique GC ref cursors in settled batches of at most 32",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/gc.json",
+          "sha256": "bca4b7eaa46e89d7c6b353cb27ddc8696b49c8f5f2cecbb729188b4a5bdedbfe"
+        }
+      ]
+    },
+    {
+      "round": 12,
+      "title": "Exclude SDK declarations from the private Codex plugin",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/plugin-types.json",
+          "sha256": "602ecc43b38a920f4993c6a9346220d04f15676d21910ccee2a292e7670de093"
+        }
+      ]
+    },
+    {
+      "round": 13,
+      "title": "Decode each streamed Git index header only once",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/index-header.json",
+          "sha256": "2f883d2dd253f26351c4709043754e392934176251e92c816b7ace8dd7b52b90"
+        }
+      ]
+    },
+    {
+      "round": 14,
+      "title": "Ship a prebuilt npm runtime rather than source/build inputs",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/npm-runtime.json",
+          "sha256": "35292cdd396167cdaa972a82d2d3084926a88cee91d3a7ccd107c7ab438a00bd"
+        }
+      ]
+    },
+    {
+      "round": 15,
+      "title": "Exclude historical acceptance JSON from the Codex plugin",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/plugin-archive.json",
+          "sha256": "426f565190bd857b914a22502c75f0c2f677253b7ba9c73bbd87b1bc70bc8100"
+        }
+      ]
+    },
+    {
+      "round": 16,
+      "title": "Replace spread/map with `Array.from` in path matching",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/matcher-array-from.json",
+          "sha256": "173988e91cf3253d7c29ef1c55f5adbcdb55172d0ab25804ece9562bd66c494f"
+        }
+      ]
+    },
+    {
+      "round": 17,
+      "title": "Deduplicate gitlinks in the streamed reader before joining paths",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/gitlink-set.json",
+          "sha256": "64ec6145188a102577a940dae84545b0993d10c751e8b4ce7a9dcb44a9d084c8"
+        }
+      ]
+    },
+    {
+      "round": 18,
+      "title": "Settle four independent publication-state reads concurrently",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/publication-io.json",
+          "sha256": "5c8604fe91b9141ef4d742b595723de4f3d7eb617fe97d81104b3c9e266091b0"
+        }
+      ]
+    },
+    {
+      "round": 19,
+      "title": "Validate recovery receipts in settled batches of at most 32",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/recovery-receipts.json",
+          "sha256": "8c2d0cb1bb810e4129b678effaa5f38c54f7a335976fe962e05e9676cc227e02"
+        }
+      ]
+    },
+    {
+      "round": 20,
+      "title": "Batch GC recipient reads after checking the first recipient",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/gc-receipts.json",
+          "sha256": "c1292f36078bd6f1215aa2e117058d3375de3e4ce9e31ccc9b74d28a5ed71dbe"
+        }
+      ]
+    },
+    {
+      "round": 21,
+      "title": "Cache negative as well as positive session migration checks during one GC call",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/gc-migration-cache.json",
+          "sha256": "240ae5a75ce2a0f4c39b5b41d62bec1b95e422042f5467bac7d1b17cf9d39b19"
+        }
+      ]
+    },
+    {
+      "round": 22,
+      "title": "Probe prior identity states in settled batches of at most 32",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/prior-state.json",
+          "sha256": "fd590e85f96e6961f2392896c7f71a3c6ae7befcd08041076099a6f4ac771cd6"
+        }
+      ]
+    },
+    {
+      "round": 23,
+      "title": "Read ready/owner metadata concurrently in repository discovery",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/owner-reads.json",
+          "sha256": "2845427c2782c50e45fb056bdd13863157d97fd8410bedee65c296ed64c04ba1"
+        }
+      ]
+    },
+    {
+      "round": 24,
+      "title": "Read unborn-branch remote and merge configuration concurrently",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/unborn-status.json",
+          "sha256": "32b6196df96f16d6e3dc509a586a4a71d1f57a53dfedd0419b0ecc5988fa28e6"
+        }
+      ]
+    },
+    {
+      "round": 25,
+      "title": "Combine installer digest metadata hash updates",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/digest-metadata.json",
+          "sha256": "901e2a9f51972b16bda47ac019cbb4a11a810a71f7b0325c8acebdb9eeecb4b4"
+        }
+      ]
+    },
+    {
+      "round": 26,
+      "title": "Split only the selected branch-status ref row",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/ref-prefixes.json",
+          "sha256": "61bf5feff3a40cec34d4d2953cdde675932d44667bfff0e9ec8bfa8834f20f53"
+        }
+      ]
+    },
+    {
+      "round": 27,
+      "title": "Validate parent path segments without component arrays",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/parent-paths.json",
+          "sha256": "671030c0f763337b08bc59204fdd1b33c727116b0e5513d40cd5c224fe877be3"
+        },
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/path-scan.json",
+          "sha256": "95ce0834fa3db8b49f47017b115f410461b1e219180497792cdeaa7d00a2f749"
+        }
+      ]
+    },
+    {
+      "round": 28,
+      "title": "Limit branch-status ref queries to one record",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/ref-count.json",
+          "sha256": "d5d9c08e84cbe790062309f87f2a59483906ded18ca2b8222f321a01f5e2b693"
+        }
+      ]
+    },
+    {
+      "round": 29,
+      "title": "Reuse worktree protocol prefix buffers within each query",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/worktree-prefixes.json",
+          "sha256": "6b64af746136090dc7aa605bb0b49ab11b5f5f90f6e9f0ac12049c6216dea83c"
+        }
+      ]
+    },
+    {
+      "round": 30,
+      "title": "Share the fatal path decoder between Git queries",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/decoder-reuse.json",
+          "sha256": "118c85c311eb9cd211d40212c21d1b6963495b490437732123b6f105b5ead033"
+        }
+      ]
+    },
+    {
+      "round": 31,
+      "title": "Validate worktree UTF-8 without allocating discarded decoded strings",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/utf8-validation.json",
+          "sha256": "6ffd639b901a1005a381384fd6e82ac2f90e50f23e8c358b5014aff45bd4be80"
+        },
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/utf8-long-paths.json",
+          "sha256": "f9778eef8918763c491f49739d289026704a7286f0033b1d6a04fef4d8089ca3"
+        }
+      ]
+    },
+    {
+      "round": 32,
+      "title": "Create build output directories once per source directory",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/build-directories.json",
+          "sha256": "7d2e9b81664666226efc0fee1826746ed04a4f66da37abf82fee50e007ae7a5a"
+        }
+      ]
+    },
+    {
+      "round": 33,
+      "title": "Check the first byte before comparing worktree field prefixes",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/worktree-prefix-guard.json",
+          "sha256": "ce2d228014c04a4201b9bdfcca8526be0b5e19ca7bcecb4fd75c4ec0eb190495"
+        },
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/worktree-prefix-guard-long.json",
+          "sha256": "f31ea6464d473bb16249a754079704fa8b376fba04237267c9804cc272255fcf"
+        }
+      ]
+    },
+    {
+      "round": 34,
+      "title": "Exclude the source-only optimization log from npm and plugin packages",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/development-log.json",
+          "sha256": "f489d9110bdb74aa3e00def8f97b67a073eafdc8c6e176dc144d0c3536aca4fc"
+        }
+      ]
+    },
+    {
+      "round": 35,
+      "title": "Count indentation columns without a spread/reduce array",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/activation-columns.json",
+          "sha256": "8d7d9b37346d15eecb5e00f04c5d590b47029deb8e7585158175f8b583aa3f29"
+        }
+      ]
+    },
+    {
+      "round": 36,
+      "title": "Create the activation target expression once per prompt",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/activation-target.json",
+          "sha256": "7f6ed9290e8709879d25827877750db2cb0fe4d75d71b304c3d7034bd88a1b22"
+        }
+      ]
+    },
+    {
+      "round": 37,
+      "title": "Delete committed-event receipts in settled batches of at most 32 recipients",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/gc-delete.json",
+          "sha256": "065efaee0c2795c1f4b06f7439880b83eceb3b9193fdc8268ada6edd69717af8"
+        }
+      ]
+    },
+    {
+      "round": 38,
+      "title": "Reprint bundled TOML modules using the installed TypeScript compiler",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/toml-print.json",
+          "sha256": "f56e8da687e327e559dc8d9f12dfe65adedc7beb7fcb38dce5ee51d891eadf17"
+        }
+      ]
+    },
+    {
+      "round": 39,
+      "title": "Test event filenames before constructing parsed-name objects",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/event-name-filter.json",
+          "sha256": "f9b468038cfd6037724c94edc6d0e173af74e252fdfae475ab3618e4cee57d15"
+        }
+      ]
+    },
+    {
+      "round": 40,
+      "title": "Replace worktree branch-prefix regex with startsWith/slice",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/worktree-branch-prefix.json",
+          "sha256": "a3dee81808ecdf0ab78f89db08e807f0c067e1a09892b1bca99e5dccc1f4f7d4"
+        }
+      ]
+    },
+    {
+      "round": 41,
+      "title": "Append to per-event GC proof groups without copying their arrays",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/proof-groups.json",
+          "sha256": "1aa0276fac6d60fd1f6963aa5de37623d396aeaeca2540ccbfc4f44983a576b0"
+        }
+      ]
+    },
+    {
+      "round": 42,
+      "title": "Avoid rescheduling completed parents only for multi-parent history nodes",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/shared-parents-final.json",
+          "sha256": "a7d4d042165ed956a23817be3443f6dd6b74e218aecaf1771678fc6cadabbffa"
+        },
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/ordering-controls-final-42.json",
+          "sha256": "8c4c7a035563a40ae0098c61bae0ea5d55da97a52d9e8918f037c1075ee58d91"
+        }
+      ]
+    },
+    {
+      "round": 43,
+      "title": "Delete proof files in settled groups of at most four per recipient",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/proof-delete-batches.json",
+          "sha256": "eea2417d1ba4d37eb9cabf0d746bbe5a4e81a8566a267d1f0dd46081b7e65c76"
+        }
+      ]
+    },
+    {
+      "round": 44,
+      "title": "Decode ASCII state JSON through Buffer.toString before the UTF-8 decoder",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/state-ascii.json",
+          "sha256": "b0911189aaa8c2b4d98cf33a2a26eb59e6b2aee9a1e3c4fcdd046e58548b6cdd"
+        }
+      ]
+    },
+    {
+      "round": 45,
+      "title": "Copy a private empty SHA-256 context instead of constructing each hash",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/hash-copy.json",
+          "sha256": "8d4d6d4a94024085eb19acf35a5d8eb9a184aa926ee95597ec107a3988f2b273"
+        }
+      ]
+    },
+    {
+      "round": 46,
+      "title": "Populate the normalized path Set with a manual loop",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/matcher-loop.json",
+          "sha256": "2c56651cfa1c36c87ef8434cad385173aba51d9c02da1b868785eca35abff1b1"
+        }
+      ]
+    },
+    {
+      "round": 47,
+      "title": "Stop overlap queries immediately when the worktree path Set is empty",
+      "status": "retained",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/matcher-empty.json",
+          "sha256": "beca28c5a521789d9610c8bf223fc0b29ba74b03a755457d985bd16a60137c2f"
+        }
+      ]
+    },
+    {
+      "round": 48,
+      "title": "Increase event read batches from 32 to 64",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/event-batch-64.json",
+          "sha256": "4b67dc7703f5681a598d8f83e9a0816df85a17373884a9379667269fcdefc123"
+        }
+      ]
+    },
+    {
+      "round": 49,
+      "title": "Increase session read batches from 32 to 64",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/session-batch-64.json",
+          "sha256": "aca4f4e3e2a01a34efa5ad976741673d2928ba32ab1788dcd843970bdbc35d2c"
+        }
+      ]
+    },
+    {
+      "round": 50,
+      "title": "Copy the ten bundled vendor/license files concurrently",
+      "status": "rejected",
+      "evidence": [
+        {
+          "path": "docs/evidence/2026-11-03-optimization-rounds/build-vendor-copies.json",
+          "sha256": "d6b0821689fb0bd3be8928342f3390d1181755abb3c51cc9f4f8a8fa4f9d864a"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "requirement": "50 consecutive distinct candidate decisions with real evidence",
+      "evidence": "All ledger rows numbered 1 through 50, unique titles, retained/rejected partition and parseable linked records",
+      "result": "passed"
+    },
+    {
+      "requirement": "Only accepted implementation remains",
+      "evidence": "Current source/test and build fingerprints equal validation-50; rejected patches are archived; cumulative runtime diff reviewed",
+      "result": "passed"
+    },
+    {
+      "requirement": "Preserve public SDK/CLI and dependencies",
+      "evidence": "11 original SDK declarations unchanged, manifest exports/types/bin/engines/dependencies unchanged; full regression suite plus installed SDK transaction",
+      "result": "passed"
+    },
+    {
+      "requirement": "Actual I/O/CPU/size evidence and composed final checks",
+      "evidence": "Per-round records plus final original-baseline daemon/GC/event scans and exact tarball/plugin size/content verification",
+      "result": "passed"
+    },
+    {
+      "requirement": "Direct grouped commits and push to main",
+      "evidence": "Must be checked live after committing this audit snapshot",
+      "result": "live-final-gate"
+    },
+    {
+      "requirement": "Final pushed-head CI",
+      "evidence": "Previous main rounds 1-42 passed CI; final SHA must be checked live before completing the goal",
+      "result": "live-final-gate"
+    }
+  ],
+  "packaging": {
+    "baselineNpmCompressedBytes": 405958,
+    "finalNpmCompressedBytes": 169017,
+    "baselinePluginFileBytes": 1499951,
+    "finalPluginFileBytes": 574602
+  },
+  "limits": [
+    "One unsupported-Windows test is skipped on macOS",
+    "Warm-cache local comparisons do not establish native-client latency, cold-cache, Windows runtime, physical I/O or peak memory",
+    "Proof deletion spends more Node CPU for lower wall time; 32 recipients times four proof removals is an operation bound, not a measured byte budget"
+  ],
+  "finalGatePolicy": "Goal remains active until source fingerprints, clean main/remote equality and successful exact-head CI are verified live. This snapshot does not claim those future gates passed."
+}

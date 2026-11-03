@@ -2,8 +2,9 @@
 
 Requested scope: 50 consecutive, evidence-backed optimization rounds. This log
 tracks completed experiments, including rejected candidates; it does not count
-repeated tests as additional rounds. Current progress: **42 / 50 evaluated,
-27 retained**. Work remains active.
+repeated tests as additional rounds. Current progress: **50 / 50 evaluated,
+29 retained, 21 rejected**. All experiments are evaluated; final local acceptance
+and remote CI are separate gates.
 
 The starting worktree was clean at `f71f6f4`. Saved baseline runtime:
 `/tmp/gitrelay-optimization-20261103/baseline-dist`. Evidence and comparison
@@ -55,6 +56,14 @@ shipped documentation links historical evidence to the source repository.
 | 40    | Replace worktree branch-prefix regex with startsWith/slice                     | Rejected and reverted. Pure parser: 1,000 records 0.226 → 0.215 ms, but 10,000 records 2.568 → 2.548 ms with unchanged/slightly worse CPU. 37 edge-case outcomes agree; no consistent benefit. See `worktree-branch-prefix.json`.                                                                                                                                                                                                                                                                                                        |
 | 41    | Append to per-event GC proof groups without copying their arrays               | Retained. Full GC apply for one migrated recipient with 10,000 proof files: 726.23 → 694.87 ms; Node CPU 747.83 → 724.18 ms. 1,000-proof control effectively unchanged at 64.9 / 64.5 ms; zero/one-proof controls stay below 1 ms. Tests preserve unrelated-event proofs and arbitrary filenames. See `proof-groups.json`.                                                                                                                                                                                                               |
 | 42    | Avoid rescheduling completed parents only for multi-parent history nodes       | Retained for large shared-history graphs. 1,000 migration parents / 1,000 children / one million edges: 100.07 → 92.19 ms; Node CPU 189.24 → 180.14 ms. Ordinary 2,000-event linear and rollback controls remain about 45 ms. Small fan-in CPU results are mixed. Preliminary all-parent check was limited to multiple parents after control measurements. Exact causal order and message/receipt behavior pass. See `shared-parents-final.json` and `ordering-controls-final-42.json`; preliminary measurements are separately labeled. |
+| 43    | Delete proof files in settled groups of at most four per recipient             | Retained for deletion latency. 10,000 proofs: 621.21 → 404.86 ms; 1,000 proofs 60.60 → 38.45 ms; one-proof control 0.951 → 0.951 ms. Node CPU increases 640.22 → 951.66 ms for 10,000 proofs, so this is a latency/CPU tradeoff. At most 32 recipients × four proof removals can be active; receipt and proof failure tests drain peers, preserve the journal and successfully retry. See `proof-delete-batches.json`.                                                                                                                   |
+| 44    | Decode ASCII state JSON through Buffer.toString before the UTF-8 decoder       | Rejected and reverted. 1-MiB ASCII read 0.521 → 0.529 ms, with CPU also slightly worse; smaller and Unicode controls are mixed. Invalid UTF-8/BOM/JSON causes agree. See `state-ascii.json`.                                                                                                                                                                                                                                                                                                                                             |
+| 45    | Copy a private empty SHA-256 context instead of constructing each hash         | Rejected and reverted. Small identity/upstream hashes are about 2% slower; 128-KiB payload unchanged. 1,014 JSON values and four invalid-value exceptions agree. Original stateless construction remains. See `hash-copy.json`.                                                                                                                                                                                                                                                                                                          |
+| 46    | Populate the normalized path Set with a manual loop                            | Rejected and reverted. Large-set wall improvement stays below 2%, case-folded CPU and small-set controls regress. Existing native array/Set construction remains. See `matcher-loop.json`.                                                                                                                                                                                                                                                                                                                                               |
+| 47    | Stop overlap queries immediately when the worktree path Set is empty           | Retained for query CPU. Synthetic nested-path queries: empty-set median 1.35 / 1.47 microseconds → 0.016 / 0.009 microseconds, case-sensitive / case-folded. Nonempty controls remain around 1.5–1.8 microseconds with mixed small differences. Real Git configuration, 1,007 query outcomes and invalid-input behavior agree; existing path tests include an empty Set. This is callback cost, not complete inbox or native-client latency. See `matcher-empty.json`.                                                                   |
+| 48    | Increase event read batches from 32 to 64                                      | Rejected and reverted. 10,000 ordinary records improve 205.09 → 193.87 ms, but path-dense events regress 128.71 → 130.63 ms. Insufficient overall benefit for doubled simultaneous record buffers without peak-memory acceptance. See `event-batch-64.json`.                                                                                                                                                                                                                                                                             |
+| 49    | Increase session read batches from 32 to 64                                    | Rejected and reverted. 10,000 small records 206.75 → 196.50 ms; 1,000 records 20.17 → 19.74 ms with unchanged CPU. Modest large-case gain is insufficient for doubled simultaneous record buffers; near-limit memory is unverified. Established 32-record bound remains. See `session-batch-64.json`.                                                                                                                                                                                                                                    |
+| 50    | Copy the ten bundled vendor/license files concurrently                         | Rejected and reverted. Complete build 578.08 → 597.44 ms; Node CPU unchanged. Every output byte and executable mode agrees. Existing sequential copy remains. See `build-vendor-copies.json`.                                                                                                                                                                                                                                                                                                                                            |
 
 The digest buffer is lazy and local to one invocation. A single tiny file can
 allocate more buffer space than before; the per-call read buffer remains capped
@@ -63,12 +72,12 @@ rechecks are unchanged. No dependency, public API, persistent cache or state
 format was added.
 
 Validation gates and exact source/build fingerprints are recorded separately in
-`validation.json` (rounds 1–6) and `validation-12.json` (rounds 7–12) and `validation-18.json` (rounds 13–18), followed by `validation-24.json` (rounds 19–24) and `validation-30.json` (rounds 25–30), then `validation-36.json` (rounds 31–36) and `validation-42.json` (rounds 37–42). Targeted
+`validation.json` (rounds 1–6) and `validation-12.json` (rounds 7–12) and `validation-18.json` (rounds 13–18), followed by `validation-24.json` (rounds 19–24) and `validation-30.json` (rounds 25–30), then `validation-36.json` (rounds 31–36) and `validation-42.json` (rounds 37–42), followed by `validation-50.json` (rounds 43–50 and final local gates). Targeted
 checks cover POSIX format collisions, exact recipient order, input snapshots,
 failed/cancelled batch draining, GC preservation, installed plugin hooks and
 installed SDK compilation. Timing and memory probes run separately from tests.
 The round-12 full gate passed 647 tests with one skipped and zero failures;
-`packaging-12.json` records that snapshot; `packaging-18.json` records that snapshot; `packaging-24.json` records that snapshot; `packaging-30.json` records that snapshot; `packaging-36.json` records that snapshot; `packaging-42.json` records the latest artifacts.
+`packaging-12.json` records that snapshot; `packaging-18.json` records that snapshot; `packaging-24.json` records that snapshot; `packaging-30.json` records that snapshot; `packaging-36.json` records that snapshot; `packaging-42.json` records that snapshot; `packaging-50.json` records the final artifacts.
 Round 14 supersedes the broader npm inclusion kept in round 1. Historical
 evidence and build inputs remain in the repository, while npm packages contain
 prebuilt runtime files and declarations. Round 34 also keeps this development
@@ -77,7 +86,8 @@ The earlier main commit `972e6ef` passed all four remote CI jobs; see `ci-18.jso
 That CI result covers rounds 1–18. Main `6de59da` also passed all four jobs; see
 `ci-24.json`. This covers rounds 1–24. Main `7d4be26` also passed all four jobs; see
 `ci-30.json`. These results cover rounds 1–30. Main `11f10db` also passed all four jobs; see
-`ci-36.json`. Those results cover rounds 1–36, separately from rounds 37–42 local checks.
+`ci-36.json`. Those results cover rounds 1–36. Main `73a2db5` also passed all four jobs; see
+`ci-42.json`. That covers rounds 1–42; final-head CI remains a separate live gate.
 
 Reproduce after saving the named baseline builds and building the candidate.
 For rejected candidates, apply the recorded candidate patch first; the working
@@ -123,15 +133,39 @@ node docs/evidence/2026-11-03-optimization-rounds/compare-worktree-parser.mjs /a
 node docs/evidence/2026-11-03-optimization-rounds/compare-proof-groups.mjs /absolute/round-37/dist
 node docs/evidence/2026-11-03-optimization-rounds/compare-shared-parents.mjs /absolute/round-41/dist
 node scripts/benchmark-ordering.mjs /absolute/round-41/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-proof-groups.mjs /absolute/round-42/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-state-ascii.mjs /absolute/round-43/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-hash-copy.mjs /absolute/round-43/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-matcher.mjs /absolute/round-43/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-matcher-queries.mjs /absolute/round-43/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-event-name-filter.mjs /absolute/round-47/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-session-batches.mjs /absolute/round-47/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-build-io.mjs /absolute/build-round-49.mjs
 ```
 
 These are macOS arm64 / Node 22.23.2 synthetic measurements with warm local
 caches and uncontrolled external load. Buffer allocation is not peak RSS;
 filesystem byte counts are not physical I/O. Native Codex/model latency,
-Windows, cold caches, network filesystems and remote CI were not checked in
-this pass. Concurrent GC reads can retain more buffers and parsed records than
+Windows, cold caches and network filesystems were not checked in these local
+comparisons. Earlier-head remote CI is recorded above; final-head CI is checked
+live separately. Concurrent GC reads can retain more buffers and parsed records than
 serial reads; the four-read bound does not establish a total-memory limit.
 The GC migration cache relies on cooperative session writers holding the
 publication lock. Non-cooperating edits to a previously unready session can
 conservatively delay collection until the next call; receipts are still checked.
-The remaining 8 rounds have not been performed or claimed complete.
+Final composed snapshot versus the original baseline: npm compressed bytes
+405,958 → 169,017 (58.4% less); plugin file bytes 1,499,951 → 574,602
+(61.7% less). Warm-cache full GC apply for one confirmed event / 1,000
+recipients is 374.17 → 178.54 ms (52.3% less). Scanning 500 messages with
+1,000 paths each is 213.63 → 160.12 ms (25.1% less). Missing-daemon status
+is 0.0462 → 0.0234 ms, with live-daemon control 0.1068 / 0.1076 ms.
+These workload-specific results do not establish universal or native-client gains.
+
+All 50 candidate decisions are recorded above. Final aggregate comparisons
+against the original saved runtime are `final-daemon.json`, `final-gc-apply.json`
+and `final-event-scan.json`. These are final composition checks, not extra rounds.
+`completion-audit.json` maps all numbered rounds to their evidence and checks
+current source/build fingerprints, declarations and distribution scope.
+Cold-cache, peak-memory, Windows runtime and native-client latency remain outside
+this acceptance scope. Proof-deletion concurrency trades increased CPU for lower
+wall time; it is bounded by operation count rather than a measured byte budget.

@@ -1,0 +1,38 @@
+{
+  "round": 50,
+  "recordedAt": "2026-11-03T10:43:04.961980+00:00",
+  "npm": {
+    "size": 169017,
+    "unpackedSize": 600450,
+    "entryCount": 73,
+    "shasum": "55d288e4802ce890e402ae34098ec2e010e9823c",
+    "integrity": "sha512-PJNEI+aNxZ8t0Vt3lFikEfBkCJLHZryFZUeXK5vEReGHvFquFVJt+g4GHtc1XyHK5dPdx/t7DZ4ltXOsAr96Rg=="
+  },
+  "tarballSha256": "fb5a2eeb936ab205a227581976c9ef193be8b6d07eb674ce11245348477386fc",
+  "plugin": {
+    "files": 60,
+    "bytes": 574602
+  },
+  "originalBaseline": {
+    "baseCommit": "f71f6f4",
+    "npm": {
+      "size": 405958,
+      "unpackedSize": 1943130,
+      "entryCount": 188
+    },
+    "plugin": {
+      "files": 120,
+      "bytes": 1499951
+    }
+  },
+  "assertions": [
+    "Every tarball/plugin runtime byte matches fully tested build",
+    "All npm SDK declarations unchanged from original baseline f71f6f4",
+    "No source/build inputs, raw evidence or optimization log shipped",
+    "Real offline production install with scripts enabled, CLI/installer imports, SDK message transaction and type consumer passed"
+  ],
+  "limitations": [
+    "Plugin bytes are summed file sizes, not compressed bytes or physical I/O",
+    "Npm development commands require source checkout"
+  ]
+}

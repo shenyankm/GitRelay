@@ -1,0 +1,802 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-47-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-0-baseline-wallMs": 0.04743750000000091,
+    "0-0-baseline-cpuMs": 0.056,
+    "0-0-candidate-wallMs": 0.04897950000000151,
+    "0-0-candidate-cpuMs": 0.056999999999999995,
+    "1000-0-baseline-wallMs": 19.783083499999975,
+    "1000-0-baseline-cpuMs": 57.373,
+    "1000-0-candidate-wallMs": 19.135999999999996,
+    "1000-0-candidate-cpuMs": 55.836,
+    "10000-0-baseline-wallMs": 205.08502050000016,
+    "10000-0-baseline-cpuMs": 605.626,
+    "10000-0-candidate-wallMs": 193.87043749999975,
+    "10000-0-candidate-cpuMs": 597.48,
+    "500-1000-baseline-wallMs": 128.70718750000015,
+    "500-1000-baseline-cpuMs": 188.0815,
+    "500-1000-candidate-wallMs": 130.63197950000085,
+    "500-1000-candidate-cpuMs": 189.2355
+  },
+  "results": [
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.09195799999999821,
+      "cpuMs": 0.102
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.04962500000000247,
+      "cpuMs": 0.065
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.05658299999999983,
+      "cpuMs": 0.107
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.05062500000000014,
+      "cpuMs": 0.06
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.0637919999999994,
+      "cpuMs": 0.07
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.049666000000001986,
+      "cpuMs": 0.059
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.05075000000000074,
+      "cpuMs": 0.056
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.06679199999999952,
+      "cpuMs": 0.081
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.05474999999999852,
+      "cpuMs": 0.065
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.048542000000001195,
+      "cpuMs": 0.056
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.043499999999998096,
+      "cpuMs": 0.051
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.04354199999999864,
+      "cpuMs": 0.048
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.04266600000000054,
+      "cpuMs": 0.051
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.0417500000000004,
+      "cpuMs": 0.046
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.14608300000000085,
+      "cpuMs": 0.151
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.12016700000000213,
+      "cpuMs": 0.125
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.047334000000002874,
+      "cpuMs": 0.054
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.04512499999999875,
+      "cpuMs": 0.054
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.04458299999999937,
+      "cpuMs": 0.056
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.041709000000000884,
+      "cpuMs": 0.048
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.04200000000000159,
+      "cpuMs": 0.05
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.046333000000000624,
+      "cpuMs": 0.054
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.04570800000000119,
+      "cpuMs": 0.055
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.04166700000000034,
+      "cpuMs": 0.051
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 21.458292,
+      "cpuMs": 67.449
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 22.08487500000001,
+      "cpuMs": 67.932
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 22.39233299999998,
+      "cpuMs": 72.681
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 20.622208999999998,
+      "cpuMs": 65.699
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 20.130708999999996,
+      "cpuMs": 68.336
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 21.132834000000003,
+      "cpuMs": 69.162
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 19.696874999999977,
+      "cpuMs": 55.786
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 19.889042000000018,
+      "cpuMs": 57.916
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 19.28716700000001,
+      "cpuMs": 56.46
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 19.64579100000003,
+      "cpuMs": 56.322
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 19.62066599999997,
+      "cpuMs": 56.803
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 18.926417000000015,
+      "cpuMs": 55.796
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 18.79725000000002,
+      "cpuMs": 55.847
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 19.500916000000018,
+      "cpuMs": 56.703
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 19.73641699999996,
+      "cpuMs": 57.114
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 19.178541999999993,
+      "cpuMs": 55.312
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 19.093458,
+      "cpuMs": 55.123
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 19.291416000000027,
+      "cpuMs": 55.543
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 19.848000000000013,
+      "cpuMs": 57.816
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 18.72916600000002,
+      "cpuMs": 54.949
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 18.838790999999958,
+      "cpuMs": 55.708
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 19.82974999999999,
+      "cpuMs": 57.632
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 19.83391699999993,
+      "cpuMs": 58.155
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 18.915417000000048,
+      "cpuMs": 55.825
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 190.79504099999986,
+      "cpuMs": 566.539
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 199.72850000000017,
+      "cpuMs": 575.022
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 206.92562499999985,
+      "cpuMs": 603.576
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 241.58579200000008,
+      "cpuMs": 803.928
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 194.53704199999993,
+      "cpuMs": 599.188
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 215.72079200000007,
+      "cpuMs": 660.15
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 247.7274169999996,
+      "cpuMs": 806.667
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 195.81504199999972,
+      "cpuMs": 602.595
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 210.07545900000014,
+      "cpuMs": 672.974
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 236.0645840000002,
+      "cpuMs": 750.258
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 201.9219579999999,
+      "cpuMs": 603.957
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 193.40454199999976,
+      "cpuMs": 595.965
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 194.33633299999974,
+      "cpuMs": 600.708
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 207.46662500000002,
+      "cpuMs": 625.272
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 203.24441600000046,
+      "cpuMs": 605.246
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 192.542375,
+      "cpuMs": 591.063
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 194.7060420000007,
+      "cpuMs": 598.995
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 211.6399590000001,
+      "cpuMs": 642.497
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 201.2175419999994,
+      "cpuMs": 600.082
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 190.55449999999928,
+      "cpuMs": 585.312
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 193.04845899999964,
+      "cpuMs": 593.88
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 202.25362500000028,
+      "cpuMs": 606.006
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 201.06354200000078,
+      "cpuMs": 597.838
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 190.1140000000005,
+      "cpuMs": 585.343
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 129.03758300000027,
+      "cpuMs": 186.597
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 128.71283399999993,
+      "cpuMs": 187.513
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 128.82175000000007,
+      "cpuMs": 208.978
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 129.83829200000037,
+      "cpuMs": 186.39
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 134.99333300000035,
+      "cpuMs": 207.499
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 131.8291249999993,
+      "cpuMs": 219.111
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 124.76904200000081,
+      "cpuMs": 175.347
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 126.37083400000029,
+      "cpuMs": 180.233
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 143.5522090000004,
+      "cpuMs": 273.547
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 132.43166699999892,
+      "cpuMs": 197.95
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 128.70154100000036,
+      "cpuMs": 188.65
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 140.29308300000048,
+      "cpuMs": 244.344
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 128.23104199999943,
+      "cpuMs": 182.957
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 126.20416699999987,
+      "cpuMs": 179.029
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 141.7302499999987,
+      "cpuMs": 284.312
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 131.42566700000134,
+      "cpuMs": 191.874
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 126.33420800000022,
+      "cpuMs": 178.964
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 138.3292079999992,
+      "cpuMs": 276.823
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 124.48675000000003,
+      "cpuMs": 177.488
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 125.69516599999952,
+      "cpuMs": 176.581
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 141.03833400000076,
+      "cpuMs": 291.94
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 125.54412499999853,
+      "cpuMs": 176.409
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 125.46504199999981,
+      "cpuMs": 178.92
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 136.76479199999994,
+      "cpuMs": 244.519
+    }
+  ],
+  "limitations": "Actual event files; empty/1,000/10,000 empty-file-list controls and 500 thousand-path events. Warm local caches, setup/assertions excluded; uncontrolled host load. Node CPU excludes children. No delivery, lock contention, peak-RSS, cold-cache, Windows or native-client latency comparison.",
+  "decision": "Rejected and reverted: 10,000 ordinary events improve 5.5%, but path-dense events regress 1.5%; insufficient overall benefit for twice as many simultaneous record buffers without peak-memory acceptance.",
+  "candidateSourceSha256": "7a9c9cb9ffa638a7648792a1ded87cd0694d5f16ddd2ca1533e202eafc88a47e",
+  "candidatePatch": "--- a/src/core/mailbox.ts\n+++ b/src/core/mailbox.ts\n@@ -303,10 +303,10 @@\n     }\n   }\n   const events: SharedEvent[] = [];\n-  for (let offset = 0; offset < names.length; offset += 32) {\n+  for (let offset = 0; offset < names.length; offset += 64) {\n     signal?.throwIfAborted();\n     const batch = await Promise.allSettled(\n-      names.slice(offset, offset + 32).map(async (name) => {\n+      names.slice(offset, offset + 64).map(async (name) => {\n         const { id, posixPaths } = parseEventFilename(name)!;\n         // A filename alone is not an acknowledgement: validate the receipt before skipping its event.\n         if (key !== undefined && receipts.has(`${id}.json`) && (await readReceipt(repo, key, id))) return;\n"
+}

@@ -1,0 +1,304 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "callsPerSample": 200,
+  "medians": {
+    "missing-lock-baseline": 0.046198855000000025,
+    "missing-lock-candidate": 0.023421354999999977,
+    "live-baseline": 0.10677916499999981,
+    "live-candidate": 0.10755333500000006
+  },
+  "results": [
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.03050583500000002
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.04277791499999999
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.04906104000000003
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.023105834999999998
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.02112228999999999
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.044276039999999954
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.051241249999999995
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.025506460000000005
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.02817708500000002
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.047913125000000036
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.04844666500000003
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.023743750000000004
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.023044790000000006
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.047567499999999964
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.04603333500000005
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.02389521000000002
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.023240420000000057
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.04583207999999999
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.04566479000000001
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.023602289999999897
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.022954170000000006
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.04636437499999999
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.04549291499999995
+    },
+    {
+      "workload": "missing-lock",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.019377290000000044
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.10103583499999985
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.09111125000000016
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.10708041499999979
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.11187291500000014
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.11369249999999993
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.12177104500000013
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.10944728999999995
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.10457978999999995
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.10943708500000014
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.10716478999999993
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.10819354500000003
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.10127624999999994
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.1021027049999998
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.10508271000000036
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.08111750000000029
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.10806270999999981
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.10936396000000002
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.10822875000000011
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.10155583499999978
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.10915291500000024
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.10704396000000031
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.10647791499999983
+    },
+    {
+      "workload": "live",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.10621729000000016
+    },
+    {
+      "workload": "live",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.09316854000000035
+    }
+  ],
+  "limitations": "Warm local caches, uncontrolled host load; in-process status calls, not hook latency or physical disk I/O."
+}

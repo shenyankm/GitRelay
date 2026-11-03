@@ -1,0 +1,350 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 8,
+  "paths": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/build-round-49.mjs",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/scripts/build.mjs"
+  },
+  "sourceHashes": {
+    "baseline": "efc93bfde7062716546d89ca5d6a1f7bb1bf8a1c1d6c28912b59ebabd1f95920",
+    "candidate": "f562ac549f07a723b4c47f2344f2ca01c4b7bb768b02cd2b60042540d9eea973"
+  },
+  "medians": {
+    "baseline-wallMs": 578.0837294999999,
+    "baseline-cpuMs": 133.855,
+    "baseline-mkdirCalls": 32,
+    "candidate-wallMs": 597.4413750000003,
+    "candidate-cpuMs": 133.748,
+    "candidate-mkdirCalls": 32
+  },
+  "outputFiles": {
+    "index.d.ts": {
+      "sha256": "47e10e4413638dff0427b6cddf234a86dc727bd22b85e98f6b6d31aa183a8d07",
+      "mode": 420
+    },
+    "index.js": {
+      "sha256": "cb5ca1d96edb4e51c56035992a000d7199653927c9dcd3d5b58ab2464a9014dc",
+      "mode": 420
+    },
+    "vendor/smol-toml/LICENSE": {
+      "sha256": "fa5659948374d4f555594f47f6da073b40dc503e921aeeece30df4362b3051a5",
+      "mode": 420
+    },
+    "vendor/smol-toml/date.js": {
+      "sha256": "ef924a2a42c7f16761e7098c3ed8e04195ecbcb02d5c369db0aee76f251a409c",
+      "mode": 420
+    },
+    "vendor/smol-toml/error.js": {
+      "sha256": "76f8e47f5fc57273748242d59570656d7c921a80bceb2291ca5a4d7a723e9f29",
+      "mode": 420
+    },
+    "vendor/smol-toml/extract.js": {
+      "sha256": "3e6f1e5764a091acf2df6a3f257d0467c37a2b9dbfecab1573f17a6489349c90",
+      "mode": 420
+    },
+    "vendor/smol-toml/index.js": {
+      "sha256": "dc8e0afc74477e514f5cb8492b587560c1d7d68cec03a994cc8bc4af99c8da2a",
+      "mode": 420
+    },
+    "vendor/smol-toml/parse.js": {
+      "sha256": "195e33ea068bf6f3acb5b3342792ac4aa954bba7e751519ba869c00da395ecdb",
+      "mode": 420
+    },
+    "vendor/smol-toml/primitive.js": {
+      "sha256": "be47fe90bf9a410af0b9204b6b34617f4b38e57f08198b10cb024a0272eb5936",
+      "mode": 420
+    },
+    "vendor/smol-toml/stringify.js": {
+      "sha256": "c717d95456426dc8a0b07c9d03a4e434d5dea8254fca24e5fd93a22de3bcd44c",
+      "mode": 420
+    },
+    "vendor/smol-toml/struct.js": {
+      "sha256": "736742cfa645bbd08bc5396c5f7ddbea5c3b7ac5d61fe86031846f5769131deb",
+      "mode": 420
+    },
+    "vendor/smol-toml/util.js": {
+      "sha256": "6327e40efd957128da15867c3a32293950a925570b457b1b78c735452cebc08e",
+      "mode": 420
+    },
+    "core/activation.d.ts": {
+      "sha256": "ea458df465f5e79ae7c2468bc070d8f73f253b1afc7c7935e8fafa12f94005d9",
+      "mode": 420
+    },
+    "core/activation.js": {
+      "sha256": "1520ee322d53dc3cfda0787155221254737633356adcfb6c6c15c8b474613c49",
+      "mode": 420
+    },
+    "core/automatic-daemon.js": {
+      "sha256": "e9d0f3e874f8fef70297b86ecd1b34a993033f99b7652ab4f992a1f00e6a417d",
+      "mode": 420
+    },
+    "core/branch-status.js": {
+      "sha256": "4d3bca54702f2c2a487802c5aaaed21b29d047596123221d2c8db69e3d523db1",
+      "mode": 420
+    },
+    "core/branch-sync.js": {
+      "sha256": "3723a45434498ab7d7b6c47e99bb9e47cf2d87344c886ce3506194465815ab93",
+      "mode": 420
+    },
+    "core/changes.d.ts": {
+      "sha256": "6bfded651be74a89c57ce6dbbb53eb9a9f1cd607b36335c84b7e56be572e1b09",
+      "mode": 420
+    },
+    "core/changes.js": {
+      "sha256": "9e930892cc4869868ddc824621652ae8b528254057437489df605874f5eca69e",
+      "mode": 420
+    },
+    "core/cleanup.js": {
+      "sha256": "972ae6874959565d277fa5ea873214be05db98239bdd9c3ed5796a2b95117208",
+      "mode": 420
+    },
+    "core/consumer.d.ts": {
+      "sha256": "18badaf0e559dc547f7fc5c5ee3d28db8fa73049dec0bdb9ec25569479751138",
+      "mode": 420
+    },
+    "core/consumer.js": {
+      "sha256": "6627884c28409cda55a5a6830dfafc9ca5e64de456d32c63d9e45b4e82ba18dc",
+      "mode": 420
+    },
+    "core/daemon-state.js": {
+      "sha256": "cc4c533938fb213d7abe287568d19196b5e066481cd7f6123b4fa2d288ba91d0",
+      "mode": 420
+    },
+    "core/daemon.js": {
+      "sha256": "402e814e36255820f08fa9c1ab48848910225ea6e403605357286aaea50666af",
+      "mode": 420
+    },
+    "core/git.d.ts": {
+      "sha256": "ffd5ddbddb3f29971292a1d1d6a64383428eb5f6f8447373013299b03e41bc3d",
+      "mode": 420
+    },
+    "core/git.js": {
+      "sha256": "9e91f1c8b1306629f0d2e8bd1cebbce1431ddfdc14fda4b256c2036802444009",
+      "mode": 420
+    },
+    "core/identity-migration.js": {
+      "sha256": "ddb060e3e0ff76026a5a2814f36a185bfa80c93de7c20782cca24a2eec67eef7",
+      "mode": 420
+    },
+    "core/mailbox.d.ts": {
+      "sha256": "217a83777ccd5f1851f5da123c3b666040fef3c9a0d6348bb7459e87e83c5f9c",
+      "mode": 420
+    },
+    "core/mailbox.js": {
+      "sha256": "c7f3a19ca37115a6c4dbd2ee39dfc90c463fb8144f632412829add712859575b",
+      "mode": 420
+    },
+    "core/publisher.d.ts": {
+      "sha256": "a3529f551b03fbbbcbdaaba6d1ad271c8829fe6a7b7b54b6433d416e74002d0f",
+      "mode": 420
+    },
+    "core/publisher.js": {
+      "sha256": "df5b804d5cf1e55d3d852de06f17e8ec5142834d4cbce76d523ef95700b1a0f1",
+      "mode": 420
+    },
+    "core/repository.d.ts": {
+      "sha256": "cea085f18c852fbd6c80a359fbf5eb28429ca0ee595d0b685fbadadc8a018c4d",
+      "mode": 420
+    },
+    "core/repository.js": {
+      "sha256": "d6f725d55a6c7d9c8a68253b94b08c171b5293e7d815e7b1a5b7829f6c733f3e",
+      "mode": 420
+    },
+    "core/session-lifecycle.d.ts": {
+      "sha256": "d99218e1ab7e0fc333a00b513689daac7fdd2721a593f4bb2fdf1117b37685f7",
+      "mode": 420
+    },
+    "core/session-lifecycle.js": {
+      "sha256": "d112addebfdf79d66e38d0c3a649c5ab4ab1c64599bba3b571d588b342c928d5",
+      "mode": 420
+    },
+    "core/sessions.d.ts": {
+      "sha256": "d28f92d0c7359d9c111ee7fdea9e6eaeb2fb5825d8211af21fb1f735ed4deda6",
+      "mode": 420
+    },
+    "core/sessions.js": {
+      "sha256": "ce206a2e618369925da16b67c02205dedbed5298639576ed59ff2fd54bfb74be",
+      "mode": 420
+    },
+    "core/status-format.js": {
+      "sha256": "f8bab5a21ddbe9aa4dbfcf21e0dfb8470ea684146bffe6f622cf6b6f3490eb98",
+      "mode": 420
+    },
+    "core/store.d.ts": {
+      "sha256": "74d5de6fbc11619f59e49c4e50a17c54ef40da0ee96df009170ba94c40011633",
+      "mode": 420
+    },
+    "core/store.js": {
+      "sha256": "f2a635fbf766a0644f9dd8ca6bda794be481c54a28991cc764ed6c43dd5164fd",
+      "mode": 420
+    },
+    "cli/args.js": {
+      "sha256": "6a5baa71a918ac3d202c6aee3d81bcd4cf3ae44b1634d039eb35e52686998a15",
+      "mode": 420
+    },
+    "cli/bootstrap.js": {
+      "sha256": "50827aa0206f22343c2d59d178656be1ac4ea515b1a73fb43369d31095c7751d",
+      "mode": 420
+    },
+    "cli/codex-config.js": {
+      "sha256": "578da417343c8350e785a498481fc5cf0f83555960c29729cec16d326c3518b1",
+      "mode": 420
+    },
+    "cli/command-output.js": {
+      "sha256": "61b62fb330fa82073b3b9517387c17513c5854f908189497834bc229a5af610c",
+      "mode": 420
+    },
+    "cli/install-codex.js": {
+      "sha256": "9441393a7a6c0dae48b6b36f91f66d86f7c2e272f00d75a82c7923a1d9ad0044",
+      "mode": 420
+    },
+    "cli/install-record.js": {
+      "sha256": "82c7d3e658a3322f793f8aa0424d90ed5d9cdc8473c8c9a8d0cb1c5662c3cdf4",
+      "mode": 420
+    },
+    "cli/install.js": {
+      "sha256": "f724f77bb7a425fb0535adc9a6bc4ef5832cd3765191e0290e98aad785b21c6a",
+      "mode": 420
+    },
+    "cli/installer-digest.js": {
+      "sha256": "12b7ef4316a08c047d90b3486d72767509e2e12f7789efed32fd0e05df81fe5e",
+      "mode": 420
+    },
+    "cli/main.js": {
+      "sha256": "86dffe02da0dc63ede7a4c00f62ac17430b9e296d8da47574f53a13b5bccb9c3",
+      "mode": 493
+    },
+    "cli/platform-detection.js": {
+      "sha256": "4d86cc08446f8aa25d98dcb7a4d2349b2599e3c5e833bde811d4fbd20b9b5102",
+      "mode": 420
+    },
+    "cli/status.js": {
+      "sha256": "42443fbd6949eef3b3889883ed4c9568aba5cf714c3c6368dbc9b4b4ce98492b",
+      "mode": 420
+    },
+    "adapters/hooks.js": {
+      "sha256": "b2db10cd642e24d04e63a19b6c029119a033cc6917fab780cb3efd66c7054b6b",
+      "mode": 420
+    }
+  },
+  "results": [
+    {
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 667.4254169999999,
+      "mkdirCalls": 32,
+      "cpuMs": 145.494
+    },
+    {
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 576.9704999999999,
+      "mkdirCalls": 32,
+      "cpuMs": 150.698
+    },
+    {
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 498.13604199999963,
+      "mkdirCalls": 32,
+      "cpuMs": 126.475
+    },
+    {
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 497.2969589999998,
+      "mkdirCalls": 32,
+      "cpuMs": 127.181
+    },
+    {
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 503.77350000000024,
+      "mkdirCalls": 32,
+      "cpuMs": 126.071
+    },
+    {
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 498.6184579999999,
+      "mkdirCalls": 32,
+      "cpuMs": 126.83
+    },
+    {
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 507.7545420000006,
+      "mkdirCalls": 32,
+      "cpuMs": 125.994
+    },
+    {
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 683.650541,
+      "mkdirCalls": 32,
+      "cpuMs": 127.63
+    },
+    {
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 608.9797910000007,
+      "mkdirCalls": 32,
+      "cpuMs": 147.997
+    },
+    {
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 627.7562500000004,
+      "mkdirCalls": 32,
+      "cpuMs": 135.682
+    },
+    {
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 579.1969589999999,
+      "mkdirCalls": 32,
+      "cpuMs": 137.756
+    },
+    {
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 579.870833,
+      "mkdirCalls": 32,
+      "cpuMs": 145.263
+    },
+    {
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 585.902959,
+      "mkdirCalls": 32,
+      "cpuMs": 129.254
+    },
+    {
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 632.6683329999996,
+      "mkdirCalls": 32,
+      "cpuMs": 132.028
+    },
+    {
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 653.8945000000003,
+      "mkdirCalls": 32,
+      "cpuMs": 146.395
+    },
+    {
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 619.6804159999992,
+      "mkdirCalls": 32,
+      "cpuMs": 138.242
+    }
+  ],
+  "limitations": "Alternating complete builds including declaration tsc; bytes and executable modes compared after each run. Node CPU excludes tsc child CPU. Warm filesystem caches and uncontrolled host load. Directory-call counts are logical operations, not physical I/O or latency proof alone. Eval root substitution/instrumentation is identical for both scripts.",
+  "decision": "Rejected and reverted: complete build median regresses 578.08 to 597.44 ms with unchanged Node CPU. Vendor bytes and executable modes match, but parallel copies do not improve the complete build.",
+  "candidateSourceSha256": "f562ac549f07a723b4c47f2344f2ca01c4b7bb768b02cd2b60042540d9eea973",
+  "candidatePatch": "--- a/scripts/build.mjs\n+++ b/scripts/build.mjs\n@@ -33,8 +33,9 @@\n await build();\n const vendor = join(root, \"dist/vendor/smol-toml\");\n await mkdir(vendor, { recursive: true });\n-for (const name of await readdir(toml)) if (name.endsWith(\".js\")) await copyFile(join(toml, name), join(vendor, name));\n-await copyFile(join(toml, \"LICENSE\"), join(vendor, \"LICENSE\"));\n+const vendorFiles = [...(await readdir(toml)).filter((name) => name.endsWith(\".js\")), \"LICENSE\"];\n+const copies = await Promise.allSettled(vendorFiles.map((name) => copyFile(join(toml, name), join(vendor, name))));\n+for (const copy of copies) if (copy.status === \"rejected\") throw copy.reason;\n \n execFileSync(\n   process.execPath,\n"
+}

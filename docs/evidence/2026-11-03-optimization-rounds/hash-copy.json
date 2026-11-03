@@ -1,0 +1,608 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "comparedValues": 1014,
+  "invalidCases": 4,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-43-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "identity-baseline-wallMs": 0.0004551457999999997,
+    "identity-baseline-cpuMs": 0.00045359999999999997,
+    "identity-candidate-wallMs": 0.00046347919999999973,
+    "identity-candidate-cpuMs": 0.0004624,
+    "upstream-baseline-wallMs": 0.0004293458000000001,
+    "upstream-baseline-cpuMs": 0.00042750000000000004,
+    "upstream-candidate-wallMs": 0.000436608200000002,
+    "upstream-candidate-cpuMs": 0.0004349,
+    "large-baseline-wallMs": 0.28206749500000017,
+    "large-baseline-cpuMs": 0.28066,
+    "large-candidate-wallMs": 0.2820108299999998,
+    "large-candidate-cpuMs": 0.28059
+  },
+  "results": [
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.00046196680000000045,
+      "cpuMs": 0.0004626
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.0004573750000000004,
+      "cpuMs": 0.0005038
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.00037635840000000017,
+      "cpuMs": 0.00037719999999999995
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.0004600750000000005,
+      "cpuMs": 0.00045919999999999994
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.00046584160000000025,
+      "cpuMs": 0.0004636
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.00045489159999999914,
+      "cpuMs": 0.00045339999999999996
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.0004484583999999998,
+      "cpuMs": 0.0004468
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.0004639082000000002,
+      "cpuMs": 0.0004622
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.00046340000000000004,
+      "cpuMs": 0.0004614
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.0003887665999999996,
+      "cpuMs": 0.00038879999999999996
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.0004536500000000004,
+      "cpuMs": 0.0004514
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.0004635583999999994,
+      "cpuMs": 0.00046180000000000006
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.0004674581999999987,
+      "cpuMs": 0.0004654
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.00045736660000000027,
+      "cpuMs": 0.0004556
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.00045703340000000027,
+      "cpuMs": 0.000455
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.00046799180000000007,
+      "cpuMs": 0.0004666
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.00040613340000000023,
+      "cpuMs": 0.0004062
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.00045264159999999976,
+      "cpuMs": 0.00045119999999999996
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.00045540000000000023,
+      "cpuMs": 0.0004554
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.0004629667999999981,
+      "cpuMs": 0.000463
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.0004654418000000021,
+      "cpuMs": 0.00046399999999999995
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.00045736660000000027,
+      "cpuMs": 0.0004556
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.00045590000000000257,
+      "cpuMs": 0.0004538
+    },
+    {
+      "name": "identity",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.00039909999999999853,
+      "cpuMs": 0.0003992
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.0004316499999999991,
+      "cpuMs": 0.00043
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.0004305416000000008,
+      "cpuMs": 0.000429
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.0004425333999999992,
+      "cpuMs": 0.00044080000000000004
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.0004393749999999983,
+      "cpuMs": 0.0004376
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.00043608340000000114,
+      "cpuMs": 0.0004342
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.0004265584000000018,
+      "cpuMs": 0.0004248
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.00036812500000000056,
+      "cpuMs": 0.0003682
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.00043572499999999933,
+      "cpuMs": 0.00043380000000000003
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.00043963340000000245,
+      "cpuMs": 0.0004376
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.00042775000000000034,
+      "cpuMs": 0.000426
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.00042817500000000167,
+      "cpuMs": 0.000426
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.0004396250000000009,
+      "cpuMs": 0.0004378
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.0004353000000000009,
+      "cpuMs": 0.00043319999999999996
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.00042864160000000026,
+      "cpuMs": 0.00042699999999999997
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.00043004999999999996,
+      "cpuMs": 0.00042800000000000005
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.0004425250000000005,
+      "cpuMs": 0.00044100000000000004
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.00037415000000000023,
+      "cpuMs": 0.00037440000000000005
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.00043189999999999884,
+      "cpuMs": 0.00043040000000000005
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.00043274159999999993,
+      "cpuMs": 0.0004314
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.0004393665999999996,
+      "cpuMs": 0.0004376
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.0004369332000000014,
+      "cpuMs": 0.0004352
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.00043109999999999785,
+      "cpuMs": 0.00043
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.00042361680000000204,
+      "cpuMs": 0.00042140000000000005
+    },
+    {
+      "name": "upstream",
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.0004362832000000026,
+      "cpuMs": 0.0004346
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.28232374999999993,
+      "cpuMs": 0.28093
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.28215041000000013,
+      "cpuMs": 0.28079
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.28198458000000015,
+      "cpuMs": 0.28053
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.2813574999999997,
+      "cpuMs": 0.28009
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.28219749999999977,
+      "cpuMs": 0.2807
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.28456583000000024,
+      "cpuMs": 0.28315
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.28140499999999974,
+      "cpuMs": 0.28021
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.2818808300000001,
+      "cpuMs": 0.28046
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.28283584000000017,
+      "cpuMs": 0.28166
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.28138625000000045,
+      "cpuMs": 0.27996
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.28143541999999966,
+      "cpuMs": 0.2802
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.2821408299999996,
+      "cpuMs": 0.28068000000000004
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.2810729200000003,
+      "cpuMs": 0.27981
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.2811337500000002,
+      "cpuMs": 0.27997
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.2841995900000006,
+      "cpuMs": 0.28293
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.28061334000000104,
+      "cpuMs": 0.27941
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.28078875000000036,
+      "cpuMs": 0.27956
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.2833050000000003,
+      "cpuMs": 0.28095
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.28103417000000036,
+      "cpuMs": 0.27968
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.2817049999999995,
+      "cpuMs": 0.2805
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.28282375000000004,
+      "cpuMs": 0.28155
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.28665457999999944,
+      "cpuMs": 0.28535
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.3078558399999997,
+      "cpuMs": 0.30640999999999996
+    },
+    {
+      "name": "large",
+      "calls": 100,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.2853549999999996,
+      "cpuMs": 0.28407
+    }
+  ],
+  "limitations": "Pure public hash helper with representative JSON identities, upstream tuples and 128-KiB payloads; serialized edge values and exception type/code/message compared. Warm modules, no I/O or peak-memory claim. Does not by itself establish end-to-end inbox latency.",
+  "decision": "Rejected and reverted: representative small JSON hashes are about 2% slower, large payload unchanged; no benefit for retained crypto state.",
+  "candidateSourceSha256": "a844b813932dddcda71d7f89f95bb3a85bd7553dac3f0df47693c06cdd597f7f",
+  "candidatePatch": "--- a/src/core/store.ts\n+++ b/src/core/store.ts\n@@ -8,7 +8,8 @@\n const MAX_STATE_BYTES = 2 * 1024 * 1024;\n const stateDecoder = new TextDecoder(\"utf-8\", { fatal: true, ignoreBOM: true });\n \n-export const hash = (value: unknown) => createHash(\"sha256\").update(JSON.stringify(value)).digest(\"hex\");\n+const hashSeed = createHash(\"sha256\");\n+export const hash = (value: unknown) => hashSeed.copy().update(JSON.stringify(value)).digest(\"hex\");\n export const isId = (value: unknown): value is string => typeof value === \"string\" && /^[a-f0-9]{64}$/.test(value);\n export const isCommit = (value: unknown): value is string =>\n   typeof value === \"string\" && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);\n"
+}
