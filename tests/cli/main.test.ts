@@ -14,7 +14,7 @@ const run = (...args: string[]) => exec(process.execPath, [cli, ...args]);
 test("separate CLI processes share messages across coding agents", async (t) => {
   const f = await fixture(t);
   const b = ["check", "--cwd", f.b, "--agent", "codex", "--session", "B"];
-  const c = ["check", "--cwd", f.c, "--agent", "opencode", "--session", "C"];
+  const c = ["check", "--cwd", f.c, "--agent", "cli", "--session", "C"];
   await run(...b);
   await run(...c);
   const sent = JSON.parse(

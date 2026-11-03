@@ -10,6 +10,8 @@ import {
   mkdtemp,
   readFile,
   readdir,
+  readlink,
+  symlink,
   realpath,
   rename,
   rm,
@@ -19,7 +21,6 @@ import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { readJson, withLock, writeJson } from "../core/store.ts";
 import { readInstallationRecord } from "./install-record.ts";
-import { checkWorkspace, validateWorkspacePath } from "./install-opencode.ts";
 import { commandOutput } from "./command-output.ts";
 import { installerDigest, matchesLegacyInstallerDigest } from "./installer-digest.ts";
 import { checkInlineHooks } from "./codex-config.ts";
@@ -150,6 +151,52 @@ export function validCodexRecord(value: unknown, entry: string, root: string): v
 }
 
 const digest = (dir: string, signal?: AbortSignal) => installerDigest(dir, signal);
+
+export function validateWorkspacePath(root: string): void {
+  if (process.platform !== "win32" && root.includes("\\"))
+    throw new Error("The data directory path contains a backslash; choose a different XDG_DATA_HOME.");
+}
+
+export async function checkWorkspace(root: string): Promise<void> {
+  const info = await lstat(root);
+  if (!info.isDirectory() && !info.isSymbolicLink()) throw new Error(`Not an owned GitRelay workspace: ${root}`);
+  if (info.isSymbolicLink() && !/^\.git-relay-[a-zA-Z0-9]+$/.test(await readlink(root)))
+    throw new Error(`Not an owned GitRelay workspace: ${root}`);
+  if ((await contents(join(root, ".git-relay-owner"))) !== "git-relay installer v1\n")
+    throw new Error(`Not an owned GitRelay workspace: ${root}`);
+}
+
+export async function ensureWorkspace(root: string): Promise<void> {
+  validateWorkspacePath(root);
+  await mkdir(dirname(root), { recursive: true });
+  let exists = false;
+  try {
+    await lstat(root);
+    exists = true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  if (exists) {
+    await checkWorkspace(root);
+    return;
+  }
+  const staged = await mkdtemp(join(dirname(root), ".git-relay-"));
+  let published = false;
+  try {
+    await writeFile(join(staged, ".git-relay-owner"), "git-relay installer v1\n", { flag: "wx", mode: 0o600 });
+    try {
+      await symlink(basename(staged), root, "dir");
+      published = true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      await checkWorkspace(root);
+    }
+  } finally {
+    // Another process can reference or add files to this directory even if
+    // our publication failed. Do not recursively remove it without proof.
+    if (!published) console.warn(`GitRelay workspace stage retained: ${staged} (may be in use)`);
+  }
+}
 
 export async function installCodex({
   workspace,

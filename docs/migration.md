@@ -1,15 +1,14 @@
 # Migrating to GitRelay
 
-## Codex and OpenCode only; sessions participate automatically
+## Codex only; sessions participate automatically
 
-This revision removes the native extensions, hooks, installers, benchmarks, and
-package metadata for the retired clients. Before upgrading an old installation,
+This revision removes OpenCode support and retains only Codex integration. Before upgrading an old installation,
 use that old version's uninstall flow or inspect and remove its owned entry in
 the retired client's settings. Stop its running sessions. This checkout does
 not edit other installed clients or delete their settings, runtime archives,
 subscriptions, receipts, or unread messages.
 
-Rebuild/reinstall and reload Codex and OpenCode to load the new runtime. Root
+Rebuild/reinstall and reload Codex to load the new runtime. Root
 sessions now participate without an enable prompt. Explicit saved disables are
 preserved; use `Enable GitRelay` or `启用 GitRelay` to reopen one. Native clients
 start the shared daemon automatically on macOS/Linux; it exits after the last
@@ -45,7 +44,7 @@ git-relay --help
 
 These instructions install from source; they do not assume an npm registry release. Node.js 22.19+ and Git are required. GitHub queries additionally require authenticated `gh`. Changing the remote URL does not fetch, synchronize branches, or publish local changes.
 
-Update integration entrypoints and commands to `git-relay`. Remove duplicate old OpenCode entrypoints before restarting the host. The plugin emits `metadata.source: "git-relay"` and recognizes both that and the legacy `worktree-relay` source to avoid recursive registration during upgrades.
+Update Codex integration entrypoints and commands to `git-relay`.
 
 ## Update the Codex plugin
 
@@ -97,12 +96,6 @@ This preserves prior state but does not import its unread messages, receipts, or
 
 Historical acceptance paths, package names, hashes, and measurements remain in [acceptance](acceptance.md) and [performance](performance.md). They are evidence from those runs, not newly executed checks.
 
-## Native session identity upgrade
-
-OpenCode sessions bind their inbox to the data root and native creation time.
-Recreated IDs do not inherit old inboxes. Use the exact `--instance` reported by
-`sessions` for manual commands. Old unbound records remain for manual review.
-
 ## History-gap recovery
 
 Earlier versions could acknowledge an upstream history-gap notification when
@@ -132,7 +125,7 @@ Later upstream notifications wait for this range; independent messages can still
      --acknowledge-history-gap --apply
    ```
 
-   Include the exact `--instance` shown by `git-relay sessions` for OpenCode. This accepts every selected uninspectable upstream range for that inbox, emits `unavailable: true`, and writes receipts only after successful output. It does not recover a diff or prove the agent assessed it. Spawn errors, cancellation and timeouts remain errors; ordinary hooks and polling never opt in.
+   For an existing inbox with an instance, include the exact `--instance` shown by `git-relay sessions`. This accepts every selected uninspectable upstream range for that inbox, emits `unavailable: true`, and writes receipts only after successful output. It does not recover a diff or prove the agent assessed it. Spawn errors, cancellation and timeouts remain errors; ordinary hooks and polling never opt in.
 
 ## Monitoring and automatic synchronization
 

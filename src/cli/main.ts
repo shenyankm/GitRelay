@@ -157,9 +157,7 @@ async function main() {
     await output(
       "  [--format json|markdown] [--output FILE (single Markdown snapshot)]\ngit-relay hook codex [--branch-status] < hook-input.json\n",
     );
-    await output(
-      "git-relay install|uninstall [--platform codex|opencode] [--skip PLATFORM] [--dry-run] [--allow-unverified]\n",
-    );
+    await output("git-relay install|uninstall [--platform codex] [--skip PLATFORM] [--dry-run] [--allow-unverified]\n");
     await output("git-relay identity-fresh|identity-migrate|identity-recover --cwd PATH --apply\n");
     await output("git-relay check --session ID [--instance INSTANCE_ID] --acknowledge-history-gap --apply\n");
     return;

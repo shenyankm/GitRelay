@@ -190,7 +190,7 @@ test("activation defaults off without creating state and is isolated by native s
     { session: "other" },
     { instance: hash("new-instance") },
     { cwd: f.c },
-    { adapter: "opencode" },
+    { adapter: "cli" },
     { ref: "refs/heads/other" },
   ])
     assert.equal(await sessionActivation({ ...options, ...different }), false);
@@ -213,10 +213,10 @@ test("activation is shared within one worktree, not a nested repository", async 
   await sessionActivation({ ...options, cwd: sub }, true);
   assert.equal(await sessionActivation(options), true);
   assert.equal(await sessionActivation({ ...options, cwd: f.c }), false);
-  const openCode = { ...options, adapter: "opencode", instance: hash("native-instance") };
-  await sessionActivation({ ...openCode, cwd: sub }, true);
-  assert.equal(await sessionActivation(openCode), true);
-  assert.equal(await sessionActivation({ ...openCode, instance: hash("other-instance") }), false);
+  const cliInstance = { ...options, adapter: "cli", instance: hash("native-instance") };
+  await sessionActivation({ ...cliInstance, cwd: sub }, true);
+  assert.equal(await sessionActivation(cliInstance), true);
+  assert.equal(await sessionActivation({ ...cliInstance, instance: hash("other-instance") }), false);
 });
 
 test("legacy subdirectory activation never overrides a newer worktree choice", async (t) => {

@@ -635,7 +635,7 @@ test("automatic sessions establish independent baselines and deliver shared mess
       responses.push(value);
     };
   await runHook({ ...input(f.b), prompt: "请并行开发这个功能" }, ref, output);
-  await sendMessage({ cwd: f.a, adapter: "opencode", session: "sender", text: "first shared note" });
+  await sendMessage({ cwd: f.a, adapter: "cli", session: "sender", text: "first shared note" });
   await sendMessage({ cwd: f.a, adapter: "cli", session: "sender", text: "second shared note" });
   await runHook({ ...input(f.b, "other"), hook_event_name: "PostToolUse" }, ref, output);
   assert.deepEqual(responses.at(-1), {});
@@ -678,7 +678,7 @@ test("disabling closes enrollment and preserves unread messages for an explicit 
   await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
   const event = await sendMessage({
     cwd: f.a,
-    adapter: "opencode",
+    adapter: "cli",
     session: "sender",
     text: "unread before disabling",
   });
@@ -689,7 +689,7 @@ test("disabling closes enrollment and preserves unread messages for an explicit 
     key = sessionKey(repo, { adapter: "codex", session: "receiver" }, ref);
   assert.equal(await readReceipt(repo, key, event.id), undefined);
   assert.ok((await listSessions(f.b))[0].closedAt);
-  const skipped = await sendMessage({ cwd: f.a, adapter: "opencode", session: "sender", text: "while disabled" });
+  const skipped = await sendMessage({ cwd: f.a, adapter: "cli", session: "sender", text: "while disabled" });
   assert.ok(!skipped.recipients.includes(key));
   await runHook({ ...input(f.b), prompt: "Enable GitRelay" }, ref, output);
   assert.match(JSON.stringify(responses.at(-1)), /unread before disabling/);
@@ -1105,7 +1105,7 @@ test("automatic participation resumes an existing inbox and acknowledges deliver
     responses: object[] = [];
   const receiver = { cwd: f.b, ref, adapter: "codex", session: "receiver", async deliver() {} };
   await consumeMailbox(receiver);
-  const event = await sendMessage({ cwd: f.a, adapter: "opencode", session: "sender", text: "legacy unread" });
+  const event = await sendMessage({ cwd: f.a, adapter: "cli", session: "sender", text: "legacy unread" });
   await runHook(
     { ...input(f.b), hook_event_name: "SessionStart" },
     ref,

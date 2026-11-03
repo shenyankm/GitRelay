@@ -116,7 +116,7 @@ test("status watch broadcasts to the same native session's distinct instance", u
       "--cwd",
       f.repo,
       "--agent",
-      "opencode",
+      "cli",
       "--session",
       "monitor",
       "--instance",
@@ -127,7 +127,7 @@ test("status watch broadcasts to the same native session's distinct instance", u
   const key = JSON.parse(joinOutput).session.key;
   const p = launch(
     f,
-    ["status", "--cwd", f.repo, "--watch", "--interval-ms", "50", "--agent", "opencode", "--session", "monitor"],
+    ["status", "--cwd", f.repo, "--watch", "--interval-ms", "50", "--agent", "cli", "--session", "monitor"],
     env,
   );
   await until(() => p.stdout().includes("\n"));

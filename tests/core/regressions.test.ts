@@ -112,7 +112,7 @@ test("corrupt daemon liveness hints never prevent local fallback", async (t) => 
 
 test("send-first legacy sessions retain the pre-publication migration baseline", async (t) => {
   const f = await fixture(t);
-  const observer = { cwd: f.c, ref, adapter: "opencode", session: "observer", async deliver() {} };
+  const observer = { cwd: f.c, ref, adapter: "cli", session: "observer", async deliver() {} };
   await consumeMailbox(observer);
   await writeFile(join(f.b, "shared.txt"), "local\n");
   const received: Notification[] = [];
@@ -163,7 +163,7 @@ test("retry after event publication includes new subscribers without replaying e
   const receipt = { eventId: event.id, status: "delivered", at: new Date().toISOString() };
   await writeJson(join(repo.directory, "receipts", key, `${event.id}.json`), receipt);
   assert.equal((await readRef(repo, ref))!.commit, f.initial);
-  const c = { cwd: f.c, ref, adapter: "opencode", session: "C", async deliver() {} };
+  const c = { cwd: f.c, ref, adapter: "cli", session: "C", async deliver() {} };
   await registerSession(await repository(f.c), c, ref);
   await withLock(join(repo.directory, "publish.lock"), () => synchronizeRef(repo, ref, b));
   const retried = (await eventsIn(repo)).find((item) => item.id === event.id)!;
@@ -187,7 +187,7 @@ test("retry refuses corrupted upstream events without advancing the ref or ackno
   const event = await withLock(join(repo.directory, "publish.lock"), () =>
     publishUpstream(repo, b, ref, f.initial, next, [key]),
   );
-  const c = { cwd: f.c, ref, adapter: "opencode", session: "C" };
+  const c = { cwd: f.c, ref, adapter: "cli", session: "C" };
   await registerSession(await repository(f.c), c, ref);
   const cursor = await readRef(repo, ref),
     path = join(repo.directory, "events", `${event.id}.json`);
@@ -264,7 +264,7 @@ test("concurrent consumers all receive every broadcast rather than losing the pu
 test("send-only identities do not subscribe or prevent consumers from collecting each other's broadcasts", async (t) => {
   const f = await fixture(t);
   const b = { cwd: f.b, ref, adapter: "codex", session: "B", async deliver() {} };
-  const c = { cwd: f.c, ref, adapter: "opencode", session: "C", async deliver() {} };
+  const c = { cwd: f.c, ref, adapter: "cli", session: "C", async deliver() {} };
   await consumeMailbox(b);
   await consumeMailbox(c);
   const first = await sendMessage({

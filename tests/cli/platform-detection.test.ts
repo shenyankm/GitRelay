@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { detectPlatform } from "../../src/cli/platform-detection.ts";
 
 test(
-  "detects installed, incompatible, missing and uninspectable clients independently",
+  "detects installed, missing and uninspectable Codex versions",
   { skip: process.platform === "win32" },
   async (t) => {
     const dir = await mkdtemp(join(tmpdir(), "git-relay-detect-"));
@@ -18,21 +18,12 @@ test(
     };
     const env = { ...process.env, PATH: dir };
     await write("codex", "printf 'codex-cli 0.164.0\\n'");
-    await write("opencode", "printf 'opencode v1.2.3\\n'");
     assert.deepEqual(await detectPlatform("codex", env), {
       platform: "codex",
       status: "installed",
       version: "0.164.0",
       previouslyTested: true,
     });
-    assert.deepEqual(await detectPlatform("opencode", env), {
-      platform: "opencode",
-      status: "incompatible",
-      version: "1.2.3",
-      previouslyTested: false,
-    });
-    await write("opencode", "printf 'opencode v0.8.0\\n'");
-    assert.equal((await detectPlatform("opencode", env)).status, "incompatible");
     await write("codex", "printf 'client failed\\n' >&2; exit 3");
     const failed = await detectPlatform("codex", env);
     assert.equal(failed.status, "unavailable");
@@ -57,34 +48,20 @@ test(
       "unverified",
     );
     assert.equal((await detectPlatform("codex", { ...env, PATH: earlier })).status, "unavailable");
-    await mkdir(join(earlier, "opencode"));
-    assert.equal((await detectPlatform("opencode", { ...env, PATH: earlier })).status, "unavailable");
-    await write("opencode", "printf 'opencode v3.0.0\\n'");
-    assert.equal((await detectPlatform("opencode", env)).status, "unverified");
-    await write("opencode", "printf 'opencode v2.1.3\\n'");
-    assert.deepEqual(await detectPlatform("opencode", env), {
-      platform: "opencode",
-      status: "installed",
-      version: "2.1.3",
-      previouslyTested: false,
-    });
-    await write("opencode", "printf 'opencode v2.1.2+build-123\\n'");
-    assert.deepEqual(await detectPlatform("opencode", env), {
-      platform: "opencode",
-      status: "installed",
-      version: "2.1.2+build-123",
-      previouslyTested: false,
-    });
-    await write("opencode", "printf 'opencode v2.1.2-rc.1+build-123\\n'");
-    assert.deepEqual(await detectPlatform("opencode", env), {
-      platform: "opencode",
-      status: "unverified",
-      version: "2.1.2-rc.1+build-123",
-      previouslyTested: false,
-    });
-    for (const malformed of ["2.1.2-", "2.1.2+", "2.1.2.9", "2.1.2junk", "2.1.2+_bad", "2.1.2-01", "02.1.2"]) {
-      await write("opencode", `printf 'opencode ${malformed}\\n'`);
-      assert.equal((await detectPlatform("opencode", env)).status, "unavailable");
+    await rm(join(earlier, "codex"));
+    await mkdir(join(earlier, "codex"));
+    assert.equal((await detectPlatform("codex", { ...env, PATH: earlier })).status, "unavailable");
+    for (const malformed of [
+      "0.164.0-",
+      "0.164.0+",
+      "0.164.0.9",
+      "0.164.0junk",
+      "0.164.0+_bad",
+      "0.164.0-01",
+      "00.164.0",
+    ]) {
+      await write("codex", `printf 'codex ${malformed}\\n'`);
+      assert.equal((await detectPlatform("codex", env)).status, "unavailable");
     }
   },
 );

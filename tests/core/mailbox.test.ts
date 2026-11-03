@@ -60,7 +60,7 @@ test("invalid UTF-8 in an event or receipt cannot silently acknowledge a message
   assert.deepEqual(delivered, [event.id]);
 });
 
-test("Claude Code publishes one message; Codex and OpenCode receive independent copies", async (t) => {
+test("Codex publishes one message; native and CLI receivers receive independent copies", async (t) => {
   const f = await fixture(t);
   const b: Notification[] = [];
   const c: Notification[] = [];
@@ -73,17 +73,17 @@ test("Claude Code publishes one message; Codex and OpenCode receive independent 
       b.push(...batch);
     },
   };
-  const opencode = {
+  const cli = {
     cwd: f.c,
     ref,
-    adapter: "opencode",
+    adapter: "cli",
     session: "same-native-id",
     async deliver(batch: Notification[]) {
       c.push(...batch);
     },
   };
   await consumeMailbox(codex);
-  await consumeMailbox(opencode);
+  await consumeMailbox(cli);
   const event = await sendMessage({
     cwd: f.a,
     adapter: "codex",
@@ -94,10 +94,10 @@ test("Claude Code publishes one message; Codex and OpenCode receive independent 
   await consumeMailbox(codex);
   assert.equal(b[0].event.id, event.id);
   assert.equal(c.length, 0);
-  await consumeMailbox(opencode);
+  await consumeMailbox(cli);
   assert.equal(c[0].event.id, event.id);
   await consumeMailbox(codex);
-  await consumeMailbox(opencode);
+  await consumeMailbox(cli);
   assert.equal(b.length, 1);
   assert.equal(c.length, 1);
   const repo = await repository(f.a);
@@ -138,7 +138,7 @@ test("a shared main event is published once; one agent's failed delivery does no
   const c = {
     cwd: f.c,
     ref,
-    adapter: "opencode",
+    adapter: "cli",
     session: "C",
     async deliver(batch: Notification[]) {
       deliveries.push(...batch.map((n) => n.event.id));
@@ -175,20 +175,20 @@ test("file-scoped messages only reach overlapping worktrees, and new sessions do
       b++;
     },
   };
-  const opencode = {
+  const cli = {
     cwd: f.c,
     ref,
-    adapter: "opencode",
+    adapter: "cli",
     session: "C",
     async deliver() {
       c++;
     },
   };
   await consumeMailbox(codex);
-  await consumeMailbox(opencode);
+  await consumeMailbox(cli);
   await sendMessage({ cwd: f.a, adapter: "codex", session: "A", text: "shared changed", files: ["shared.txt"] });
   await consumeMailbox(codex);
-  await consumeMailbox(opencode);
+  await consumeMailbox(cli);
   assert.equal(b, 1);
   assert.equal(c, 0);
   await consumeMailbox({

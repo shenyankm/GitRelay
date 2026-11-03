@@ -24,7 +24,7 @@ async function waitFor(check: () => boolean | Promise<boolean>) {
 test("CLI acceptance: leave preserves unread messages, join restores them, GC requires explicit apply", async (t) => {
   const f = await fixture(t);
   const b = ["--cwd", f.b, "--agent", "codex", "--session", "B"];
-  const c = ["--cwd", f.c, "--agent", "opencode", "--session", "C"];
+  const c = ["--cwd", f.c, "--agent", "cli", "--session", "C"];
   const sender = ["--cwd", f.a, "--agent", "codex", "--session", "A"];
   await run("check", ...b);
   await run("check", ...c);
@@ -137,7 +137,7 @@ test("CLI daemon acceptance: singleton, automatic confirmed-only GC, central pub
   await writeFile(join(f.b, "shared.txt"), "B local\n");
   await writeFile(join(f.c, "shared.txt"), "C local\n");
   const b = ["--cwd", f.b, "--agent", "codex", "--session", "B"];
-  const c = ["--cwd", f.c, "--agent", "opencode", "--session", "C"];
+  const c = ["--cwd", f.c, "--agent", "cli", "--session", "C"];
   await run("check", ...b);
   const old = JSON.parse(
     (await run("send", "--cwd", f.a, "--agent", "cc", "--session", "A", "--message", "already confirmed")).stdout,

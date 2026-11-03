@@ -99,7 +99,7 @@ test(
 );
 
 test(
-  "automatic daemon stays for either client and stops after the last exits",
+  "automatic daemon stays for Codex clients and stops despite unrelated processes",
   { skip: process.platform === "win32" },
   async (t) => {
     const abort = new AbortController();
@@ -109,14 +109,14 @@ test(
       await running;
     });
     const f = await processTable(t);
-    await writeFile(f.table, "101 1 /app/codex\n102 1 /app/opencode\n");
+    await writeFile(f.table, "101 1 /app/codex\n102 1 /app/codex\n");
     running = runAutomaticDaemon({ signal: abort.signal, intervalMs: 50 });
     await waitFor(async () => (await daemonStatus()).running);
     const token = (await daemonStatus()).state!.token;
-    await writeFile(f.table, "102 1 /app/opencode\n");
+    await writeFile(f.table, "102 1 /app/codex\n");
     await delay(180);
     assert.equal((await daemonStatus()).state?.token, token);
-    await writeFile(f.table, "");
+    await writeFile(f.table, "103 1 /app/opencode\n");
     await running;
     assert.equal((await daemonStatus()).running, false);
     await assert.rejects(readFile(join(stateDirectory(), "daemon.lock")), { code: "ENOENT" });
@@ -206,7 +206,7 @@ test(
     await start([first, second]);
     const token = (await daemonStatus()).state!.token;
     first.kill("SIGTERM");
-    await writeFile(f.table, `${second.pid} 1 /app/opencode\n`);
+    await writeFile(f.table, `${second.pid} 1 /app/codex\n`);
     await delay(5200);
     assert.equal((await daemonStatus()).state?.token, token);
     second.kill("SIGTERM");

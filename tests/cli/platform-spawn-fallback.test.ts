@@ -13,16 +13,16 @@ async function fixture(t: TestContext) {
     second = join(root, "second");
   await mkdir(first);
   await mkdir(second);
-  const secondPath = join(second, "opencode"),
+  const secondPath = join(second, "codex"),
     marker = join(root, "called");
-  await writeFile(secondPath, "#!/bin/sh\nprintf called > \"$MARKER\"\nprintf '%s\\n' '2.1.2'\n");
+  await writeFile(secondPath, "#!/bin/sh\nprintf called > \"$MARKER\"\nprintf '%s\\n' '0.164.0'\n");
   await chmod(secondPath, 0o755);
   const env = { PATH: [first, second].join(delimiter), HOME: root, TMPDIR: root, MARKER: marker };
   return { root, first, second, marker, env };
 }
 
 async function entry(dir: string, content: string) {
-  const path = join(dir, "opencode");
+  const path = join(dir, "codex");
   await writeFile(path, content);
   await chmod(path, 0o755);
 }
@@ -39,12 +39,12 @@ test(
         await chmod(interpreter, 0o644);
       }
       await entry(f.first, `#!${interpreter}\n`);
-      const normal = spawnSync("opencode", ["--version"], { env: f.env, encoding: "utf8" });
+      const normal = spawnSync("codex", ["--version"], { env: f.env, encoding: "utf8" });
       assert.equal(normal.status, 0);
-      assert.equal(normal.stdout, "2.1.2\n");
-      const result = await detectPlatform("opencode", f.env);
+      assert.equal(normal.stdout, "0.164.0\n");
+      const result = await detectPlatform("codex", f.env);
       assert.equal(result.status, "installed");
-      const noFallback = await detectPlatform("opencode", { ...f.env, PATH: f.first });
+      const noFallback = await detectPlatform("codex", { ...f.env, PATH: f.first });
       assert.equal(noFallback.status, "unavailable");
       if (noFallback.status === "unavailable") assert.match(noFallback.reason, new RegExp(reason));
     }
@@ -58,7 +58,7 @@ test(
     for (const script of ["#!/bin/sh\nexit 77\n", "#!/bin/sh\n/bin/sleep 30\n"]) {
       const f = await fixture(t);
       await entry(f.first, script);
-      const result = await detectPlatform("opencode", f.env);
+      const result = await detectPlatform("codex", f.env);
       assert.equal(result.status, "unavailable");
       await assert.rejects(readFile(f.marker), { code: "ENOENT" });
     }
@@ -73,7 +73,7 @@ test(
       started = join(f.root, "started");
     await entry(f.first, '#!/bin/sh\nprintf started > "$STARTED"\n/bin/sleep 30\n');
     const controller = new AbortController();
-    const result = detectPlatform("opencode", { ...f.env, STARTED: started }, controller.signal);
+    const result = detectPlatform("codex", { ...f.env, STARTED: started }, controller.signal);
     try {
       let ready = false;
       for (let i = 0; i < 200 && !ready; i++) {

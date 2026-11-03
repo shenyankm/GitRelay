@@ -1,7 +1,7 @@
 {
   "name": "git-relay",
   "version": "0.1.0",
-  "description": "GitRelay: shared Git worktree change awareness for coding agents",
+  "description": "GitRelay: Git worktree change awareness for Codex",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -31,14 +31,6 @@
   "engines": {
     "node": ">=22.19.0"
   },
-  "peerDependencies": {
-    "@opencode/plugin": "^2.1.2"
-  },
-  "peerDependenciesMeta": {
-    "@opencode/plugin": {
-      "optional": true
-    }
-  },
   "scripts": {
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -52,7 +44,6 @@
     "test": "npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/adapters/*.test.ts tests/cli/*.test.*"
   },
   "devDependencies": {
-    "@opencode/plugin": "2.1.2",
     "@types/node": "22.19.7",
     "prettier": "3.9.10",
     "typescript": "5.9.3"

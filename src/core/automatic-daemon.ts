@@ -11,7 +11,7 @@ import { checkManagedRoot, stateDirectory, withLock } from "./store.ts";
 const exec = promisify(execFile);
 const startupLock = () => join(stateDirectory(), "daemon-start.lock");
 
-async function nativeClient(adapter: "codex" | "opencode", signal?: AbortSignal): Promise<boolean> {
+async function nativeClient(adapter: "codex", signal?: AbortSignal): Promise<boolean> {
   const processes = await clientProcesses(signal);
   let current = processes.find((item) => item.pid === process.pid);
   if (current?.name !== adapter) current = processes.find((item) => item.pid === process.ppid);
@@ -37,8 +37,7 @@ async function clientProcesses(signal?: AbortSignal) {
 }
 
 /** Hooks can pass through a shell; do not mistake test runners or tool subprocesses for native hosts. */
-export async function ensureAutomaticDaemon(adapter: "codex" | "opencode", signal?: AbortSignal): Promise<void> {
-  if (adapter === "opencode" && !process.versions.bun && basename(process.execPath) !== "opencode") return;
+export async function ensureAutomaticDaemon(adapter: "codex", signal?: AbortSignal): Promise<void> {
   let native = false;
   if (!(await daemonStatus()).running) {
     native = await nativeClient(adapter, signal);
@@ -55,7 +54,7 @@ export async function ensureAutomaticDaemon(adapter: "codex" | "opencode", signa
       const source = import.meta.url.endsWith(".ts");
       const cli = fileURLToPath(new URL(`../cli/main.${source ? "ts" : "js"}`, import.meta.url));
       const child = spawn(
-        process.versions.bun ? "node" : process.execPath,
+        process.execPath,
         [...(source ? ["--experimental-strip-types"] : []), cli, "daemon", "--automatic"],
         { cwd: stateDirectory(), detached: true, stdio: "ignore", env: process.env },
       );
@@ -95,7 +94,7 @@ export async function runAutomaticDaemon(options: DaemonOptions): Promise<void> 
           startupLock(),
           async () => {
             const processes = await clientProcesses(signal);
-            if (processes.some((item) => /^(?:codex|opencode)$/.test(item.name))) return;
+            if (processes.some((item) => item.name === "codex")) return;
             stop.abort();
             await running;
           },

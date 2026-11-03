@@ -1,7 +1,7 @@
 {
   "name": "git-relay",
   "version": "0.1.0",
-  "description": "Automatic Git worktree coordination and branch monitoring for Codex and OpenCode.",
+  "description": "Automatic Git worktree coordination and branch monitoring for Codex.",
   "author": {
     "name": "shenyankm",
     "url": "https://github.com/shenyankm"
@@ -15,7 +15,7 @@
   "interface": {
     "displayName": "GitRelay",
     "shortDescription": "Branch & worktree coordination",
-    "longDescription": "Automatically coordinate Codex and OpenCode sessions, receive changes and messages, and inspect branches. The shared daemon follows client lifetime; automatic branch synchronization is unavailable.",
+    "longDescription": "Automatically coordinate Codex sessions, receive changes and messages, and inspect branches. The shared daemon follows client lifetime; branch synchronization requires explicit opt-in and a supported clean worktree.",
     "developerName": "shenyankm",
     "category": "Developer Tools",
     "capabilities": ["Instructions", "Lifecycle hooks"],

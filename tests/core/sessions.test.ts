@@ -89,7 +89,7 @@ test("a preflight-bound opt-out returns the closed session", async (t) => {
 
 test("session identity fields must match the stored key before leave or send", async (t) => {
   const f = await fixture(t);
-  const receiver = { cwd: f.b, ref, adapter: "opencode", session: "B", async deliver() {} };
+  const receiver = { cwd: f.b, ref, adapter: "cli", session: "B", async deliver() {} };
   await consumeMailbox(receiver);
   const repo = await repository(f.b),
     key = sessionKey(repo, receiver, ref);
@@ -117,7 +117,7 @@ test("session identity fields must match the stored key before leave or send", a
 
 test("lastSeen alone does not retire an offline session, and unknown leave does not register a ghost", async (t) => {
   const f = await fixture(t);
-  const receiver = { cwd: f.b, ref, adapter: "opencode", session: "B", async deliver() {} };
+  const receiver = { cwd: f.b, ref, adapter: "cli", session: "B", async deliver() {} };
   await consumeMailbox(receiver);
   const repo = await repository(f.b);
   const session = (await listSessions(f.b))[0];
@@ -135,7 +135,7 @@ test("lastSeen alone does not retire an offline session, and unknown leave does 
 
 test("leave cannot race an in-flight receive and never overwrites its session lock", async (t) => {
   const f = await fixture(t);
-  const receiver = { cwd: f.b, ref, adapter: "opencode", session: "B", async deliver() {} };
+  const receiver = { cwd: f.b, ref, adapter: "cli", session: "B", async deliver() {} };
   await consumeMailbox(receiver);
   const repo = await repository(f.b);
   const session = (await listSessions(f.b))[0];

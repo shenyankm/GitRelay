@@ -2,12 +2,12 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) · [Contributing](CONTRIBUTING.md) · [MIT License](LICENSE)
 
-Coordinate **Codex and OpenCode v2** sessions across Git worktrees. GitRelay
+Coordinate **Codex** sessions across Git worktrees. GitRelay
 delivers relevant upstream changes and agent messages, and reports local or
 GitHub branch status.
 
 > **Sessions participate automatically.** On macOS/Linux, the first loaded client
-> starts one shared daemon; it stops after the last Codex/OpenCode process exits.
+> starts one shared daemon; it stops after the last Codex process exits.
 
 Node.js 22.19+ and Git are required. The runtime has no npm dependencies.
 `git-relay` is the package and CLI name; `worktree-relay` and `worktree-sync`
@@ -20,7 +20,6 @@ remain CLI aliases.
 - [Platform support](#platform-support)
 - [Host setup](#host-setup)
   - [Codex plugin](#codex-plugin)
-  - [OpenCode v2](#opencode-v2)
 - [Commands](#commands)
 - [State and safety](#state-and-safety)
 - [Development and validation](#development-and-validation)
@@ -29,26 +28,24 @@ remain CLI aliases.
 ## Quick start
 
 ```sh
-npm ci --ignore-scripts --omit=optional
+npm ci --ignore-scripts
 npm run build
 npm install -g /absolute/path/to/GitRelay
 git-relay install --dry-run
-git-relay install --platform codex --platform opencode
+git-relay install --platform codex
 ```
 
 Reopen the receiving clients after installation.
 
-The installer configures only the selected clients, preserves foreign or
+The installer configures Codex, preserves foreign or
 modified configuration, and keeps owned runtime copies. Codex user hooks need
-separate review and trust through `/hooks` before automatic participation. Use
-repeated `--platform` or `--skip` to select clients; unknown platforms are
+separate review and trust through `/hooks` before automatic participation. `--platform codex` and `--skip codex` remain supported; other platforms are
 rejected. Uninstall previews and retained-file behavior are documented in
 [automatic setup](docs/integrations.md#automatic-setup).
 
 ## Automatic sessions
 
-Codex root sessions participate at their first lifecycle hook. OpenCode v2 root
-sessions participate when created or prompted. No enable prompt is required.
+Codex root sessions participate at their first lifecycle hook. No enable prompt is required.
 First enrollment establishes a baseline without replaying earlier broadcasts.
 
 `Disable GitRelay` or `关闭 GitRelay` stops that subscription without acknowledging
@@ -56,22 +53,20 @@ unread messages. The saved choice survives resume. `Enable GitRelay` or
 `启用 GitRelay` explicitly reopens it; broadcasts while closed are not replayed.
 Subagents remain excluded.
 
-On macOS/Linux, a native Codex hook or OpenCode plugin setup starts a shared daemon
+On macOS/Linux, a native Codex hook starts a shared daemon
 for the current user and state root. It checks client processes every five seconds
-and exits after no `codex` or `opencode` process remains, allowing lock cleanup to
+and exits after no `codex` process remains, allowing lock cleanup to
 finish. A new client can start it again. No login service is installed. Existing
 clients must reload the updated plugin; merely installing files cannot inject code
 into an already running host. See [session lifecycle](docs/integrations.md#automatic-sessions).
 
 ## Platform support
 
-| Platform    | Entry point                       | Automatic delivery                                               |
-| ----------- | --------------------------------- | ---------------------------------------------------------------- |
-| Codex       | Lifecycle hooks or bundled plugin | Context at prompt/tool boundaries; Stop can request continuation |
-| OpenCode v2 | Native Promise plugin             | Checks every five seconds; durable host queue handles busy/idle  |
+| Platform | Entry point                       | Automatic delivery                                               |
+| -------- | --------------------------------- | ---------------------------------------------------------------- |
+| Codex    | Lifecycle hooks or bundled plugin | Context at prompt/tool boundaries; Stop can request continuation |
 
-Codex hooks cannot wake an already idle session. OpenCode supports the v2 API;
-v1 is not supported. Runtime changes require rebuilding and refreshing the
+Codex hooks cannot wake an already idle session. Runtime changes require rebuilding and refreshing the
 installed copy. See [integrations](docs/integrations.md) and the
 [platform matrix](docs/platform-matrix.md) for trust and verification boundaries.
 
@@ -99,18 +94,6 @@ The plugin variant uses its bundled CLI through `${PLUGIN_ROOT}`. Enabled hooks
 can show local branch status; they never fetch, query GitHub, or synchronize
 branches automatically.
 
-### OpenCode v2
-
-The installer writes a managed global entry. For a manual project entry, create
-`.opencode/plugins/git-relay.ts`:
-
-```ts
-export { default } from "/absolute/path/to/GitRelay/dist/adapters/opencode/index.js";
-```
-
-Build first, remove duplicate entries, and restart OpenCode. Each receiving
-worktree needs an entry. Root sessions participate automatically.
-
 ## Commands
 
 | Goal                            | Command                                                         |
@@ -126,8 +109,7 @@ worktree needs an entry. Root sessions participate automatically.
 | Optional centralized monitoring | `git-relay daemon`                                              |
 
 Use `--cwd /absolute/worktree` and `--ref refs/heads/main` to select the target.
-Reuse the actual native session ID. OpenCode manual access also needs the exact
-`--instance` from `sessions`; omitting it selects a separate legacy inbox.
+Reuse the actual native session ID.
 Generic CLI output needs a host to route it into a conversation.
 
 To send a coordination message after the receiver has enrolled:
@@ -172,22 +154,21 @@ See [maintenance](docs/maintenance.md) for daemon and cleanup operations.
 ## Development and validation
 
 ```sh
-npm ci --ignore-scripts --omit=optional
+npm ci --ignore-scripts
 npm run check
 npm run benchmark
 ```
 
 `src/core/` owns Git, state, sessions, and delivery; `src/adapters/` contains
-Codex hook handling and the OpenCode plugin; `src/cli/` contains commands and
+Codex hook handling; `src/cli/` contains commands and
 installation. `dist/` is generated and is not committed. Tests use disposable
 repositories and isolated state. `npm run check` also scans `docs/` for
 credential-like values. CI checks macOS/Linux on Node.js 22.19.0 and 24.
 
 Local regressions, real-client/model acceptance, and hosted CI are recorded
 separately. Historical evidence predates this refactor. Targeted native
-acceptance for the on-demand flow is recorded for Codex 0.164.0 and OpenCode
-2.1.2; see its exact scenarios and limits in
-[acceptance](docs/acceptance.md#targeted-native-acceptance-2026-10-27).
+acceptance for the on-demand flow is recorded for Codex 0.164.0; see its exact scenarios and limits in
+[acceptance](docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27).
 
 ## Documentation
 

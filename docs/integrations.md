@@ -1,12 +1,11 @@
 # GitRelay integrations
 
-GitRelay supports **Codex** and **OpenCode v2**. Loaded native root sessions
+GitRelay supports **Codex**. Loaded native root sessions
 participate automatically unless explicitly disabled.
 
 ## Automatic sessions
 
-Codex registers at its first supported hook; OpenCode registers root sessions
-on `session.created` or a normal prompt. Registration validates Git and native
+Codex registers at its first supported hook. Registration validates Git and native
 identity and establishes a baseline without replaying earlier broadcasts.
 Subagents do not enroll. A nested Git repository has its own subscription.
 
@@ -16,15 +15,15 @@ or `启用 GitRelay` reopens it. Questions, quoted examples, repository text and
 tool output cannot override an explicit choice. Legacy explicit disables remain
 in effect; default participation does not delete old activation records.
 
-On macOS/Linux, native hook execution or OpenCode plugin setup automatically
+On macOS/Linux, native hook execution automatically
 starts one detached daemon per user state root. A startup lock prevents duplicate
 launches and serializes startup with last-client shutdown. Every five seconds it
 uses the current user's process table to check for native executables named
-`codex` or `opencode`. After both disappear it cancels work, releases its locks,
+`codex`. After the last process exits it cancels work, releases its locks,
 and exits. Process-discovery failure preserves the daemon for a later retry;
 it is not evidence that clients exited. PID records are never used to kill hosts.
 
-A remaining Codex app-server or OpenCode server counts as a running client even
+A remaining Codex app-server counts as a running client even
 when its UI is closed. Existing hosts must reload updated code. No login service
 is installed, so a client that has not loaded the plugin cannot trigger startup.
 Automatic lifecycle is supported on macOS/Linux; Windows can still run a manual
@@ -42,43 +41,38 @@ git-relay join --cwd /absolute/worktree --agent codex --session NATIVE_SESSION_I
 git-relay leave --cwd /absolute/worktree --agent codex --session NATIVE_SESSION_ID
 ```
 
-For OpenCode, use `--agent opencode` and the exact `--instance` reported by
-`git-relay sessions`. Do not invent a native ID or instance; use the enable
-prompt when the host identity is not available. `check` and `watch` remain
+Do not invent a native session ID; use the enable prompt when the host identity is not available. `check` and `watch` remain
 explicit CLI receivers and do not enable unrelated native sessions. Run `join`
 before sending messages to a new receiver; first enrollment does not replay
 prior broadcasts.
 
 ## Host capabilities
 
-| Platform    | Integration                 | Busy session                           | Already idle session           |
-| ----------- | --------------------------- | -------------------------------------- | ------------------------------ |
-| Codex       | Synchronous lifecycle hooks | Context after tools; Stop continuation | Waits for the next hook        |
-| OpenCode v2 | Promise plugin              | Durable host queue                     | Polling can start another turn |
+| Platform | Integration                 | Busy session                           | Already idle session    |
+| -------- | --------------------------- | -------------------------------------- | ----------------------- |
+| Codex    | Synchronous lifecycle hooks | Context after tools; Stop continuation | Waits for the next hook |
 
 ## Automatic setup
 
-Build and install the CLI, then inspect or select the two supported clients:
+Build and install the CLI, then configure Codex:
 
 ```sh
-npm ci --ignore-scripts --omit=optional
+npm ci --ignore-scripts
 npm run build
 npm install -g /absolute/path/to/GitRelay
 git-relay install --dry-run
-git-relay install --platform codex --platform opencode
-git-relay uninstall --platform opencode --dry-run
-git-relay uninstall --platform opencode
+git-relay install --platform codex
+git-relay uninstall --platform codex --dry-run
+git-relay uninstall --platform codex
 ```
 
-Use repeated `--platform` to select clients or `--skip` to exclude one. Unknown
-platforms are rejected. Detection runs the selected executable's `--version`;
+`--platform codex` selects Codex and `--skip codex` skips it. Other platforms are rejected. Detection runs the selected executable's `--version`;
 unverified versions need `--allow-unverified`, which does not prove host
 compatibility. Version probes can have client-specific side effects.
 
 The installer uses owned runtime copies and stable launchers. Repeating install
 updates an owned runtime; user-modified entries, foreign hooks, invalid journals,
-and unowned paths are preserved. OpenCode installs a global plugin entry;
-Codex installs user hooks only when no conflicting hook file or plugin exists.
+and unowned paths are preserved. Codex installs user hooks only when no conflicting hook file or plugin exists.
 Codex trust through `/hooks` remains separate. An install dry run checks existing
 destinations, ownership, journals, runtimes and Codex conflicts without writing
 installation files. It does not check whether destinations are writable, stage
@@ -99,10 +93,8 @@ If an installer reports that entry ownership cannot be established because its
 hidden anchor is missing, do not recreate the anchor from matching content: a
 replacement file can have the same bytes. Inspect the entry and, if you decide
 to remove it, move it to a safe backup location that does not overwrite another
-file. The entry is `hooks.json` in `CODEX_HOME` (default `~/.codex`) for Codex,
-or `opencode/plugins/git-relay.js` in `XDG_CONFIG_HOME` (default `~/.config`)
-for OpenCode. With both entry and anchor absent, run
-`git-relay uninstall --platform codex` or `git-relay uninstall --platform opencode`;
+file. The entry is `hooks.json` in `CODEX_HOME` (default `~/.codex`). With both entry and anchor absent, run
+`git-relay uninstall --platform codex`;
 then reinstall that platform if needed. If an uninstall was interrupted and an archive is
 recorded, preserve it and investigate instead of using this recovery path.
 
@@ -144,78 +136,21 @@ codex plugin list --marketplace git-relay-local --json
 
 The package includes its runtime, docs, skills, and visual assets. The manifest declares the `Developer Tools` category, the MIT license, and a subtitle within Codex's 30-character listing limit. Hooks resolve the CLI through `${PLUGIN_ROOT}`, including paths containing spaces. There is no duplicate project `.codex/hooks.json`; do not enable duplicate user-level commands. Reopen the chat and inspect `/hooks` for discovery and trust. Installation does not automatically trust hooks.
 
-The listing uses the same presentation fields as Ponytail: display name, developer, description, three starter prompts, brand color, logo/composer icon, skills, and lifecycle hooks. GitRelay provides focused status, synchronization, help, and coordination skills. Each has English display metadata. Codex owns the listing layout, management controls, and source indicator; a local marketplace remains a local source. Local installation does not publish a Git-backed marketplace or prove the App has refreshed its view.
+The listing uses the same presentation fields as Ponytail: display name, developer, description, three starter prompts, brand color, logo/composer icon, skills, and lifecycle hooks. GitRelay provides one `git-relay` skill covering status, synchronization, help, and coordination, with English display metadata. Codex owns the listing layout, management controls, and source indicator; a local marketplace remains a local source. Local installation does not publish a Git-backed marketplace or prove the App has refreshed its view.
 
 Lifecycle-hook plugins are not eligible for Codex's public directory; install GitRelay from a local or repo marketplace.
 
-App actions in `.codex/environments/environment.toml` provide **Branch status**, **Monitor branches (read-only)**, and **Auto-sync (fast-forward)**. The snapshot action writes `.codex/git-relay-status.md`; monitors stream output. Actions use Node 22.19+ native TypeScript support without requiring generated `dist`. GitHub queries require authenticated `gh` on the terminal PATH. The sync action currently reports blocked. Stop any older running sync process in its terminal after upgrading.
+App actions in `.codex/environments/environment.toml` provide **Branch status**, **Monitor branches (read-only)**, and **Auto-sync (fast-forward)**. The snapshot action writes `.codex/git-relay-status.md`; monitors stream output. Actions use Node 22.19+ native TypeScript support without requiring generated `dist`. GitHub queries require authenticated `gh` on the terminal PATH. The sync action explicitly opts into the [protected fast-forward protocol](#automatic-branch-synchronization); dirty work, divergence and unsupported layouts block updates. Stop any older running sync process in its terminal after upgrading.
 
 `status --format markdown` produces readable output; JSON remains the default. `--output FILE` is only valid for a single Markdown snapshot and overwrites the explicitly supplied path, relative to the process cwd. Snapshots do not refresh automatically. The App must load the environment config to show actions; if it does not, add those commands through Local environments settings. Configuration generation, protocol tests, installed-cache verification, and native App rendering are separate acceptance checks.
 
 Official references: [Local environments](https://learn.chatgpt.com/docs/environments/local-environment), [Hooks](https://developers.openai.com/codex/hooks), [Plugin listing metadata](https://developers.openai.com/plugins/deploy/submission), and [skill UI metadata](https://developers.openai.com/plugins/deploy/submission-errors).
 
-## OpenCode v2
-
-Only the **v2 Promise plugin API** is supported, exercised with `2.1.2`. The default export is an `{ id, setup(ctx) }` object, statically checked against official `@opencode/plugin@2.1.2` types without requiring the SDK at runtime.
-
-Add a thin `.opencode/plugins/git-relay.ts` or global plugin entrypoint:
-
-```ts
-export { default } from "/absolute/path/to/GitRelay/dist/adapters/opencode/index.js";
-```
-
-Run `npm run build` for source use; npm packaging builds automatically. Remove old duplicate entrypoints and restart OpenCode.
-
-Git discovery is lazy. On enrollment, failures produce best-effort warnings and
-retry with backoff up to one minute. A directory initialized later as a Git
-repository can recover without a reload. No session is registered before Git
-and native identity validation succeed. Existing saved activations resume after
-a normal user prompt; historical host sessions are not enumerated; new session events are also observed. If the
-resolved Git root changes, reload the plugin before resuming. Git's diagnostics
-can contain unsanitized paths; redact them before sharing.
-
-If the host's session lookup fails during enrollment, the plugin
-warns and retries that session without requiring another prompt. It retains at
-most 128 pending session IDs and starts up to eight retries per five-second
-poll. It does not start a second background lookup for an ID until the host's
-underlying lookup settles, even if the host ignored cancellation. If 128
-underlying retries never settle, later background retries cannot start; a
-manual user prompt can attempt a fresh lookup. An initial lookup that never
-settles can still leave the prompt hook waiting. When the pending-ID limit is
-reached, the plugin warns and the affected session needs another user prompt.
-Sessions are registered only after a successful lookup verifies that the
-session is a root session in this directory. Messages sent before registration
-are not retroactively addressed to it. A deletion event triggers a host lookup; a confirmed missing session cancels
-pending retry work, but missed events, moved sessions and reused session IDs remain subject
-to the identity and event-order limitations below.
-
-For an explicit opt-out, GitRelay closes a known in-memory session without
-changing a recreated instance. If the plugin has no verified in-memory session
-but finds an open subscription, it warns in the OpenCode logs and asks for the
-opt-out prompt again to confirm the current instance. A later enable or a host-confirmed session
-deletion cancels that pending opt-out. If closing fails, retry the prompt after
-repairing the reported problem; unread messages remain preserved. Pending opt-outs are held in memory; after a plugin restart, an earlier enabled session can resume if the opt-out failed. Retry the opt-out after repairing the reported error. At most 128
-opt-outs can be pending; resolve an earlier one before retrying if the limit is reached.
-An unresponsive host lookup can leave an opt-out pending until a later enable,
-confirmed session deletion, or plugin shutdown cancels it.
-
-- `ctx.session.hook("prompt", ...)` enables only requested or previously opted-in root sessions and establishes/restores their baselines.
-- Registered sessions are checked every five seconds, with at most one check in flight per session. Delivery uses `ctx.session.prompt({ sessionID, id, text, delivery: "queue", metadata })`. Busy sessions queue; idle sessions start. Each event is submitted separately with a stable message ID derived from the GitRelay repository identity, worktree, native session instance, and event ID. This can create more queued turns and model usage than combining a batch into one prompt. A receipt is written after each individual event is accepted.
-- The [OpenCode plugin documentation](https://opencode.ai/v2/docs/build/plugins/) says retrying an ID already pending or delivered returns the original admission. This lets the adapter retry an uncertain response or failed receipt without creating another admission while the host retains that ID. A local OpenCode 2.1.2 test verified this for a pending queue item, not after model processing. Permanent deduplication and exactly-once agent work are not claimed.
-- `metadata.source: "git-relay"` marks automatic messages. Both that and legacy `worktree-relay` sources are recognized, preventing recursive registration.
-- `ctx.event.subscribe()` observes `session.created` to enroll new root sessions, and `session.deleted` and checks the host asynchronously before cancelling in-flight work. If the session still exists or lookup fails, state is retained; failed verification is logged. These checks do not block other session events and retain at most 128 pending IDs; if that limit is reached, the plugin warns and preserves the affected state. The host can ignore cancellation, so underlying read-only lookups can continue after GitRelay stops waiting. They **do not close the GitRelay subscription**. Later sends can still select that deleted session, and unread messages remain ineligible for GC. Inspect `git-relay sessions --cwd /absolute/worktree`, verify the session is no longer needed in the correct OpenCode data directory, then run `git-relay leave --cwd /absolute/worktree --agent opencode --session SESSION_ID --instance INSTANCE_ID`. `leave` prevents future targeting without acknowledging existing unread messages. The adapter resubscribes after an event-stream error or early end using a 1–60 second backoff; OpenCode exposes no replay cursor here, so events missed during disconnection or while the plugin is unloaded are not replayed. OpenCode can recreate a session using the same ID, and another OpenCode data directory can report a live session as not found; neither a delayed deletion event nor a host lookup failure alone safely identifies the session incarnation, and the lookup and a later recreation are not atomic. Automatic deleted-session cleanup remains unresolved.
-- Native sessions are bound to the OpenCode data root and their creation time. A recreated ID has a separate inbox; missing or invalid creation metadata is rejected. Identity is checked before and after prompt admission. Preserve old unbound inboxes for manual review and use the exact `--instance` reported by `sessions` for manual commands. A host lookup and admission are not atomic, and indistinguishable host metadata cannot identify a replacement. See [migration](migration.md#native-session-identity-upgrade).
-- The plugin does not enumerate historical sessions or enroll subagents. Before delivery, it checks the session's `location.directory` against `ctx.location.directory` rather than mapping other directories to this worktree. This check and host prompt admission are not atomic; a concurrent session move can occur between them.
-- Shutdown cancels polling and waits for known in-flight scans, even if the host's hook disposal fails. The locally inspected 2.1.2 Promise adapter ignores cancellation options for `session.get` and `session.prompt`. GitRelay stops waiting for a pending read-only `get` after shutdown or session deletion, but the underlying host operation can still run. An in-flight `prompt` can already have been accepted, so GitRelay waits for it while holding the session lock; if it never settles, cleanup can remain pending. No bounded shutdown time or cancellation of a submitted prompt is guaranteed.
-
-Load an entrypoint in each receiving worktree. Local acceptance used an isolated authenticated loopback-only `opencode serve`, without replacing the user's service.
-
 ## Bundled skills
 
 The plugin includes one [`git-relay`](../skills/git-relay/SKILL.md) skill for status, session controls, notifications, messages, setup and troubleshooting. It links to the detailed guides rather than loading separate help, synchronization and coordination skills.
 
-Codex can discover skills through its plugin or `.agents/skills/`; OpenCode can
-load `.opencode/skills/` in versions supporting skills. Skills provide guidance;
+Codex can discover skills through its plugin or `.agents/skills/`. Skills provide guidance;
 they do not replace hooks or a native receiver.
 
 ## Custom agents and orchestrators
@@ -234,7 +169,7 @@ stdout carries data; stderr carries diagnostics. Watch errors, hook input warnin
 
 ## Refs and remote changes
 
-The default monitored ref is local `refs/heads/main`. CLI/hooks/OpenCode accept `WORKTREE_MAIN_REF`; CLI also accepts `--ref`, for example `refs/remotes/origin/main`. In contrast, `status --branch` takes a short branch name such as `main`.
+The default monitored ref is local `refs/heads/main`. CLI/hooks accept `WORKTREE_MAIN_REF`; CLI also accepts `--ref`, for example `refs/remotes/origin/main`. In contrast, `status --branch` takes a short branch name such as `main`.
 
 Existing check/watch, hooks, and daemon do not fetch, access the network, or install Git hooks. Remote-tracking refs need an external fetch before they reflect remote merges. Patch generation disables external diff and textconv programs.
 Older Git versions may start a lazy-fetch subprocess for a missing object, but its transport is blocked; restore the object locally before retrying.
@@ -362,7 +297,7 @@ Release verified owned locks and remove recovery data only after reconciliation.
 Subsequent automatic attempts remain blocked while those guards are present.
 
 The restored integration cases and deterministic boundary/interruption checks
-are described in [acceptance](acceptance.md#protected-opt-in-synchronization-2026-10-28).
+are described in [acceptance](evidence/acceptance-history.md#protected-opt-in-synchronization-2026-10-28).
 Rebuild/reinstall updated runtime copies; stop older auto-sync processes in
 their own terminals before replacing them.
 
@@ -378,8 +313,6 @@ their own terminals before replacing them.
 ## Official interface references
 
 - [Codex hooks](https://developers.openai.com/codex/hooks)
-- [OpenCode v2 plugins](https://opencode.ai/v2/docs/build/plugins/)
-- [OpenCode client](https://opencode.ai/v2/docs/build/client/)
 
 See the [platform matrix](platform-matrix.md) and [acceptance](acceptance.md)
 for current verification boundaries.

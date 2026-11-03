@@ -5,7 +5,7 @@ import { syncBuiltinESMExports } from "node:module";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { test } from "node:test";
-import { ensureWorkspace } from "../../src/cli/install-opencode.ts";
+import { ensureWorkspace } from "../../src/cli/install-codex.ts";
 
 test("an existing workspace does not allocate new stages", { skip: process.platform === "win32" }, async (t) => {
   const parent = await mkdtemp(join(tmpdir(), "git-relay-workspace-repeat-"));

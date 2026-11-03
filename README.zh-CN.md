@@ -2,11 +2,11 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) · [贡献指南](CONTRIBUTING.md) · [MIT 许可证](LICENSE)
 
-面向 **Codex 和 OpenCode v2** 的多工作树协作工具：投递相关上游变更、共享 agent
+面向 **Codex** 的多工作树协作工具：投递相关上游变更、共享 agent
 消息、查看本地及 GitHub 分支状态。
 
 > **会话默认自动参与。** macOS/Linux 上首个客户端加载后启动共享 daemon，
-> 最后一个 Codex/OpenCode 进程退出后自动停止。
+> 最后一个 Codex 进程退出后自动停止。
 
 需要 Node.js 22.19+ 和 Git，无 npm 运行时依赖。包名及主命令为 `git-relay`，保留
 `worktree-relay`、`worktree-sync` 命令别名。
@@ -18,7 +18,6 @@
 - [平台支持](#平台支持)
 - [客户端配置](#客户端配置)
   - [Codex 插件](#codex-插件)
-  - [OpenCode v2](#opencode-v2)
 - [常用命令](#常用命令)
 - [状态与边界](#状态与边界)
 - [开发与验证](#开发与验证)
@@ -27,44 +26,42 @@
 ## 快速开始
 
 ```sh
-npm ci --ignore-scripts --omit=optional
+npm ci --ignore-scripts
 npm run build
 npm install -g /absolute/path/to/GitRelay
 git-relay install --dry-run
-git-relay install --platform codex --platform opencode
+git-relay install --platform codex
 ```
 
 安装后重新打开客户端。
 
-安装器只配置所选客户端，保留未被管理或已被用户修改的配置，并保存自有运行时副本。
-Codex hooks 仍须通过 `/hooks` 单独检查并信任，加载后会话自动参与。可重复使用
-`--platform` 选择客户端，或用 `--skip` 排除；其他平台名会被拒绝。卸载预览及保留
+安装器仅配置 Codex，保留未被管理或已被用户修改的配置，并保存自有运行时副本。
+Codex hooks 仍须通过 `/hooks` 单独检查并信任，加载后会话自动参与。保留
+`--platform codex` 和 `--skip codex`；其他平台名会被拒绝。卸载预览及保留
 文件的规则见[自动安装](docs/integrations.md#automatic-setup)。
 
 ## 自动参与与启停
 
-Codex 根会话在首次生命周期 hook 时自动参与；OpenCode v2 根会话在创建或收到
-提示词时自动参与，无需先输入启用命令。首次登记建立基线，不补收此前的广播。
+Codex 根会话在首次生命周期 hook 时自动参与，无需先输入启用命令。首次登记建立基线，不补收此前的广播。
 子代理不单独登记。
 
 输入 `关闭 GitRelay` 或 `Disable GitRelay` 可停止当前会话订阅，未读消息和回执保留。
 恢复同一会话会保留停用选择；输入 `启用 GitRelay` 或 `Enable GitRelay` 可重新加入。
 停用期间的广播不会补发。引用和工具输出不能改变显式选择。
 
-macOS/Linux 上，原生 Codex hook 或 OpenCode 插件加载时自动启动同一用户、同一
-状态目录下的共享 daemon。每 5 秒检查客户端进程，最后一个 `codex`/`opencode`
+macOS/Linux 上，原生 Codex hook 加载时自动启动同一用户、同一
+状态目录下的共享 daemon。每 5 秒检查客户端进程，最后一个 `codex`
 进程退出后自动停止并清理锁；新客户端可再次启动它。不安装开机常驻服务。
 已运行的旧客户端需要重新加载插件，安装文件不会向旧进程注入新代码。详见
 [会话生命周期](docs/integrations.md#automatic-sessions)。
 
 ## 平台支持
 
-| 平台        | 接入方式                  | 自动投递方式                                    |
-| ----------- | ------------------------- | ----------------------------------------------- |
-| Codex       | 生命周期 hooks 或独立插件 | 提示词、工具结束时注入上下文；Stop 可请求继续   |
-| OpenCode v2 | 原生 Promise 插件         | 每 5 秒检查；忙时进入宿主持久队列，空闲时可唤醒 |
+| 平台  | 接入方式                  | 自动投递方式                                  |
+| ----- | ------------------------- | --------------------------------------------- |
+| Codex | 生命周期 hooks 或独立插件 | 提示词、工具结束时注入上下文；Stop 可请求继续 |
 
-Codex hooks 无法主动唤醒已经空闲的会话。仅支持 OpenCode v2 API，不支持 v1。
+Codex hooks 无法主动唤醒已经空闲的会话。
 安装、hook 信任和真实宿主收件属于不同验证阶段，见[接入指南](docs/integrations.md)
 及[平台矩阵](docs/platform-matrix.md)。
 
@@ -88,16 +85,6 @@ codex plugin list --marketplace git-relay-local --json
 插件版通过 `${PLUGIN_ROOT}` 调用自带 CLI。启用后的 hooks 可以显示本地分支状态，
 不会自动 fetch、查询 GitHub 或同步分支。
 
-### OpenCode v2
-
-安装器生成全局插件入口；手动接入可在项目中创建 `.opencode/plugins/git-relay.ts`：
-
-```ts
-export { default } from "/absolute/path/to/GitRelay/dist/adapters/opencode/index.js";
-```
-
-先构建，移除重复入口，再重启 OpenCode。每个接收工作树都需要加载入口，根会话自动参与。
-
 ## 常用命令
 
 | 目的                 | 命令                                                            |
@@ -113,8 +100,7 @@ export { default } from "/absolute/path/to/GitRelay/dist/adapters/opencode/index
 | 可选集中监控         | `git-relay daemon`                                              |
 
 用 `--cwd /absolute/worktree` 和 `--ref refs/heads/main` 指定工作树及监听引用。
-使用真实、稳定的原生会话 ID；OpenCode 手动访问还需传入 `sessions` 返回的准确
-`--instance`，省略会选择独立的旧身份收件箱。通用 CLI 输出需要宿主负责送入对话。
+使用真实、稳定的原生会话 ID。通用 CLI 输出需要宿主负责送入对话。
 
 接收方登记后，发送协作消息：
 
@@ -152,19 +138,18 @@ GitHub 查询额外依赖已认证的 `gh`。ahead/behind 使用本地缓存引�
 ## 开发与验证
 
 ```sh
-npm ci --ignore-scripts --omit=optional
+npm ci --ignore-scripts
 npm run check
 npm run benchmark
 ```
 
-`src/core/` 负责 Git、状态、会话和投递，`src/adapters/` 保留 Codex hooks 与
-OpenCode 插件，`src/cli/` 负责命令和安装。`dist/` 为不提交的构建产物。测试使用
+`src/core/` 负责 Git、状态、会话和投递，`src/adapters/` 保留 Codex hooks，`src/cli/` 负责命令和安装。`dist/` 为不提交的构建产物。测试使用
 临时仓库和隔离状态。`npm run check` 还会扫描 `docs/` 中的凭据类值。CI 覆盖
 macOS/Linux、Node.js 22.19.0 和 24。
 
 本地回归、真实客户端及模型验收、远端 CI 分别记录。历史验收早于本次重构。按需启用
-流程已完成 Codex 0.164.0 与 OpenCode 2.1.2 的针对性真实客户端验收，具体场景和
-未验证边界见[验收记录](docs/acceptance.md#targeted-native-acceptance-2026-10-27)。
+流程已完成 Codex 0.164.0 的针对性真实客户端验收，具体场景和
+未验证边界见[验收记录](docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27)。
 
 ## 文档索引
 

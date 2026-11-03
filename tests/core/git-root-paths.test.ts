@@ -103,7 +103,7 @@ test(
     select(normal, first);
     const normalRepo = await repository(normal);
     select(special, second);
-    const rec = { cwd: special, ref, adapter: "opencode", session: "B", async deliver() {} };
+    const rec = { cwd: special, ref, adapter: "cli", session: "B", async deliver() {} };
     await consumeMailbox(rec);
     const selected = await repository(special);
     assert.equal(selected.common, await realpath(second));

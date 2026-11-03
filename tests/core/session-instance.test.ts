@@ -9,7 +9,7 @@ import { fixture } from "../helpers.ts";
 test("native instances keep separate inboxes, resumes and leave state", async (t) => {
   const f = await fixture(t),
     ref = "refs/heads/main";
-  const first = { cwd: f.b, ref, adapter: "opencode", session: "reused", instance: hash("first"), async deliver() {} };
+  const first = { cwd: f.b, ref, adapter: "cli", session: "reused", instance: hash("first"), async deliver() {} };
   await consumeMailbox(first);
   const old = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "old private message" });
   const second = { ...first, instance: hash("second") };
@@ -32,7 +32,7 @@ test("native instances keep separate inboxes, resumes and leave state", async (t
 
 test("a sender excludes only its own ref and instance inbox", async (t) => {
   const f = await fixture(t);
-  const base = { cwd: f.b, ref: "refs/heads/main", adapter: "opencode", session: "same" };
+  const base = { cwd: f.b, ref: "refs/heads/main", adapter: "cli", session: "same" };
   const sender = { ...base, instance: hash("first") };
   const instance = { ...base, instance: hash("second") };
   const otherRef = { ...sender, ref: "refs/heads/feature/a" };

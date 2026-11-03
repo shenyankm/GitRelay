@@ -1,8 +1,10 @@
 # GitRelay performance benchmarks
 
-The latest event-ordering, Git-read, synchronization, state-reader, cleanup and hook measurements are below.
-Other sections retain measurements for named historical source snapshots;
-retired-client results are not current support claims.
+These are measurements of the named historical source snapshots, not new
+benchmarks of the Codex-only revision. Some snapshots include retired clients
+and old synchronization or session behavior. Preserve their numbers as evidence;
+use the [current platform matrix](platform-matrix.md) and
+[acceptance guide](acceptance.md) for supported behavior and validation limits.
 
 ## Repeated upstream-event ordering: 2026-10-29
 

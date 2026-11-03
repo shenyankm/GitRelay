@@ -5,7 +5,6 @@ import { commandOutputs } from "./command-output.ts";
 
 const clients = {
   codex: { command: "codex", verified: "0.164.0" },
-  opencode: { command: "opencode", verified: "2.1.2" },
 } as const;
 
 export type Platform = keyof typeof clients;
@@ -14,7 +13,7 @@ export type Detection =
   | { platform: Platform; status: "unavailable"; reason: string }
   | {
       platform: Platform;
-      status: "installed" | "incompatible" | "unverified";
+      status: "installed" | "unverified";
       version: string;
       previouslyTested: boolean;
     };
@@ -119,16 +118,7 @@ export async function detectPlatform(
     if (![major, minor, patch].every(Number.isSafeInteger)) {
       return { platform, status: "unavailable", reason: "Unrecognized version output" };
     }
-    const prerelease = versionWithoutBuild.includes("-");
-    const supportedOpenCode =
-      platform === "opencode" && major === 2 && !prerelease && (minor > 1 || (minor === 1 && patch >= 2));
-    const status =
-      platform === "opencode" && major < 2
-        ? "incompatible"
-        : previouslyTested || supportedOpenCode
-          ? "installed"
-          : "unverified";
-    return { platform, status, version, previouslyTested };
+    return { platform, status: previouslyTested ? "installed" : "unverified", version, previouslyTested };
   } catch (error) {
     signal?.throwIfAborted();
     return { platform, status: "unavailable", reason: `Version check failed: ${(error as Error).message}` };

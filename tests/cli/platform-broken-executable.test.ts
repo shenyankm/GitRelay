@@ -17,26 +17,26 @@ test(
       valid = join(root, "valid"),
       empty = join(root, "empty");
     for (const directory of [broken, valid, empty]) await mkdir(directory);
-    await symlink(join(root, "missing"), join(broken, "opencode"));
-    await writeFile(join(valid, "opencode"), "#!/bin/sh\nprintf '2.1.2\\n'\n");
-    await chmod(join(valid, "opencode"), 0o755);
-    assert.equal((await detectPlatform("opencode", { PATH: broken })).status, "unavailable");
-    assert.equal((await detectPlatform("opencode", { PATH: [broken, valid].join(delimiter) })).status, "installed");
-    assert.equal((await detectPlatform("opencode", { PATH: empty })).status, "missing");
+    await symlink(join(root, "missing"), join(broken, "codex"));
+    await writeFile(join(valid, "codex"), "#!/bin/sh\nprintf '0.164.0\\n'\n");
+    await chmod(join(valid, "codex"), 0o755);
+    assert.equal((await detectPlatform("codex", { PATH: broken })).status, "unavailable");
+    assert.equal((await detectPlatform("codex", { PATH: [broken, valid].join(delimiter) })).status, "installed");
+    assert.equal((await detectPlatform("codex", { PATH: empty })).status, "missing");
     const linked = join(root, "linked"),
       disabled = join(root, "disabled"),
       badTarget = join(root, "bad-target");
     for (const directory of [linked, disabled, badTarget]) await mkdir(directory);
-    await symlink(join(valid, "opencode"), join(linked, "opencode"));
-    assert.equal((await detectPlatform("opencode", { PATH: linked })).status, "installed");
-    await writeFile(join(disabled, "opencode"), "not executable");
-    await chmod(join(disabled, "opencode"), 0o600);
-    assert.equal((await detectPlatform("opencode", { PATH: disabled })).status, "unavailable");
+    await symlink(join(valid, "codex"), join(linked, "codex"));
+    assert.equal((await detectPlatform("codex", { PATH: linked })).status, "installed");
+    await writeFile(join(disabled, "codex"), "not executable");
+    await chmod(join(disabled, "codex"), 0o600);
+    assert.equal((await detectPlatform("codex", { PATH: disabled })).status, "unavailable");
     const notDirectory = join(root, "not-directory");
     await writeFile(notDirectory, "file");
-    await symlink(join(notDirectory, "missing"), join(badTarget, "opencode"));
-    assert.equal((await detectPlatform("opencode", { PATH: badTarget })).status, "unavailable");
-    assert.equal((await detectPlatform("opencode", { PATH: notDirectory })).status, "missing");
+    await symlink(join(notDirectory, "missing"), join(badTarget, "codex"));
+    assert.equal((await detectPlatform("codex", { PATH: badTarget })).status, "unavailable");
+    assert.equal((await detectPlatform("codex", { PATH: notDirectory })).status, "missing");
   },
 );
 
@@ -61,7 +61,7 @@ test("platform lookup propagates cancellation during filesystem checks", async (
       };
       syncBuiltinESMExports();
       await assert.rejects(
-        detectPlatform("opencode", { PATH: "/synthetic" }, controller.signal),
+        detectPlatform("codex", { PATH: "/synthetic" }, controller.signal),
         (error) => error === reason,
       );
     }

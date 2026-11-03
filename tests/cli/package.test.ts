@@ -12,7 +12,7 @@ const exec = promisify(execFile);
 
 const read = (path: string) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 
-test("package exposes the CLI and only Codex and OpenCode adapters", async () => {
+test("package exposes the CLI and only the Codex adapter", async () => {
   const manifest = JSON.parse(await read("package.json"));
   assert.equal(manifest.name, "git-relay");
   assert.equal(manifest.license, "MIT");
@@ -26,7 +26,15 @@ test("package exposes the CLI and only Codex and OpenCode adapters", async () =>
   for (const name of ["maintenance", "acceptance"]) assert.ok(await read(`docs/${name}.md`));
   assert.equal(manifest.pi, undefined);
   assert.equal(manifest.devDependencies["@earendil-works/pi-coding-agent"], undefined);
-  assert.ok(await read("src/adapters/opencode/index.ts"));
+  assert.equal(manifest.peerDependencies, undefined);
+  assert.equal(manifest.devDependencies["@opencode/plugin"], undefined);
+  for (const base of ["src", "dist"]) {
+    assert.deepEqual(
+      (await readdir(new URL(`../../${base}/adapters`, import.meta.url))).sort(),
+      base === "src" ? ["codex", "hooks.ts"] : ["hooks.js"],
+    );
+    await assert.rejects(read(`${base}/cli/install-opencode.${base === "src" ? "ts" : "js"}`), { code: "ENOENT" });
+  }
   const skill = await read("skills/git-relay/SKILL.md");
   assert.match(skill, /^---\nname: git-relay\ndescription:/);
   assert.match(skill, /first check establishes a baseline/);

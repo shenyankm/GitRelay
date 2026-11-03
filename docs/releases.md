@@ -10,7 +10,7 @@ or create a GitHub release.
    together. Keep the Codex category and subtitle within the listing limits. Add
    `## [VERSION] - YYYY-MM-DD` notes and keep an empty Unreleased section for
    subsequent work.
-3. Run `npm ci --ignore-scripts --omit=optional`, then `npm run check`. Checks
+3. Run `npm ci --ignore-scripts`, then `npm run check`. Checks
    run sequentially because both tests and packaging rebuild the shared `dist/`.
    Build the Codex plugin with `npm run build:codex-plugin` and complete the
    [native acceptance checklist](acceptance.md) against the intended source.

@@ -1,6 +1,6 @@
 ---
 name: git-relay
-description: Inspect GitRelay branch and session status, handle upstream changes and agent messages, and help with installation, session controls, monitoring, and troubleshooting in Codex or OpenCode.
+description: Inspect GitRelay branch and session status, handle upstream changes and agent messages, and help with installation, session controls, monitoring, and troubleshooting in Codex.
 ---
 
 # GitRelay
@@ -11,15 +11,15 @@ checkout. The CLI aliases `worktree-relay` and `worktree-sync` remain compatible
 
 ## Native sessions
 
-Loaded Codex and OpenCode v2 root sessions participate automatically. Respect an
+Loaded Codex root sessions participate automatically. Respect an
 explicit `Disable GitRelay` / `关闭 GitRelay` or `leave`; only an explicit enable
 or `join` reopens that subscription. Subagents do not enroll independently. The
 first check establishes a baseline without replaying earlier broadcasts.
 
 On macOS/Linux, native clients start one shared daemon per user state root; it
-stops after the last `codex`/`opencode` process exits. An app-server still counts
+stops after the last `codex` process exits. An app-server still counts
 as a client. Codex receives context at hooks and cannot wake an already idle
-session; OpenCode polls every five seconds and can queue input or wake a session.
+session.
 
 ## Status and session controls
 
@@ -32,9 +32,7 @@ refs; GitHub commit equality alone does not establish who is ahead. Report query
 errors as unknown state without fetching or changing branches.
 
 Use `join` / `leave --agent NAME --session NATIVE_ID` for explicitly requested
-subscription changes. For OpenCode, also supply the exact `--instance` reported
-by `sessions`; omitting it selects a different legacy inbox. Never invent native
-identities. Closing a terminal or pausing work does not retire a subscription.
+subscription changes. Never invent native identities. Closing a terminal or pausing work does not retire a subscription.
 Leave preserves unread events and receipts; broadcasts while closed are not
 replayed on rejoin.
 
