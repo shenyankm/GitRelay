@@ -57,8 +57,14 @@ async function missingUpstream(cwd: string, branch: string, signal?: AbortSignal
       throw error;
     }
   };
-  const remote = (await config(`branch.${branch}.remote`)).at(-1);
-  const merge = (await config(`branch.${branch}.merge`))[0];
+  const [remoteRead, mergeRead] = await Promise.allSettled([
+    config(`branch.${branch}.remote`),
+    config(`branch.${branch}.merge`),
+  ]);
+  if (remoteRead.status === "rejected") throw remoteRead.reason;
+  if (mergeRead.status === "rejected") throw mergeRead.reason;
+  const remote = remoteRead.value.at(-1);
+  const merge = mergeRead.value[0];
   if (!remote || !merge) return null;
   for (const spec of await config(`remote.${remote}.fetch`)) {
     if (spec.startsWith("^")) continue;
