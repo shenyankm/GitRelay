@@ -1,3 +1,4 @@
+import { isUtf8 } from "node:buffer";
 import { execFile, spawn } from "node:child_process";
 import { realpath } from "node:fs/promises";
 import { isAbsolute, relative, resolve, sep } from "node:path";
@@ -122,7 +123,10 @@ export async function git(
           end = delimiter < 0 ? stdout.length : delimiter;
         const field = stdout.subarray(start, end);
         for (const prefix of prefixes) {
-          if (field.subarray(0, prefix.length).equals(prefix)) decoder.decode(field.subarray(prefix.length));
+          if (field[0] === prefix[0] && field.subarray(0, prefix.length).equals(prefix)) {
+            const path = field.subarray(prefix.length);
+            if (!isUtf8(path)) decoder.decode(path);
+          }
         }
         start = end + 1;
       }
