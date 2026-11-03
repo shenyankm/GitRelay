@@ -1,0 +1,462 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 8,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-41-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "1-baseline-wallMs": 0.44124949999999963,
+    "1-baseline-cpuMs": 0.498,
+    "1-candidate-wallMs": 0.42020799999999703,
+    "1-candidate-cpuMs": 0.483,
+    "32-baseline-wallMs": 1.986021000000001,
+    "32-baseline-cpuMs": 4.817,
+    "32-candidate-wallMs": 1.978124999999995,
+    "32-candidate-cpuMs": 5.4425,
+    "1000-baseline-wallMs": 100.75845799999996,
+    "1000-baseline-cpuMs": 191.1805,
+    "1000-candidate-wallMs": 93.37143799999996,
+    "1000-candidate-cpuMs": 185.2175
+  },
+  "results": [
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.694666999999999,
+      "cpuMs": 0.759
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.7896250000000009,
+      "cpuMs": 1.022
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.47166700000000006,
+      "cpuMs": 0.549
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.43537499999999696,
+      "cpuMs": 0.498
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.4690410000000007,
+      "cpuMs": 0.52
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.4342909999999982,
+      "cpuMs": 0.493
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.6007500000000014,
+      "cpuMs": 0.668
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.4050409999999971,
+      "cpuMs": 0.468
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.4784999999999968,
+      "cpuMs": 0.543
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.44820800000000105,
+      "cpuMs": 0.503
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.3643329999999949,
+      "cpuMs": 0.42
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.360042,
+      "cpuMs": 0.416
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.34241699999999753,
+      "cpuMs": 0.408
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.35233300000000156,
+      "cpuMs": 0.408
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.3456249999999983,
+      "cpuMs": 0.413
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.3867919999999998,
+      "cpuMs": 0.45
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 1.9117499999999978,
+      "cpuMs": 3.736
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 1.9672920000000005,
+      "cpuMs": 4.001
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 1.9912080000000003,
+      "cpuMs": 4.069
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 1.980832999999997,
+      "cpuMs": 4.434
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 1.8787090000000006,
+      "cpuMs": 3.815
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 1.9272079999999931,
+      "cpuMs": 3.612
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 1.9888329999999996,
+      "cpuMs": 4.324
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 2.0442919999999987,
+      "cpuMs": 6.367
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 1.966000000000001,
+      "cpuMs": 5.455
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 2.3079170000000033,
+      "cpuMs": 7.942
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 2.214749999999995,
+      "cpuMs": 6.866
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 1.975416999999993,
+      "cpuMs": 5.43
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 2.2638749999999987,
+      "cpuMs": 8.183
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 1.9832090000000022,
+      "cpuMs": 6.96
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 1.974250000000012,
+      "cpuMs": 5.31
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 2.000917000000001,
+      "cpuMs": 9.839
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 92.52795800000001,
+      "cpuMs": 188.135
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 99.829792,
+      "cpuMs": 194.811
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 100.23154099999999,
+      "cpuMs": 180.904
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 94.68062499999996,
+      "cpuMs": 182.3
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 94.107167,
+      "cpuMs": 178.907
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 99.64820799999995,
+      "cpuMs": 181.966
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 101.86995900000011,
+      "cpuMs": 181.442
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 92.6357089999999,
+      "cpuMs": 177.784
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 94.11279100000002,
+      "cpuMs": 179.603
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 101.28537499999993,
+      "cpuMs": 187.55
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 98.154041,
+      "cpuMs": 202.12
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 89.60883400000012,
+      "cpuMs": 190.463
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 106.55100000000016,
+      "cpuMs": 248.972
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 105.98745800000006,
+      "cpuMs": 214.317
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 104.0752500000001,
+      "cpuMs": 195.119
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 92.07395799999995,
+      "cpuMs": 201.781
+    }
+  ],
+  "limitations": "Synthetic valid migration fan-in: N migration events share a commit and N ordinary children each require all migration parents. Same actual state files, session lock and exact causal ordering; receipt directory remains empty. Warm caches and uncontrolled host load. Measures inbox scan and ordering, not native Git traversal, delivery, cold caches, physical I/O or peak memory. Million-edge case is a stress workload.",
+  "stage": "Preliminary round-42 candidate, later limited to multiple parents to reduce ordinary-chain overhead.",
+  "candidateSourceSha256": "c7122a8d4bf883654174147fcb852f7f64cc5b122641325a050e980b3d6b9132",
+  "candidatePatch": "--- a/src/core/mailbox.ts\n+++ b/src/core/mailbox.ts\n@@ -250,7 +250,8 @@\n       if (state.get(current.id) === 1) throw new Error(\"Cyclic upstream event history; unread events were preserved.\");\n       state.set(current.id, 1);\n       stack.push([current, true]);\n-      for (const parent of [...parents.get(current.id)!].reverse()) stack.push([parent, false]);\n+      for (const parent of [...parents.get(current.id)!].reverse())\n+        if (state.get(parent.id) !== 2) stack.push([parent, false]);\n     }\n   }\n   let index = 0;\n"
+}

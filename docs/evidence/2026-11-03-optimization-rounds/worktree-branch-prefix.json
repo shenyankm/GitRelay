@@ -1,0 +1,415 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 8,
+  "comparedInputs": 37,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-37-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "1-baseline-wallMs": 0.0002407250000000005,
+    "1-baseline-cpuMs": 0.0002353,
+    "1-candidate-wallMs": 0.00023686250000000015,
+    "1-candidate-cpuMs": 0.00023050000000000002,
+    "1000-baseline-wallMs": 0.22615250000000017,
+    "1000-baseline-cpuMs": 0.2358,
+    "1000-candidate-wallMs": 0.21535415999999996,
+    "1000-candidate-cpuMs": 0.22182,
+    "10000-baseline-wallMs": 2.567783300000002,
+    "10000-baseline-cpuMs": 3.2518000000000002,
+    "10000-candidate-wallMs": 2.547812600000003,
+    "10000-candidate-cpuMs": 3.2576
+  },
+  "results": [
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.00024994159999999966,
+      "cpuMs": 0.00024260000000000002
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.00024978339999999976,
+      "cpuMs": 0.00024380000000000002
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.0002531332000000006,
+      "cpuMs": 0.0002472
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.00024170839999999955,
+      "cpuMs": 0.0002384
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.000246125,
+      "cpuMs": 0.00023820000000000002
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.00024135840000000003,
+      "cpuMs": 0.0002366
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.00024353339999999974,
+      "cpuMs": 0.0002372
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.00024066660000000013,
+      "cpuMs": 0.00023380000000000002
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.00023072499999999963,
+      "cpuMs": 0.000227
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.00023824180000000012,
+      "cpuMs": 0.000234
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.00024009160000000094,
+      "cpuMs": 0.0002322
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.00023305840000000018,
+      "cpuMs": 0.0002272
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.00022733339999999913,
+      "cpuMs": 0.0002212
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.0002330832000000001,
+      "cpuMs": 0.00022879999999999998
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.00023097500000000083,
+      "cpuMs": 0.00022280000000000002
+    },
+    {
+      "count": 1,
+      "calls": 5000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.00022468319999999976,
+      "cpuMs": 0.0002188
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.2227525,
+      "cpuMs": 0.26146
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.2333499999999998,
+      "cpuMs": 0.24356000000000003
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.22632168000000008,
+      "cpuMs": 0.26367999999999997
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.2134408400000001,
+      "cpuMs": 0.22182
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.21500916000000017,
+      "cpuMs": 0.22182
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.22645415999999982,
+      "cpuMs": 0.23484000000000002
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.22598332000000027,
+      "cpuMs": 0.23675999999999997
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.22854833999999982,
+      "cpuMs": 0.23251999999999998
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.21619332000000044,
+      "cpuMs": 0.21838000000000002
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.22262499999999988,
+      "cpuMs": 0.22769999999999999
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.23363416000000028,
+      "cpuMs": 0.24192
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.2102658200000002,
+      "cpuMs": 0.21272
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.2144300000000004,
+      "cpuMs": 0.23434000000000002
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.22297499999999956,
+      "cpuMs": 0.22932
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.2239224999999999,
+      "cpuMs": 0.2273
+    },
+    {
+      "count": 1000,
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.21569915999999978,
+      "cpuMs": 0.21984
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 2.6602250000000027,
+      "cpuMs": 3.4170000000000003
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 2.639791600000001,
+      "cpuMs": 3.5402
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 2.5282500000000026,
+      "cpuMs": 3.2464
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 2.4798249999999937,
+      "cpuMs": 3.1670000000000003
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 2.531916799999999,
+      "cpuMs": 3.2237999999999998
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 2.620658400000002,
+      "cpuMs": 3.3078000000000003
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 2.6066667999999935,
+      "cpuMs": 3.2572
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 2.5301833999999985,
+      "cpuMs": 3.2632
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 2.579475000000002,
+      "cpuMs": 3.2735999999999996
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 2.557483400000001,
+      "cpuMs": 3.3244
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 2.578083200000003,
+      "cpuMs": 3.1995999999999998
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 2.456391600000006,
+      "cpuMs": 3.1391999999999998
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 2.5637084000000074,
+      "cpuMs": 3.2520000000000002
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 2.551441599999998,
+      "cpuMs": 3.2024
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 2.5421999999999914,
+      "cpuMs": 3.1454
+    },
+    {
+      "count": 10000,
+      "calls": 5,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 3.1918749999999934,
+      "cpuMs": 6.1398
+    }
+  ],
+  "limitations": "Pure public worktree parser with ASCII/Unicode refs, incomplete records, repeated branch fields and unusual paths. Timings exclude output assertions. Warm modules and uncontrolled host load. No subprocess, physical I/O, peak memory, cold cache or native-client claim.",
+  "decision": "Rejected and reverted: 1,000 records improve about 4.8% but 10,000 records remain effectively unchanged, including Node CPU; no consistent benefit for replacing the existing expression.",
+  "candidateSourceSha256": "bbb562ee512dc3c4234ad1e762e6ce7eae69e09d1ea65fbc1f670a95ad24c7b4",
+  "candidatePatch": "--- a/src/core/git.ts\n+++ b/src/core/git.ts\n@@ -179,7 +179,7 @@\n       trees.push(tree);\n     } else if (tree) {\n       if (key === \"HEAD\") tree.head = value;\n-      if (key === \"branch\") tree.branch = value.replace(/^refs\\/heads\\//, \"\");\n+      if (key === \"branch\") tree.branch = value.startsWith(\"refs/heads/\") ? value.slice(11) : value;\n       if (key === \"bare\") tree.bare = true;\n       if (key === \"detached\") tree.detached = true;\n       if (key === \"locked\") tree.locked = value;\n"
+}

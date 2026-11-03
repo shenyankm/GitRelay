@@ -1,0 +1,803 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-37-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-0-candidate-wallMs": 0.0446244999999994,
+    "0-0-candidate-cpuMs": 0.049,
+    "0-0-baseline-wallMs": 0.04477100000000078,
+    "0-0-baseline-cpuMs": 0.0485,
+    "1000-0-candidate-wallMs": 19.852812999999998,
+    "1000-0-candidate-cpuMs": 57.7615,
+    "1000-0-baseline-wallMs": 20.051000500000015,
+    "1000-0-baseline-cpuMs": 58.366,
+    "10000-0-candidate-wallMs": 202.1943755000002,
+    "10000-0-candidate-cpuMs": 603.0205,
+    "10000-0-baseline-wallMs": 204.0295625000001,
+    "10000-0-baseline-cpuMs": 606.7719999999999,
+    "500-1000-candidate-wallMs": 131.3772084999987,
+    "500-1000-candidate-cpuMs": 206.6635,
+    "500-1000-baseline-wallMs": 129.09408349999967,
+    "500-1000-baseline-cpuMs": 188.50650000000002
+  },
+  "results": [
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.09125000000000227,
+      "cpuMs": 0.103
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.05437499999999673,
+      "cpuMs": 0.065
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.05333299999999852,
+      "cpuMs": 0.106
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.045583000000000595,
+      "cpuMs": 0.054
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.04429200000000222,
+      "cpuMs": 0.049
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.036999999999999034,
+      "cpuMs": 0.042
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.03675000000000139,
+      "cpuMs": 0.04
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.038166000000000366,
+      "cpuMs": 0.043
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.03683399999999892,
+      "cpuMs": 0.041
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.04041600000000045,
+      "cpuMs": 0.048
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.04937500000000128,
+      "cpuMs": 0.059
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.05437499999999673,
+      "cpuMs": 0.06
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.04433300000000173,
+      "cpuMs": 0.048
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.04475000000000051,
+      "cpuMs": 0.048
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.14495900000000006,
+      "cpuMs": 0.148
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.11445900000000009,
+      "cpuMs": 0.118
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.06091699999999989,
+      "cpuMs": 0.07
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.04479200000000105,
+      "cpuMs": 0.049
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.04608400000000046,
+      "cpuMs": 0.05
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.04466599999999943,
+      "cpuMs": 0.049
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.041541999999999746,
+      "cpuMs": 0.045
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.04295800000000227,
+      "cpuMs": 0.047
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.040707999999998634,
+      "cpuMs": 0.044
+    },
+    {
+      "count": 0,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.04458299999999937,
+      "cpuMs": 0.048
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 22.224040999999986,
+      "cpuMs": 68.186
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 21.675999999999988,
+      "cpuMs": 68.46
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 22.721790999999996,
+      "cpuMs": 72.139
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 21.414416999999986,
+      "cpuMs": 66.035
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 20.856082999999984,
+      "cpuMs": 69.264
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 21.37975,
+      "cpuMs": 71.119
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 20.600750000000033,
+      "cpuMs": 59.783
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 19.510333000000003,
+      "cpuMs": 56.959
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 20.82083399999999,
+      "cpuMs": 59.416
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 20.455750000000023,
+      "cpuMs": 58.159
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 19.680125000000032,
+      "cpuMs": 57.641
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 19.853917000000024,
+      "cpuMs": 57.78
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 19.555875000000015,
+      "cpuMs": 56.954
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 19.918708000000038,
+      "cpuMs": 57.72
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 19.76741599999997,
+      "cpuMs": 58.679
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 19.747666000000038,
+      "cpuMs": 56.993
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 19.85170899999997,
+      "cpuMs": 57.743
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 20.010334,
+      "cpuMs": 58.349
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 19.801832999999988,
+      "cpuMs": 58.334
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 19.637166999999977,
+      "cpuMs": 57.354
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 19.881250000000023,
+      "cpuMs": 58.756
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 20.006042000000093,
+      "cpuMs": 57.679
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 20.09166700000003,
+      "cpuMs": 58.383
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 19.60816699999998,
+      "cpuMs": 57.13
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 201.40212500000007,
+      "cpuMs": 579.09
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 206.1819579999999,
+      "cpuMs": 618.142
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 202.55795899999998,
+      "cpuMs": 602.562
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 204.49654099999998,
+      "cpuMs": 609.843
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 201.44675000000007,
+      "cpuMs": 600.02
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 202.9872919999998,
+      "cpuMs": 604.727
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 204.379958,
+      "cpuMs": 617.317
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 203.56429200000002,
+      "cpuMs": 615.204
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 202.2182499999999,
+      "cpuMs": 609.67
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 204.80762499999992,
+      "cpuMs": 613.529
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 203.65716599999996,
+      "cpuMs": 604.071
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 202.2014589999999,
+      "cpuMs": 603.602
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 201.06849999999986,
+      "cpuMs": 598.095
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 232.56516599999986,
+      "cpuMs": 732.594
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 224.73608299999978,
+      "cpuMs": 699.159
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 202.18729200000053,
+      "cpuMs": 602.439
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 201.05666699999983,
+      "cpuMs": 600.605
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 203.67916700000023,
+      "cpuMs": 605.429
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 202.3621659999999,
+      "cpuMs": 599.458
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 202.1192089999995,
+      "cpuMs": 601.39
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 205.00037499999962,
+      "cpuMs": 608.932
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 204.60883399999966,
+      "cpuMs": 608.115
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 201.93974999999955,
+      "cpuMs": 590.331
+    },
+    {
+      "count": 10000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 204.54012500000044,
+      "cpuMs": 612.95
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 129.7525829999995,
+      "cpuMs": 197.699
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 130.4522080000006,
+      "cpuMs": 191.946
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 129.10554200000024,
+      "cpuMs": 185.067
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 142.20216699999946,
+      "cpuMs": 279.717
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 125.23525000000063,
+      "cpuMs": 177.509
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 127.72812499999964,
+      "cpuMs": 182.169
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 135.3021660000004,
+      "cpuMs": 237.24
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 126.86391600000024,
+      "cpuMs": 178.244
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 132.65016699999887,
+      "cpuMs": 215.628
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 137.2872499999994,
+      "cpuMs": 253.564
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 129.0826249999991,
+      "cpuMs": 194.898
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 133.4439170000005,
+      "cpuMs": 221.719
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 136.17641600000024,
+      "cpuMs": 253.081
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 129.73641700000007,
+      "cpuMs": 203.483
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 126.8734999999997,
+      "cpuMs": 181.655
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 130.1042499999985,
+      "cpuMs": 191.38
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 140.75829200000044,
+      "cpuMs": 269.596
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 125.33566600000086,
+      "cpuMs": 176.13
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 127.29929100000118,
+      "cpuMs": 179.836
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 139.12316699999974,
+      "cpuMs": 273.425
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 125.3038749999996,
+      "cpuMs": 179.758
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 126.68704199999956,
+      "cpuMs": 175.732
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 139.20404099999905,
+      "cpuMs": 267.85
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 127.01233300000058,
+      "cpuMs": 187.654
+    }
+  ],
+  "limitations": "Actual event files; 1,000 empty-file-list controls and 500 thousand-path events. Warm local caches, setup/assertions excluded; uncontrolled host load. Node CPU excludes children. No delivery, lock contention, peak-RSS, cold-cache, Windows or native-client latency comparison.",
+  "aggregationNote": "Medians grouped by both count and path count from the recorded raw samples; no measurements repeated.",
+  "decision": "Rejected and reverted: 10,000 empty-path events improve only 0.9%, while 500 path-dense events regress about 1.8%; no consistent measured benefit.",
+  "candidateSourceSha256": "675dc28c5a58d816cbf01f901cbf3166633084984b09e93ec26fa56c731fdb5e",
+  "candidatePatch": "--- a/src/core/mailbox.ts\n+++ b/src/core/mailbox.ts\n@@ -170,8 +170,10 @@\n   return `${event.id}${event.kind === \"message\" && event.pathFormat === \"posix-v1\" ? \".posix\" : \"\"}.json`;\n }\n \n+const eventPattern = /^([a-f0-9]{64})(\\.posix)?\\.json$/;\n+\n export function parseEventFilename(name: string): { id: string; posixPaths: boolean } | undefined {\n-  const match = /^([a-f0-9]{64})(\\.posix)?\\.json$/.exec(name);\n+  const match = eventPattern.exec(name);\n   return match ? { id: match[1], posixPaths: !!match[2] } : undefined;\n }\n \n@@ -271,7 +273,7 @@\n         }),\n   );\n   // shortcut: directory names and receipts are still scanned; add an index if safe GC is insufficient.\n-  const names = (await readdir(join(repo.directory, \"events\"))).filter((name) => parseEventFilename(name));\n+  const names = (await readdir(join(repo.directory, \"events\"))).filter((name) => eventPattern.test(name));\n   const trash = await readdir(join(repo.directory, \"trash\"));\n   if (names.some((name) => name.endsWith(\".posix.json\")) || trash.some((name) => name.endsWith(\".posix.json\"))) {\n     const paths = new Map<string, string[]>();\n"
+}

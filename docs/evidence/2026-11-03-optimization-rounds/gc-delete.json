@@ -1,0 +1,599 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-36-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "ready-0-baseline": 0.32400050000000213,
+    "ready-0-candidate": 0.3331459999999993,
+    "ready-1-baseline": 0.9109370000000006,
+    "ready-1-candidate": 0.9087500000000013,
+    "ready-32-baseline": 7.590000499999988,
+    "ready-32-candidate": 5.096645999999993,
+    "ready-1000-baseline": 256.99456250000003,
+    "ready-1000-candidate": 155.77897899999994
+  },
+  "results": [
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.35958300000000065
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.4418750000000031
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.37029099999999815
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.32874999999999943
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.3547500000000028
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.37675000000000125
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.47337500000000077
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.35804100000000005
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.32645899999999983
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.32854200000000233
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.29012499999999974
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.28920800000000213
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.30324999999999847
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.31945900000000194
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.6932500000000026
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.6451670000000007
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.3375419999999991
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.30679199999999796
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.31808300000000145
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.3916250000000012
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.30537500000000506
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.2641670000000005
+    },
+    {
+      "workload": "ready-0",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.2658749999999941
+    },
+    {
+      "workload": "ready-0",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.28929099999999863
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.9476250000000022
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.9092910000000032
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.9671669999999963
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.9847499999999982
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.8567910000000012
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.8633339999999947
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.8866249999999951
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.8922919999999976
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.9215000000000018
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.922542
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.9125829999999979
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.8923750000000013
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.8960000000000008
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.8433330000000012
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.9648750000000064
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.9859590000000011
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.931834000000002
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.9436669999999978
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.8671250000000015
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.8852499999999992
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.9467499999999944
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.9206250000000011
+    },
+    {
+      "workload": "ready-1",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.9037080000000088
+    },
+    {
+      "workload": "ready-1",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.8269999999999982
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 5.368082999999999
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 7.586458999999991
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 7.239333000000002
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 5.682125000000013
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 5.107416999999998
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 8.212917000000004
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 7.6222080000000005
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 5.247875000000022
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 5.059625000000011
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 7.593541999999985
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 7.416499999999985
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 5.300624999999997
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 5.085874999999987
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 7.267750000000007
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 8.268292000000002
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 5.075124999999986
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 5.023958000000022
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 7.361750000000029
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 8.623708999999963
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 5.35775000000001
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 4.977874999999983
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 7.757999999999981
+    },
+    {
+      "workload": "ready-32",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 7.271124999999984
+    },
+    {
+      "workload": "ready-32",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 5.0766250000000355
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 157.08474999999999
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 257.28549999999996
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 256.0165420000001
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 157.07808300000033
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 154.42808300000024
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 257.02087500000016
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 256.918083
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 154.68100000000004
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 159.02170799999976
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 256.9682499999999
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 268.9877919999999
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 154.5844589999997
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 156.87695799999983
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 294.6632920000002
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 302.7713329999997
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 180.4113750000006
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 154.5882499999998
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 252.2177499999998
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 253.23424999999952
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 164.14679200000046
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 153.88870899999984
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 286.5543749999997
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 252.53058299999975
+    },
+    {
+      "workload": "ready-1000",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 153.82200000000012
+    }
+  ],
+  "limitations": "Synthetic GC apply with one valid migrated message, one receipt and proof per recipient. Event/receipt/proof recreation and exact empty-directory assertions excluded from timing. Includes normal validation, locks, journal commit and deletion. Warm local cache and uncontrolled host load. No cold-cache, physical I/O, peak-memory, Windows or native-client claim."
+}

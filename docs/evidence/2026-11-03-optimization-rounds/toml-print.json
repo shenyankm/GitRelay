@@ -1,0 +1,81 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "originalBytes": 56947,
+  "candidateBytes": 49213,
+  "gzipConcatenatedBytes": {
+    "baseline": 11420,
+    "candidate": 8565
+  },
+  "printWallMs": 64.79958300000001,
+  "validCases": 113,
+  "invalidCases": 9,
+  "records": [
+    {
+      "name": "date.js",
+      "originalBytes": 6256,
+      "candidateBytes": 5620,
+      "originalSha256": "ef924a2a42c7f16761e7098c3ed8e04195ecbcb02d5c369db0aee76f251a409c",
+      "candidateSha256": "3249fa761b2eaf0092e98b7815b0d334becea61482e2d8d8770a3d81a1e492c2"
+    },
+    {
+      "name": "error.js",
+      "originalBytes": 2910,
+      "candidateBytes": 2889,
+      "originalSha256": "76f8e47f5fc57273748242d59570656d7c921a80bceb2291ca5a4d7a723e9f29",
+      "candidateSha256": "69bce13b34aa0b515f42fd27f0e7674b1ad0f862760c76f5a874995f59eaafcb"
+    },
+    {
+      "name": "extract.js",
+      "originalBytes": 13083,
+      "candidateBytes": 10066,
+      "originalSha256": "3e6f1e5764a091acf2df6a3f257d0467c37a2b9dbfecab1573f17a6489349c90",
+      "candidateSha256": "d93a2eee117c3d3ac9349ccd091ce0b97868b11986284015b092a698fade64da"
+    },
+    {
+      "name": "index.js",
+      "originalBytes": 1949,
+      "candidateBytes": 1883,
+      "originalSha256": "dc8e0afc74477e514f5cb8492b587560c1d7d68cec03a994cc8bc4af99c8da2a",
+      "candidateSha256": "3a35a07567d3188210efa1ccc983851c37a9c4f40618a0e18478761552fe0fb4"
+    },
+    {
+      "name": "parse.js",
+      "originalBytes": 6484,
+      "candidateBytes": 5940,
+      "originalSha256": "195e33ea068bf6f3acb5b3342792ac4aa954bba7e751519ba869c00da395ecdb",
+      "candidateSha256": "da49a814a70d58e70db54c610bd94e97c3d4f68c0dc1488ebc20e7184da136d7"
+    },
+    {
+      "name": "primitive.js",
+      "originalBytes": 7694,
+      "candidateBytes": 5627,
+      "originalSha256": "be47fe90bf9a410af0b9204b6b34617f4b38e57f08198b10cb024a0272eb5936",
+      "candidateSha256": "4b151689e704b1de0b42b17b7e54570990159abba77a51617daa1d84507b6ba3"
+    },
+    {
+      "name": "stringify.js",
+      "originalBytes": 9662,
+      "candidateBytes": 8945,
+      "originalSha256": "c717d95456426dc8a0b07c9d03a4e434d5dea8254fca24e5fd93a22de3bcd44c",
+      "candidateSha256": "82ac6f3c8ceb2a2c449ded435007a22949ae45b9b28e38c1c16202986645ac98"
+    },
+    {
+      "name": "struct.js",
+      "originalBytes": 6273,
+      "candidateBytes": 5721,
+      "originalSha256": "736742cfa645bbd08bc5396c5f7ddbea5c3b7ac5d61fe86031846f5769131deb",
+      "candidateSha256": "408848cea3dd52dcd6147fffa7d844e555ec1ddb85b53578f4d3dc06285707d3"
+    },
+    {
+      "name": "util.js",
+      "originalBytes": 2636,
+      "candidateBytes": 2522,
+      "originalSha256": "6327e40efd957128da15867c3a32293950a925570b457b1b78c735452cebc08e",
+      "candidateSha256": "9f484988935af3f89f46f4d60972292635ec340368aff1176b84a3e5131b6bd1"
+    }
+  ],
+  "limitations": "Isolated generated vendor JS probe, no production build changes. Copyright/license notices preserved in every file. Gzip concatenation is not an npm tarball. Printing time excludes loading TypeScript; corpus checks are bounded and do not prove complete TOML equivalence.",
+  "decision": "Rejected: 7,734 fewer vendor bytes / 2,855 fewer concatenated gzip bytes do not justify compiler loading/printing and rewriting every vendor module with only bounded TOML equivalence evidence. Original vendor and build remain unchanged."
+}

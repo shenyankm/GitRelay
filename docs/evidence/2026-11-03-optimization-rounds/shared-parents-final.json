@@ -1,0 +1,459 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 8,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-41-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "1-baseline-wallMs": 0.42350000000000065,
+    "1-baseline-cpuMs": 0.47750000000000004,
+    "1-candidate-wallMs": 0.44335399999999936,
+    "1-candidate-cpuMs": 0.502,
+    "32-baseline-wallMs": 1.9900420000000025,
+    "32-baseline-cpuMs": 4.214499999999999,
+    "32-candidate-wallMs": 1.9861460000000015,
+    "32-candidate-cpuMs": 5.3685,
+    "1000-baseline-wallMs": 100.0693745000001,
+    "1000-baseline-cpuMs": 189.24,
+    "1000-candidate-wallMs": 92.18647949999996,
+    "1000-candidate-cpuMs": 180.144
+  },
+  "results": [
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.631333999999999,
+      "cpuMs": 0.704
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.7832919999999994,
+      "cpuMs": 0.99
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.5519160000000021,
+      "cpuMs": 0.559
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.4457500000000003,
+      "cpuMs": 0.508
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.46908300000000125,
+      "cpuMs": 0.525
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.4152920000000009,
+      "cpuMs": 0.465
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.6010419999999996,
+      "cpuMs": 0.665
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.4409579999999984,
+      "cpuMs": 0.496
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.46666700000000105,
+      "cpuMs": 0.528
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.4317080000000004,
+      "cpuMs": 0.49
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.33033299999999954,
+      "cpuMs": 0.377
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.364374999999999,
+      "cpuMs": 0.419
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.34025000000000105,
+      "cpuMs": 0.406
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.3439590000000017,
+      "cpuMs": 0.394
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.33174999999999955,
+      "cpuMs": 0.379
+    },
+    {
+      "count": 1,
+      "events": 2,
+      "edges": 1,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.39824999999999733,
+      "cpuMs": 0.443
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 1.8799590000000066,
+      "cpuMs": 3.842
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 1.9931669999999997,
+      "cpuMs": 3.943
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 1.9869170000000054,
+      "cpuMs": 4.244
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 1.9817499999999981,
+      "cpuMs": 4.34
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 1.816834,
+      "cpuMs": 3.81
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 1.912124999999996,
+      "cpuMs": 3.531
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 1.982166999999997,
+      "cpuMs": 4.185
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 2.125,
+      "cpuMs": 6.962
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 1.9054999999999964,
+      "cpuMs": 4.925
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 2.099958000000001,
+      "cpuMs": 5.192
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 2.0456670000000017,
+      "cpuMs": 8.396
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 2.0521670000000043,
+      "cpuMs": 5.812
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 1.990542000000005,
+      "cpuMs": 7.654
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 2.431625000000011,
+      "cpuMs": 9.912
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 1.8370419999999967,
+      "cpuMs": 4.113
+    },
+    {
+      "count": 32,
+      "events": 64,
+      "edges": 1024,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 2.3565830000000005,
+      "cpuMs": 10.369
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 89.097083,
+      "cpuMs": 193.423
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 95.35691700000001,
+      "cpuMs": 198.176
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 103.95241699999997,
+      "cpuMs": 214.293
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 95.15008399999999,
+      "cpuMs": 203.42
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 92.02949999999998,
+      "cpuMs": 177.667
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 97.66745800000001,
+      "cpuMs": 180.118
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 99.50745800000004,
+      "cpuMs": 182.548
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 92.84533299999998,
+      "cpuMs": 180.175
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 92.34345899999994,
+      "cpuMs": 178.595
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 101.07249999999999,
+      "cpuMs": 186.11
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 101.755541,
+      "cpuMs": 190.169
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 92.40595800000006,
+      "cpuMs": 180.113
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 90.50645800000007,
+      "cpuMs": 177.747
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 100.63129100000015,
+      "cpuMs": 188.311
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 96.57449999999994,
+      "cpuMs": 202.148
+    },
+    {
+      "count": 1000,
+      "events": 2000,
+      "edges": 1000000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 89.37183299999992,
+      "cpuMs": 192.101
+    }
+  ],
+  "limitations": "Synthetic valid migration fan-in: N migration events share a commit and N ordinary children each require all migration parents. Same actual state files, session lock and exact causal ordering; receipt directory remains empty. Warm caches and uncontrolled host load. Measures inbox scan and ordering, not native Git traversal, delivery, cold caches, physical I/O or peak memory. Million-edge case is a stress workload."
+}

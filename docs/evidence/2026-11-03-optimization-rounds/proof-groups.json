@@ -1,0 +1,479 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 8,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-37-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-baseline-wallMs": 0.957771000000001,
+    "0-baseline-cpuMs": 1.0385,
+    "0-candidate-wallMs": 0.9296460000000017,
+    "0-candidate-cpuMs": 1.0190000000000001,
+    "1-baseline-wallMs": 0.9361670000000011,
+    "1-baseline-cpuMs": 1.036,
+    "1-candidate-wallMs": 0.9057084999999958,
+    "1-candidate-cpuMs": 1.012,
+    "1000-baseline-wallMs": 64.89802100000009,
+    "1000-baseline-cpuMs": 68.298,
+    "1000-candidate-wallMs": 64.46318749999995,
+    "1000-candidate-cpuMs": 66.8605,
+    "10000-baseline-wallMs": 726.2335414999998,
+    "10000-baseline-cpuMs": 747.8265,
+    "10000-candidate-wallMs": 694.8740419999995,
+    "10000-candidate-cpuMs": 724.177
+  },
+  "results": [
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 1.1502499999999998,
+      "cpuMs": 1.256
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.9648749999999993,
+      "cpuMs": 1.049
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 1.0122089999999986,
+      "cpuMs": 1.111
+    },
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.9892080000000014,
+      "cpuMs": 1.068
+    },
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 1.113500000000002,
+      "cpuMs": 1.199
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 1.1497499999999974,
+      "cpuMs": 1.188
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.9506670000000028,
+      "cpuMs": 1.028
+    },
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.8981659999999962,
+      "cpuMs": 0.969
+    },
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.9031670000000034,
+      "cpuMs": 0.976
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.9191250000000011,
+      "cpuMs": 1.004
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.8920829999999995,
+      "cpuMs": 0.976
+    },
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.8549170000000004,
+      "cpuMs": 0.932
+    },
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.9140000000000015,
+      "cpuMs": 1.02
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.7783330000000035,
+      "cpuMs": 0.877
+    },
+    {
+      "proofs": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 1.000708000000003,
+      "cpuMs": 1.076
+    },
+    {
+      "proofs": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.945292000000002,
+      "cpuMs": 1.018
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.9329999999999998,
+      "cpuMs": 1.006
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.9808340000000015,
+      "cpuMs": 1.12
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.897666000000001,
+      "cpuMs": 0.976
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.8589999999999947,
+      "cpuMs": 0.95
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.8512500000000003,
+      "cpuMs": 0.937
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.8513330000000039,
+      "cpuMs": 0.931
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.9375,
+      "cpuMs": 1.04
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.9166249999999962,
+      "cpuMs": 1.018
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.8947919999999954,
+      "cpuMs": 1.003
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.8476659999999967,
+      "cpuMs": 1.045
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.9348340000000022,
+      "cpuMs": 1.026
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.8467090000000042,
+      "cpuMs": 1.283
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.9847079999999977,
+      "cpuMs": 1.072
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.9500000000000028,
+      "cpuMs": 1.032
+    },
+    {
+      "proofs": 1,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.9813749999999999,
+      "cpuMs": 1.064
+    },
+    {
+      "proofs": 1,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 1.0201660000000032,
+      "cpuMs": 1.135
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 67.03129100000001,
+      "cpuMs": 79.648
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 65.26400000000001,
+      "cpuMs": 72.049
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 63.92637500000001,
+      "cpuMs": 66.322
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 63.921208999999976,
+      "cpuMs": 66.372
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 64.12099999999998,
+      "cpuMs": 66.591
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 64.69350000000009,
+      "cpuMs": 67.166
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 67.12566600000002,
+      "cpuMs": 73.561
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 74.40137499999992,
+      "cpuMs": 84.327
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 64.06275000000005,
+      "cpuMs": 66.532
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 66.418541,
+      "cpuMs": 69.139
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 64.90487500000017,
+      "cpuMs": 67.258
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 69.8125419999999,
+      "cpuMs": 67.13
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 63.213457999999946,
+      "cpuMs": 65.841
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 64.891167,
+      "cpuMs": 67.457
+    },
+    {
+      "proofs": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 64.19966699999986,
+      "cpuMs": 71.015
+    },
+    {
+      "proofs": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 64.80537499999991,
+      "cpuMs": 67.342
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 767.7578750000002,
+      "cpuMs": 780.036
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 756.4677080000001,
+      "cpuMs": 787.509
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 722.7542079999994,
+      "cpuMs": 743.913
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 680.6773330000005,
+      "cpuMs": 708.896
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 673.7497920000005,
+      "cpuMs": 696.217
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 725.8495409999996,
+      "cpuMs": 747.537
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 771.1188340000008,
+      "cpuMs": 803.271
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 694.3597090000003,
+      "cpuMs": 722.114
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 743.1504580000001,
+      "cpuMs": 757.14
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 735.0354589999988,
+      "cpuMs": 756.346
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 726.5719160000008,
+      "cpuMs": 748.116
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 695.3883749999986,
+      "cpuMs": 726.24
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 683.6502500000024,
+      "cpuMs": 704.768
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 717.220833000003,
+      "cpuMs": 744.573
+    },
+    {
+      "proofs": 10000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 725.8951669999988,
+      "cpuMs": 747.484
+    },
+    {
+      "proofs": 10000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 731.6310000000012,
+      "cpuMs": 743.884
+    }
+  ],
+  "limitations": "Actual GC apply for one migrated recipient with zero/one/many legacy proof filenames. Fresh events/receipts/proofs recreated outside timing. Includes validation, locks, scan, journal and all deletion I/O; exact empty-directory assertions excluded. Warm caches and uncontrolled host load. No peak-memory, physical I/O, cold-cache, Windows or native-client claim."
+}
