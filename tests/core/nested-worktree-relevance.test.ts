@@ -23,6 +23,8 @@ test("path matching respects directory boundaries and normalized case", async (t
   assert.equal(folded("éCLAIR/😀"), true);
   assert.equal(folded("CASE/child"), true);
   assert.equal(folded("FOO2"), false);
+  const empty = await pathMatcher(f.b, new Set());
+  for (const file of [".", "foo/", "foo", "foo/bar", "éCLAIR/😀", deep]) assert.equal(empty(file), false);
 });
 
 test("untracked nested repositories remain relevant to upstream and messages", async (t) => {

@@ -279,7 +279,7 @@ export async function pathMatcher(
   const own = new Set([...files].map((file) => normalize(file.endsWith("/") ? file.slice(0, -1) : file)));
   const sorted = [...own].sort();
   return (file) => {
-    if (file === "." || file.endsWith("/")) return false;
+    if (file === "." || file.endsWith("/") || !own.size) return false;
     file = normalize(file);
     if (own.has(file)) return true;
     const prefix = `${file}/`;
