@@ -1,0 +1,19 @@
+{
+  "decision": "Retained: exclude source-only development log from both runtime distributions.",
+  "removedPath": "docs/optimization-rounds.md",
+  "removedBytes": 19338,
+  "npmCompressedBytes": {
+    "baseline": 173988,
+    "candidate": 168804
+  },
+  "pluginBytes": {
+    "baseline": 593020,
+    "candidate": 573682
+  },
+  "assertions": [
+    "Every remaining npm byte is unchanged except the expected files-list entry",
+    "Every remaining plugin byte is unchanged",
+    "Runtime, licenses, SDK types and user documentation are preserved"
+  ],
+  "limitations": "Isolated round-34 snapshot before further ledger edits. Logical file/compressed tar sizes, not physical I/O. Development log remains in source checkout."
+}

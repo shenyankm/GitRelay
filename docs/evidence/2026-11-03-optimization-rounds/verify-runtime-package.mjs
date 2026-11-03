@@ -43,6 +43,7 @@ try {
     "tsconfig.json",
     "docs/evidence",
     "docs/acceptance-results.json",
+    "docs/optimization-rounds.md",
   ])
     await assert.rejects(access(join(installed, path)), { code: "ENOENT" });
   for (const path of [

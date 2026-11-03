@@ -1,0 +1,679 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 8,
+  "comparedPrompts": 1042,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-34-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "plain-10-baseline-wallMs": 0.00443,
+    "plain-10-baseline-cpuMs": 0.0043965,
+    "plain-10-candidate-wallMs": 0.004441707999999991,
+    "plain-10-candidate-cpuMs": 0.0044045,
+    "plain-1000-baseline-wallMs": 0.40039667000000034,
+    "plain-1000-baseline-cpuMs": 0.40036000000000005,
+    "plain-1000-candidate-wallMs": 0.39606708,
+    "plain-1000-candidate-cpuMs": 0.39588999999999996,
+    "fenced-1000-baseline-wallMs": 0.12177915999999983,
+    "fenced-1000-baseline-cpuMs": 0.12162,
+    "fenced-1000-candidate-wallMs": 0.1212416600000006,
+    "fenced-1000-candidate-cpuMs": 0.12095,
+    "indented-1000-baseline-wallMs": 0.5712633399999993,
+    "indented-1000-baseline-cpuMs": 0.57065,
+    "indented-1000-candidate-wallMs": 0.5625979199999995,
+    "indented-1000-candidate-cpuMs": 0.56216,
+    "tabs-1000-baseline-wallMs": 0.518084580000002,
+    "tabs-1000-baseline-cpuMs": 0.5180400000000001,
+    "tabs-1000-candidate-wallMs": 0.5120250000000011,
+    "tabs-1000-candidate-cpuMs": 0.51189
+  },
+  "results": [
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.004597583000000001,
+      "cpuMs": 0.005654
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.005564999999999998,
+      "cpuMs": 0.009803000000000001
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.004481624999999994,
+      "cpuMs": 0.00449
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.004497458000000002,
+      "cpuMs": 0.0044610000000000006
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.004461874999999999,
+      "cpuMs": 0.004437
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.004292458000000003,
+      "cpuMs": 0.004273
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.004471000000000004,
+      "cpuMs": 0.004436
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.0044433329999999955,
+      "cpuMs": 0.0044080000000000005
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.004297833999999994,
+      "cpuMs": 0.00428
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.004353583,
+      "cpuMs": 0.00432
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.004388999999999996,
+      "cpuMs": 0.004353
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.0043525000000000065,
+      "cpuMs": 0.004320999999999999
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.004440082999999987,
+      "cpuMs": 0.0044009999999999995
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.004487332999999993,
+      "cpuMs": 0.004449
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.004377375000000001,
+      "cpuMs": 0.004357000000000001
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.004376417000000004,
+      "cpuMs": 0.004343
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.3955258399999997,
+      "cpuMs": 0.39531999999999995
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.4009700000000004,
+      "cpuMs": 0.40112000000000003
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.4037674999999996,
+      "cpuMs": 0.40312
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.4087608399999999,
+      "cpuMs": 0.40848
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.3883941599999997,
+      "cpuMs": 0.38886000000000004
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.39953500000000075,
+      "cpuMs": 0.39908
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.40246166000000017,
+      "cpuMs": 0.40265999999999996
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.39260666000000016,
+      "cpuMs": 0.3924
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.39190584000000056,
+      "cpuMs": 0.39198
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.3923516799999993,
+      "cpuMs": 0.39248
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.39982334000000036,
+      "cpuMs": 0.3996
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.3966083200000003,
+      "cpuMs": 0.39646000000000003
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.39810999999999924,
+      "cpuMs": 0.39798
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.40268249999999967,
+      "cpuMs": 0.40246000000000004
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.39757749999999986,
+      "cpuMs": 0.39758000000000004
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.39779082000000016,
+      "cpuMs": 0.39759999999999995
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.12095000000000028,
+      "cpuMs": 0.1208
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.12125333999999953,
+      "cpuMs": 0.1209
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.12203250000000025,
+      "cpuMs": 0.12172000000000001
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.12042665999999941,
+      "cpuMs": 0.12018000000000001
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.12269166000000041,
+      "cpuMs": 0.12244
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.12305499999999939,
+      "cpuMs": 0.12278
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.12187750000000051,
+      "cpuMs": 0.12151999999999999
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.12198833999999806,
+      "cpuMs": 0.12154
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.12060334000000011,
+      "cpuMs": 0.12042
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.12164084000000003,
+      "cpuMs": 0.12122
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.12479833999999983,
+      "cpuMs": 0.1246
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.12204749999999877,
+      "cpuMs": 0.12178000000000001
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.12086665999999922,
+      "cpuMs": 0.12078
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.12168081999999913,
+      "cpuMs": 0.13134
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.12127831999999898,
+      "cpuMs": 0.12074
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.12153332000000092,
+      "cpuMs": 0.1211
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.5621966599999996,
+      "cpuMs": 0.5616
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.56971,
+      "cpuMs": 0.56946
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.5702841799999987,
+      "cpuMs": 0.57
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.5693358200000012,
+      "cpuMs": 0.56902
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.5591858200000002,
+      "cpuMs": 0.55882
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.5722424999999999,
+      "cpuMs": 0.5713
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.5745941800000014,
+      "cpuMs": 0.57398
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.5708749999999987,
+      "cpuMs": 0.57056
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.5613016799999991,
+      "cpuMs": 0.56068
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.5730733400000009,
+      "cpuMs": 0.5728
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.5950416599999994,
+      "cpuMs": 0.59498
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.5629991799999994,
+      "cpuMs": 0.56272
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.5669566799999984,
+      "cpuMs": 0.5667
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.5693616800000018,
+      "cpuMs": 0.5687
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.5651408399999991,
+      "cpuMs": 0.56526
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.5598000000000002,
+      "cpuMs": 0.55986
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.5116600000000017,
+      "cpuMs": 0.51158
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.5125350000000026,
+      "cpuMs": 0.5128199999999999
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.5185466600000018,
+      "cpuMs": 0.5184599999999999
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.5203866599999992,
+      "cpuMs": 0.51994
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.5143733400000019,
+      "cpuMs": 0.51396
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.5187833399999999,
+      "cpuMs": 0.5182800000000001
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.5176225000000022,
+      "cpuMs": 0.5178
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.5086974999999984,
+      "cpuMs": 0.50876
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.5111708399999998,
+      "cpuMs": 0.51082
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.5157150000000001,
+      "cpuMs": 0.51544
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.5166533200000003,
+      "cpuMs": 0.51672
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.5123900000000003,
+      "cpuMs": 0.5122
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.5140599999999995,
+      "cpuMs": 0.51384
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.52661834,
+      "cpuMs": 0.52646
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.521895840000002,
+      "cpuMs": 0.52176
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.5111183400000027,
+      "cpuMs": 0.51092
+    }
+  ],
+  "limitations": "Pure public request parser, synthetic prompt corpus and indentation/fence controls. Wall/Node CPU per call, warmed modules and uncontrolled host load. No I/O, model/native-client latency or peak-memory claim. Equality corpus is bounded, not a general Markdown equivalence proof.",
+  "decision": "Rejected and reverted: common prompt unchanged; 1,000-line controls improve only about 0.4-1.5%, insufficient benefit for the longer loop.",
+  "candidateSourceSha256": "dccf27b70dad455f41594aeabf29084efad70dfc1c8be52d2e95ff6e9b89355c",
+  "candidatePatch": "--- a/src/core/activation.ts\n+++ b/src/core/activation.ts\n@@ -23,8 +23,11 @@\n   let fenceIndent = 0;\n   let inlineCode = false;\n   const indented = new Set<number>();\n-  const columns = (value: string) =>\n-    [...value].reduce((width, char) => width + (char === \"\\t\" ? 4 - (width % 4) : 1), 0);\n+  const columns = (value: string) => {\n+    let width = 0;\n+    for (const char of value) width += char === \"\\t\" ? 4 - (width % 4) : 1;\n+    return width;\n+  };\n   const lines = prompt.split(\"\\n\").map((line, index) => {\n     if (fence && fenceIndent && line.trim() && columns(line.match(/^[ \\t]*/)![0]) < fenceIndent) fence = undefined;\n     if (fence) {\n"
+}

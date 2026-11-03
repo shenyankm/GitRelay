@@ -1,0 +1,679 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 8,
+  "comparedPrompts": 1042,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-34-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "plain-10-baseline-wallMs": 0.004597479499999999,
+    "plain-10-baseline-cpuMs": 0.004593999999999999,
+    "plain-10-candidate-wallMs": 0.004625832999999999,
+    "plain-10-candidate-cpuMs": 0.0047350000000000005,
+    "plain-1000-baseline-wallMs": 0.39470666999999965,
+    "plain-1000-baseline-cpuMs": 0.39446000000000003,
+    "plain-1000-candidate-wallMs": 0.39174959,
+    "plain-1000-candidate-cpuMs": 0.39157,
+    "fenced-1000-baseline-wallMs": 0.12347041999999989,
+    "fenced-1000-baseline-cpuMs": 0.1232,
+    "fenced-1000-candidate-wallMs": 0.12371208000000139,
+    "fenced-1000-candidate-cpuMs": 0.12346,
+    "indented-1000-baseline-wallMs": 0.5676908400000014,
+    "indented-1000-baseline-cpuMs": 0.56747,
+    "indented-1000-candidate-wallMs": 0.5675216699999999,
+    "indented-1000-candidate-cpuMs": 0.56714,
+    "tabs-1000-baseline-wallMs": 0.5153379199999994,
+    "tabs-1000-baseline-cpuMs": 0.5152,
+    "tabs-1000-candidate-wallMs": 0.5172833400000013,
+    "tabs-1000-candidate-cpuMs": 0.51715
+  },
+  "results": [
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.0045139999999999954,
+      "cpuMs": 0.005583
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.005446415999999999,
+      "cpuMs": 0.009621000000000001
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.004443584000000001,
+      "cpuMs": 0.0044729999999999995
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.004737666000000004,
+      "cpuMs": 0.004703000000000001
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.004807791000000001,
+      "cpuMs": 0.004783000000000001
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.004776167000000001,
+      "cpuMs": 0.0047539999999999995
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.00423658300000001,
+      "cpuMs": 0.004203999999999999
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.004335583,
+      "cpuMs": 0.004306
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.004419957999999994,
+      "cpuMs": 0.004385
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.004424041000000003,
+      "cpuMs": 0.004381
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.004240416000000011,
+      "cpuMs": 0.004236
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.004483582999999996,
+      "cpuMs": 0.0044480000000000006
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.00483491699999999,
+      "cpuMs": 0.004825
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.004751374999999996,
+      "cpuMs": 0.004715
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.004812625000000011,
+      "cpuMs": 0.004776
+    },
+    {
+      "name": "plain-10",
+      "calls": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.004793166,
+      "cpuMs": 0.004767
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.3951624999999996,
+      "cpuMs": 0.39456
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.40208500000000014,
+      "cpuMs": 0.40177999999999997
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.3944158399999998,
+      "cpuMs": 0.39386000000000004
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.39224918000000003,
+      "cpuMs": 0.39202
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.38706334000000026,
+      "cpuMs": 0.38708
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.3949974999999995,
+      "cpuMs": 0.39506
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.4074166600000001,
+      "cpuMs": 0.40696
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.40563084000000005,
+      "cpuMs": 0.40552
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.39125,
+      "cpuMs": 0.39112
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.38937584000000014,
+      "cpuMs": 0.38926
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.39231583999999997,
+      "cpuMs": 0.39277999999999996
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.3907749999999999,
+      "cpuMs": 0.39058
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.39008500000000024,
+      "cpuMs": 0.38978
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.39865582000000016,
+      "cpuMs": 0.39854
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.3914666599999998,
+      "cpuMs": 0.3918
+    },
+    {
+      "name": "plain-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.39729333999999994,
+      "cpuMs": 0.39740000000000003
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.12381250000000023,
+      "cpuMs": 0.1242
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.12348250000000008,
+      "cpuMs": 0.1233
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.12314918000000034,
+      "cpuMs": 0.12300000000000001
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.1237683200000015,
+      "cpuMs": 0.12344
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.12378999999999905,
+      "cpuMs": 0.12356
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.12416584000000057,
+      "cpuMs": 0.12380000000000001
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.12321916000000101,
+      "cpuMs": 0.1231
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.12340333999999985,
+      "cpuMs": 0.12304
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.12382749999999987,
+      "cpuMs": 0.12352
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.12474249999999984,
+      "cpuMs": 0.1348
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.12293750000000045,
+      "cpuMs": 0.12268000000000001
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.1223183199999994,
+      "cpuMs": 0.12204000000000001
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.12365584000000127,
+      "cpuMs": 0.12348
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.12345833999999968,
+      "cpuMs": 0.12301999999999999
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.1241666599999985,
+      "cpuMs": 0.12384
+    },
+    {
+      "name": "fenced-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.12258249999999862,
+      "cpuMs": 0.12242000000000001
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.5675633399999992,
+      "cpuMs": 0.5672999999999999
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.5671550000000002,
+      "cpuMs": 0.56668
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.5735000000000013,
+      "cpuMs": 0.5729
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.5740525000000002,
+      "cpuMs": 0.57362
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.5687433200000009,
+      "cpuMs": 0.5687599999999999
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.5674700000000007,
+      "cpuMs": 0.5671200000000001
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.5662424999999984,
+      "cpuMs": 0.56594
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.5648341800000003,
+      "cpuMs": 0.5648599999999999
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.5620991600000003,
+      "cpuMs": 0.56158
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.5929216799999995,
+      "cpuMs": 0.59246
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.5711966600000005,
+      "cpuMs": 0.5711200000000001
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.5683300000000009,
+      "cpuMs": 0.56862
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.5660816600000022,
+      "cpuMs": 0.56574
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.567911680000002,
+      "cpuMs": 0.56782
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.5624333200000001,
+      "cpuMs": 0.56218
+    },
+    {
+      "name": "indented-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.5674800000000004,
+      "cpuMs": 0.56698
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.5171116600000005,
+      "cpuMs": 0.51702
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.5165674999999965,
+      "cpuMs": 0.5162599999999999
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.5141083400000025,
+      "cpuMs": 0.51414
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.5195466799999986,
+      "cpuMs": 0.51932
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.5173883400000022,
+      "cpuMs": 0.51728
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.5129841599999964,
+      "cpuMs": 0.5133800000000001
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.5131583399999999,
+      "cpuMs": 0.51334
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.5171783400000004,
+      "cpuMs": 0.51678
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.5159500000000026,
+      "cpuMs": 0.51596
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.5187908199999992,
+      "cpuMs": 0.51862
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.5202133200000025,
+      "cpuMs": 0.52
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.5188974999999982,
+      "cpuMs": 0.51868
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.5192675000000009,
+      "cpuMs": 0.5192
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.51994416,
+      "cpuMs": 0.51968
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.5116158399999995,
+      "cpuMs": 0.51184
+    },
+    {
+      "name": "tabs-1000",
+      "calls": 50,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.5131541599999991,
+      "cpuMs": 0.5132800000000001
+    }
+  ],
+  "limitations": "Pure public request parser, synthetic prompt corpus and indentation/fence controls. Wall/Node CPU per call, warmed modules and uncontrolled host load. No I/O, model/native-client latency or peak-memory claim. Equality corpus is bounded, not a general Markdown equivalence proof.",
+  "decision": "Rejected and reverted: common prompt slightly slower; other controls vary by less than 1%. No consistent measured gain.",
+  "candidateSourceSha256": "052958b856bf7deff968c703f6f4ca6b203e6f12adcb878b7f787a75186160df",
+  "candidatePatch": "--- a/src/core/activation.ts\n+++ b/src/core/activation.ts\n@@ -77,6 +77,8 @@\n     .join(\"\\n\")\n     .replace(/```[^]*?(?:```|$)/g, \"\")\n     .replace(/`[^`]*`|\"[^\"\\n]*\"|\u201c[^\u201d]*\u201d|\u300c[^\u300d]*\u300d/g, \"\");\n+  const target =\n+    /git-?relay|\u5e76\u884c(?:\u5f00\u53d1|\u5b9e\u73b0|\u7f16\u7801)|\u591a(?:\u4e2a)?\u5de5\u4f5c\u6811|\u591a\\s*worktrees?|\\bin parallel\\b|\\bparallel (?:development|coding|implementation)\\b|\\b(?:multiple\\s+|multi[ -])worktrees?\\b/i;\n   let requested: boolean | undefined;\n   for (const line of text.split(/[\\n\u3002\uff1b;]/)) {\n     const request = line.trim();\n@@ -88,8 +90,6 @@\n       )\n     )\n       continue;\n-    const target =\n-      /git-?relay|\u5e76\u884c(?:\u5f00\u53d1|\u5b9e\u73b0|\u7f16\u7801)|\u591a(?:\u4e2a)?\u5de5\u4f5c\u6811|\u591a\\s*worktrees?|\\bin parallel\\b|\\bparallel (?:development|coding|implementation)\\b|\\b(?:multiple\\s+|multi[ -])worktrees?\\b/i;\n     if (!target.test(request)) continue;\n     if (\n       /^(?:\u8bf7)?(?:\u4e0d\u8981|\u522b)(?:\u5173\u95ed|\u505c\u7528|\u7981\u7528|\u505c\u6b62)|^(?:please\\s+)?(?:do not|don't|never)\\s+(?:disable|deactivate|stop|turn off)\\b/i.test(\n"
+}

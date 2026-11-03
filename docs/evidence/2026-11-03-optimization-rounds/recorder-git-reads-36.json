@@ -1,0 +1,1348 @@
+{
+  "startedAt": "2026-11-03T10:01:20.291Z",
+  "completedAt": "2026-11-03T10:01:28.835Z",
+  "source": {
+    "commit": "7d4be263adbe69d0a0a0d2f75a413c10d72aab43",
+    "dirty": true,
+    "sha256": "b1586afcdad2f9a3f094fa2ed6a59c55a7029e2679c7f064d3dbeb118dcf0f7d",
+    "buildSha256": "1ea1672f0c2e1056359fe45fd8a2de6307ae3db3e72ad58a6e01534811441826"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": [
+    "/Users/sheny/.nvm/versions/node/v22.23.2/bin/node",
+    "scripts/benchmark-git-reads.mjs"
+  ],
+  "results": [
+    {
+      "environment": {
+        "node": "v22.23.2",
+        "git": "git version 2.54.0 (Apple Git-157)",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "variants": {
+        "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+      },
+      "samples": 20,
+      "medians": {
+        "candidate": {
+          "equal-status": {
+            "wallMs": 43.89908300000002,
+            "cpuMs": 4.196,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0
+          },
+          "equal-worktree": {
+            "wallMs": 22.10283299999992,
+            "cpuMs": 4.653,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0
+          },
+          "ancestor-worktree": {
+            "wallMs": 31.329250000000002,
+            "cpuMs": 5.536,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0
+          },
+          "receiver-diverged-without-commit-graph": {
+            "wallMs": 93.91779199999974,
+            "cpuMs": 4.138,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0
+          },
+          "selected-diverged-without-commit-graph": {
+            "wallMs": 80.43870900000002,
+            "cpuMs": 5.456,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0
+          },
+          "receiver-diverged-with-commit-graph": {
+            "wallMs": 51.191499999999905,
+            "cpuMs": 3.784,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0
+          },
+          "selected-diverged-with-commit-graph": {
+            "wallMs": 51.61541699999907,
+            "cpuMs": 3.917,
+            "fsReadBlocks": 0,
+            "fsWriteBlocks": 0
+          }
+        }
+      },
+      "results": [
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 1,
+          "wallMs": 52.875417,
+          "cpuMs": 5.576,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 2,
+          "wallMs": 52.229416000000015,
+          "cpuMs": 6.836,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 3,
+          "wallMs": 56.061916999999994,
+          "cpuMs": 5.619,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 4,
+          "wallMs": 59.11129199999999,
+          "cpuMs": 5.424,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 5,
+          "wallMs": 59.40945799999997,
+          "cpuMs": 4.844,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 6,
+          "wallMs": 45.63899999999995,
+          "cpuMs": 4.47,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 7,
+          "wallMs": 48.69329200000004,
+          "cpuMs": 5.109,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 8,
+          "wallMs": 44.95154200000002,
+          "cpuMs": 4.186,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 9,
+          "wallMs": 40.31941699999993,
+          "cpuMs": 3.996,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 10,
+          "wallMs": 44.889666000000034,
+          "cpuMs": 4.138,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 11,
+          "wallMs": 43.63104199999998,
+          "cpuMs": 4.053,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 12,
+          "wallMs": 43.89908300000002,
+          "cpuMs": 4.232,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 13,
+          "wallMs": 38.09212500000001,
+          "cpuMs": 3.607,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 14,
+          "wallMs": 35.86508300000003,
+          "cpuMs": 3.138,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 15,
+          "wallMs": 41.947874999999954,
+          "cpuMs": 4.137,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 16,
+          "wallMs": 43.34720900000002,
+          "cpuMs": 4.691,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 17,
+          "wallMs": 42.55179199999998,
+          "cpuMs": 4.196,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 18,
+          "wallMs": 39.40391700000009,
+          "cpuMs": 3.865,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 19,
+          "wallMs": 37.17575000000011,
+          "cpuMs": 3.381,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-status",
+          "sample": 20,
+          "wallMs": 35.993208000000095,
+          "cpuMs": 3.097,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 1,
+          "wallMs": 19.962041,
+          "cpuMs": 4.423,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 2,
+          "wallMs": 22.78345800000011,
+          "cpuMs": 5.435,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 3,
+          "wallMs": 22.45704099999989,
+          "cpuMs": 6.102,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 4,
+          "wallMs": 20.267041000000063,
+          "cpuMs": 4.653,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 5,
+          "wallMs": 20.618667000000187,
+          "cpuMs": 4.546,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 6,
+          "wallMs": 22.08658300000002,
+          "cpuMs": 4.736,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 7,
+          "wallMs": 20.017417000000023,
+          "cpuMs": 4.687,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 8,
+          "wallMs": 21.58741599999985,
+          "cpuMs": 4.385,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 9,
+          "wallMs": 20.622875000000022,
+          "cpuMs": 4.591,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 10,
+          "wallMs": 20.826000000000022,
+          "cpuMs": 5.292,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 11,
+          "wallMs": 22.327749999999924,
+          "cpuMs": 5.355,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 12,
+          "wallMs": 21.9185829999999,
+          "cpuMs": 5.943,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 13,
+          "wallMs": 21.646833000000015,
+          "cpuMs": 4.12,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 14,
+          "wallMs": 22.785417000000052,
+          "cpuMs": 4.061,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 15,
+          "wallMs": 22.17708300000004,
+          "cpuMs": 4.007,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 16,
+          "wallMs": 22.555374999999913,
+          "cpuMs": 4.34,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 17,
+          "wallMs": 22.335000000000036,
+          "cpuMs": 4.362,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 18,
+          "wallMs": 22.10283299999992,
+          "cpuMs": 4.13,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 19,
+          "wallMs": 25.030291000000034,
+          "cpuMs": 6.569,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "equal-worktree",
+          "sample": 20,
+          "wallMs": 24.405499999999847,
+          "cpuMs": 5.679,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 1,
+          "wallMs": 29.363417000000027,
+          "cpuMs": 5.061,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 2,
+          "wallMs": 30.511749999999893,
+          "cpuMs": 5.158,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 3,
+          "wallMs": 29.973582999999962,
+          "cpuMs": 5.234,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 4,
+          "wallMs": 30.20395899999994,
+          "cpuMs": 4.811,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 5,
+          "wallMs": 31.729291999999987,
+          "cpuMs": 5.321,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 6,
+          "wallMs": 30.74612500000012,
+          "cpuMs": 5.851,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 7,
+          "wallMs": 31.848584000000074,
+          "cpuMs": 5.506,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 8,
+          "wallMs": 32.01474999999982,
+          "cpuMs": 6.24,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 9,
+          "wallMs": 31.061958000000004,
+          "cpuMs": 4.955,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 10,
+          "wallMs": 31.329250000000002,
+          "cpuMs": 5.633,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 11,
+          "wallMs": 32.809083999999984,
+          "cpuMs": 5.248,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 12,
+          "wallMs": 32.604333,
+          "cpuMs": 6.027,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 13,
+          "wallMs": 32.28974999999991,
+          "cpuMs": 5.63,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 14,
+          "wallMs": 30.170000000000073,
+          "cpuMs": 5.379,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 15,
+          "wallMs": 31.03545800000029,
+          "cpuMs": 5.616,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 16,
+          "wallMs": 30.453999999999724,
+          "cpuMs": 5.327,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 17,
+          "wallMs": 28.87179100000003,
+          "cpuMs": 5.536,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 18,
+          "wallMs": 31.83129199999985,
+          "cpuMs": 10.398,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 19,
+          "wallMs": 33.92774999999983,
+          "cpuMs": 6.732,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "ancestor-worktree",
+          "sample": 20,
+          "wallMs": 33.848207999999886,
+          "cpuMs": 6.037,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 1,
+          "wallMs": 108.42975000000024,
+          "cpuMs": 8.045,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 2,
+          "wallMs": 98.49295799999982,
+          "cpuMs": 4.702,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 3,
+          "wallMs": 92.51129100000026,
+          "cpuMs": 4.435,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 4,
+          "wallMs": 88.81791600000042,
+          "cpuMs": 4.041,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 5,
+          "wallMs": 91.77995899999996,
+          "cpuMs": 3.971,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 6,
+          "wallMs": 89.50479199999972,
+          "cpuMs": 3.771,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 7,
+          "wallMs": 90.65379200000007,
+          "cpuMs": 3.804,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 8,
+          "wallMs": 94.45458300000018,
+          "cpuMs": 4.218,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 9,
+          "wallMs": 92.19279099999994,
+          "cpuMs": 4.138,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 10,
+          "wallMs": 93.03820799999994,
+          "cpuMs": 3.877,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 11,
+          "wallMs": 92.09533299999975,
+          "cpuMs": 3.895,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 12,
+          "wallMs": 95.62395800000013,
+          "cpuMs": 4.908,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 13,
+          "wallMs": 93.91779199999974,
+          "cpuMs": 3.999,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 14,
+          "wallMs": 92.99974999999995,
+          "cpuMs": 3.891,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 15,
+          "wallMs": 92.99191700000029,
+          "cpuMs": 4.001,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 16,
+          "wallMs": 94.0341669999998,
+          "cpuMs": 3.928,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 17,
+          "wallMs": 94.64800000000014,
+          "cpuMs": 4.566,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 18,
+          "wallMs": 108.90312499999982,
+          "cpuMs": 6.089,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 19,
+          "wallMs": 111.99045899999965,
+          "cpuMs": 6.536,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-without-commit-graph",
+          "sample": 20,
+          "wallMs": 106.02283299999999,
+          "cpuMs": 6.971,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 1,
+          "wallMs": 86.8892909999995,
+          "cpuMs": 6.304,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 2,
+          "wallMs": 84.83045800000036,
+          "cpuMs": 6.646,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 3,
+          "wallMs": 85.0831249999992,
+          "cpuMs": 5.456,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 4,
+          "wallMs": 85.45108299999993,
+          "cpuMs": 5.831,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 5,
+          "wallMs": 87.97895900000003,
+          "cpuMs": 5.827,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 6,
+          "wallMs": 80.43870900000002,
+          "cpuMs": 5.218,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 7,
+          "wallMs": 79.62666600000011,
+          "cpuMs": 5.421,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 8,
+          "wallMs": 81.18679199999951,
+          "cpuMs": 5.26,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 9,
+          "wallMs": 80.53158299999996,
+          "cpuMs": 5.368,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 10,
+          "wallMs": 79.11054200000035,
+          "cpuMs": 7.797,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 11,
+          "wallMs": 79.91979100000026,
+          "cpuMs": 5.361,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 12,
+          "wallMs": 79.81883300000027,
+          "cpuMs": 5.357,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 13,
+          "wallMs": 80.55249999999978,
+          "cpuMs": 5.637,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 14,
+          "wallMs": 80.52845900000011,
+          "cpuMs": 6.572,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 15,
+          "wallMs": 73.99554200000057,
+          "cpuMs": 4.877,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 16,
+          "wallMs": 72.36112500000036,
+          "cpuMs": 5.722,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 17,
+          "wallMs": 71.51012499999979,
+          "cpuMs": 4.078,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 18,
+          "wallMs": 71.46812499999942,
+          "cpuMs": 5.772,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 19,
+          "wallMs": 68.15962500000023,
+          "cpuMs": 3.773,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-without-commit-graph",
+          "sample": 20,
+          "wallMs": 70.31412500000079,
+          "cpuMs": 3.678,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 1,
+          "wallMs": 51.84700000000066,
+          "cpuMs": 3.777,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 2,
+          "wallMs": 51.38299999999981,
+          "cpuMs": 3.784,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 3,
+          "wallMs": 50.1996250000002,
+          "cpuMs": 3.627,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 4,
+          "wallMs": 49.30308299999979,
+          "cpuMs": 3.8,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 5,
+          "wallMs": 51.18499999999949,
+          "cpuMs": 3.705,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 6,
+          "wallMs": 51.31487500000003,
+          "cpuMs": 3.658,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 7,
+          "wallMs": 50.61816700000054,
+          "cpuMs": 4.006,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 8,
+          "wallMs": 51.191499999999905,
+          "cpuMs": 3.709,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 9,
+          "wallMs": 50.37062500000047,
+          "cpuMs": 3.681,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 10,
+          "wallMs": 52.72429199999988,
+          "cpuMs": 10.545,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 11,
+          "wallMs": 51.74474999999984,
+          "cpuMs": 4.141,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 12,
+          "wallMs": 48.77412499999991,
+          "cpuMs": 3.738,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 13,
+          "wallMs": 47.951500000000124,
+          "cpuMs": 3.551,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 14,
+          "wallMs": 49.08320800000001,
+          "cpuMs": 3.745,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 15,
+          "wallMs": 48.186000000000604,
+          "cpuMs": 3.616,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 16,
+          "wallMs": 52.16070799999943,
+          "cpuMs": 4.346,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 17,
+          "wallMs": 91.39241700000002,
+          "cpuMs": 6.644,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 18,
+          "wallMs": 61.01637500000015,
+          "cpuMs": 4.754,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 19,
+          "wallMs": 54.1494589999993,
+          "cpuMs": 4.872,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "receiver-diverged-with-commit-graph",
+          "sample": 20,
+          "wallMs": 50.78912500000024,
+          "cpuMs": 4.229,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 1,
+          "wallMs": 50.24579100000028,
+          "cpuMs": 3.886,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 2,
+          "wallMs": 50.196249999999964,
+          "cpuMs": 4.002,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 3,
+          "wallMs": 48.35695899999973,
+          "cpuMs": 3.738,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 4,
+          "wallMs": 48.03983299999982,
+          "cpuMs": 3.664,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 5,
+          "wallMs": 50.40700000000015,
+          "cpuMs": 3.68,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 6,
+          "wallMs": 51.704374999999345,
+          "cpuMs": 3.731,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 7,
+          "wallMs": 52.56837499999983,
+          "cpuMs": 4.06,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 8,
+          "wallMs": 52.40295799999967,
+          "cpuMs": 3.857,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 9,
+          "wallMs": 51.93241699999999,
+          "cpuMs": 3.857,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 10,
+          "wallMs": 50.51841700000023,
+          "cpuMs": 3.806,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 11,
+          "wallMs": 50.15470800000003,
+          "cpuMs": 3.917,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 12,
+          "wallMs": 52.005457999999635,
+          "cpuMs": 4.066,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 13,
+          "wallMs": 51.1772919999994,
+          "cpuMs": 3.941,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 14,
+          "wallMs": 50.134125000000495,
+          "cpuMs": 3.676,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 15,
+          "wallMs": 52.03487500000119,
+          "cpuMs": 4.023,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 16,
+          "wallMs": 49.802458000000115,
+          "cpuMs": 3.639,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 17,
+          "wallMs": 51.67183400000067,
+          "cpuMs": 3.944,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 18,
+          "wallMs": 52.474874999999884,
+          "cpuMs": 4.097,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 19,
+          "wallMs": 51.61541699999907,
+          "cpuMs": 4.013,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        },
+        {
+          "name": "candidate",
+          "workload": "selected-diverged-with-commit-graph",
+          "sample": 20,
+          "wallMs": 54.7796670000007,
+          "cpuMs": 3.963,
+          "fsReadBlocks": 0,
+          "fsWriteBlocks": 0
+        }
+      ],
+      "workload": "same real Git repository; alternating variants; staged cancellation, unstaged, ignored and untracked files; 10,000 commits per diverged branch, with and without a commit graph; current and explicitly selected branch; one warm-up and setup excluded",
+      "limitations": "Warm local caches and uncontrolled external load. CPU covers Node, excluding Git children. Block counters are not physical disk bytes. No per-variant memory, cold-cache, network-filesystem or real-client latency comparison."
+    }
+  ],
+  "stdout": "{\"environment\":{\"node\":\"v22.23.2\",\"git\":\"git version 2.54.0 (Apple Git-157)\",\"platform\":\"darwin\",\"arch\":\"arm64\"},\"variants\":{\"candidate\":\"/Users/sheny/Developer/code/GitRelay/dist/\"},\"samples\":20,\"medians\":{\"candidate\":{\"equal-status\":{\"wallMs\":43.89908300000002,\"cpuMs\":4.196,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},\"equal-worktree\":{\"wallMs\":22.10283299999992,\"cpuMs\":4.653,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},\"ancestor-worktree\":{\"wallMs\":31.329250000000002,\"cpuMs\":5.536,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},\"receiver-diverged-without-commit-graph\":{\"wallMs\":93.91779199999974,\"cpuMs\":4.138,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},\"selected-diverged-without-commit-graph\":{\"wallMs\":80.43870900000002,\"cpuMs\":5.456,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},\"receiver-diverged-with-commit-graph\":{\"wallMs\":51.191499999999905,\"cpuMs\":3.784,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},\"selected-diverged-with-commit-graph\":{\"wallMs\":51.61541699999907,\"cpuMs\":3.917,\"fsReadBlocks\":0,\"fsWriteBlocks\":0}}},\"results\":[{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":1,\"wallMs\":52.875417,\"cpuMs\":5.576,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":2,\"wallMs\":52.229416000000015,\"cpuMs\":6.836,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":3,\"wallMs\":56.061916999999994,\"cpuMs\":5.619,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":4,\"wallMs\":59.11129199999999,\"cpuMs\":5.424,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":5,\"wallMs\":59.40945799999997,\"cpuMs\":4.844,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":6,\"wallMs\":45.63899999999995,\"cpuMs\":4.47,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":7,\"wallMs\":48.69329200000004,\"cpuMs\":5.109,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":8,\"wallMs\":44.95154200000002,\"cpuMs\":4.186,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":9,\"wallMs\":40.31941699999993,\"cpuMs\":3.996,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":10,\"wallMs\":44.889666000000034,\"cpuMs\":4.138,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":11,\"wallMs\":43.63104199999998,\"cpuMs\":4.053,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":12,\"wallMs\":43.89908300000002,\"cpuMs\":4.232,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":13,\"wallMs\":38.09212500000001,\"cpuMs\":3.607,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":14,\"wallMs\":35.86508300000003,\"cpuMs\":3.138,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":15,\"wallMs\":41.947874999999954,\"cpuMs\":4.137,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":16,\"wallMs\":43.34720900000002,\"cpuMs\":4.691,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":17,\"wallMs\":42.55179199999998,\"cpuMs\":4.196,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":18,\"wallMs\":39.40391700000009,\"cpuMs\":3.865,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":19,\"wallMs\":37.17575000000011,\"cpuMs\":3.381,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-status\",\"sample\":20,\"wallMs\":35.993208000000095,\"cpuMs\":3.097,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":1,\"wallMs\":19.962041,\"cpuMs\":4.423,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":2,\"wallMs\":22.78345800000011,\"cpuMs\":5.435,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":3,\"wallMs\":22.45704099999989,\"cpuMs\":6.102,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":4,\"wallMs\":20.267041000000063,\"cpuMs\":4.653,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":5,\"wallMs\":20.618667000000187,\"cpuMs\":4.546,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":6,\"wallMs\":22.08658300000002,\"cpuMs\":4.736,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":7,\"wallMs\":20.017417000000023,\"cpuMs\":4.687,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":8,\"wallMs\":21.58741599999985,\"cpuMs\":4.385,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":9,\"wallMs\":20.622875000000022,\"cpuMs\":4.591,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":10,\"wallMs\":20.826000000000022,\"cpuMs\":5.292,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":11,\"wallMs\":22.327749999999924,\"cpuMs\":5.355,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":12,\"wallMs\":21.9185829999999,\"cpuMs\":5.943,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":13,\"wallMs\":21.646833000000015,\"cpuMs\":4.12,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":14,\"wallMs\":22.785417000000052,\"cpuMs\":4.061,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":15,\"wallMs\":22.17708300000004,\"cpuMs\":4.007,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":16,\"wallMs\":22.555374999999913,\"cpuMs\":4.34,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":17,\"wallMs\":22.335000000000036,\"cpuMs\":4.362,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":18,\"wallMs\":22.10283299999992,\"cpuMs\":4.13,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":19,\"wallMs\":25.030291000000034,\"cpuMs\":6.569,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"equal-worktree\",\"sample\":20,\"wallMs\":24.405499999999847,\"cpuMs\":5.679,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":1,\"wallMs\":29.363417000000027,\"cpuMs\":5.061,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":2,\"wallMs\":30.511749999999893,\"cpuMs\":5.158,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":3,\"wallMs\":29.973582999999962,\"cpuMs\":5.234,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":4,\"wallMs\":30.20395899999994,\"cpuMs\":4.811,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":5,\"wallMs\":31.729291999999987,\"cpuMs\":5.321,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":6,\"wallMs\":30.74612500000012,\"cpuMs\":5.851,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":7,\"wallMs\":31.848584000000074,\"cpuMs\":5.506,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":8,\"wallMs\":32.01474999999982,\"cpuMs\":6.24,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":9,\"wallMs\":31.061958000000004,\"cpuMs\":4.955,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":10,\"wallMs\":31.329250000000002,\"cpuMs\":5.633,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":11,\"wallMs\":32.809083999999984,\"cpuMs\":5.248,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":12,\"wallMs\":32.604333,\"cpuMs\":6.027,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":13,\"wallMs\":32.28974999999991,\"cpuMs\":5.63,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":14,\"wallMs\":30.170000000000073,\"cpuMs\":5.379,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":15,\"wallMs\":31.03545800000029,\"cpuMs\":5.616,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":16,\"wallMs\":30.453999999999724,\"cpuMs\":5.327,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":17,\"wallMs\":28.87179100000003,\"cpuMs\":5.536,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":18,\"wallMs\":31.83129199999985,\"cpuMs\":10.398,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":19,\"wallMs\":33.92774999999983,\"cpuMs\":6.732,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"ancestor-worktree\",\"sample\":20,\"wallMs\":33.848207999999886,\"cpuMs\":6.037,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":1,\"wallMs\":108.42975000000024,\"cpuMs\":8.045,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":2,\"wallMs\":98.49295799999982,\"cpuMs\":4.702,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":3,\"wallMs\":92.51129100000026,\"cpuMs\":4.435,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":4,\"wallMs\":88.81791600000042,\"cpuMs\":4.041,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":5,\"wallMs\":91.77995899999996,\"cpuMs\":3.971,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":6,\"wallMs\":89.50479199999972,\"cpuMs\":3.771,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":7,\"wallMs\":90.65379200000007,\"cpuMs\":3.804,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":8,\"wallMs\":94.45458300000018,\"cpuMs\":4.218,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":9,\"wallMs\":92.19279099999994,\"cpuMs\":4.138,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":10,\"wallMs\":93.03820799999994,\"cpuMs\":3.877,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":11,\"wallMs\":92.09533299999975,\"cpuMs\":3.895,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":12,\"wallMs\":95.62395800000013,\"cpuMs\":4.908,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":13,\"wallMs\":93.91779199999974,\"cpuMs\":3.999,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":14,\"wallMs\":92.99974999999995,\"cpuMs\":3.891,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":15,\"wallMs\":92.99191700000029,\"cpuMs\":4.001,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":16,\"wallMs\":94.0341669999998,\"cpuMs\":3.928,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":17,\"wallMs\":94.64800000000014,\"cpuMs\":4.566,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":18,\"wallMs\":108.90312499999982,\"cpuMs\":6.089,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":19,\"wallMs\":111.99045899999965,\"cpuMs\":6.536,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-without-commit-graph\",\"sample\":20,\"wallMs\":106.02283299999999,\"cpuMs\":6.971,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":1,\"wallMs\":86.8892909999995,\"cpuMs\":6.304,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":2,\"wallMs\":84.83045800000036,\"cpuMs\":6.646,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":3,\"wallMs\":85.0831249999992,\"cpuMs\":5.456,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":4,\"wallMs\":85.45108299999993,\"cpuMs\":5.831,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":5,\"wallMs\":87.97895900000003,\"cpuMs\":5.827,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":6,\"wallMs\":80.43870900000002,\"cpuMs\":5.218,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":7,\"wallMs\":79.62666600000011,\"cpuMs\":5.421,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":8,\"wallMs\":81.18679199999951,\"cpuMs\":5.26,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":9,\"wallMs\":80.53158299999996,\"cpuMs\":5.368,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":10,\"wallMs\":79.11054200000035,\"cpuMs\":7.797,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":11,\"wallMs\":79.91979100000026,\"cpuMs\":5.361,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":12,\"wallMs\":79.81883300000027,\"cpuMs\":5.357,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":13,\"wallMs\":80.55249999999978,\"cpuMs\":5.637,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":14,\"wallMs\":80.52845900000011,\"cpuMs\":6.572,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":15,\"wallMs\":73.99554200000057,\"cpuMs\":4.877,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":16,\"wallMs\":72.36112500000036,\"cpuMs\":5.722,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":17,\"wallMs\":71.51012499999979,\"cpuMs\":4.078,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":18,\"wallMs\":71.46812499999942,\"cpuMs\":5.772,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":19,\"wallMs\":68.15962500000023,\"cpuMs\":3.773,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-without-commit-graph\",\"sample\":20,\"wallMs\":70.31412500000079,\"cpuMs\":3.678,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":1,\"wallMs\":51.84700000000066,\"cpuMs\":3.777,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":2,\"wallMs\":51.38299999999981,\"cpuMs\":3.784,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":3,\"wallMs\":50.1996250000002,\"cpuMs\":3.627,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":4,\"wallMs\":49.30308299999979,\"cpuMs\":3.8,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":5,\"wallMs\":51.18499999999949,\"cpuMs\":3.705,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":6,\"wallMs\":51.31487500000003,\"cpuMs\":3.658,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":7,\"wallMs\":50.61816700000054,\"cpuMs\":4.006,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":8,\"wallMs\":51.191499999999905,\"cpuMs\":3.709,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":9,\"wallMs\":50.37062500000047,\"cpuMs\":3.681,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":10,\"wallMs\":52.72429199999988,\"cpuMs\":10.545,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":11,\"wallMs\":51.74474999999984,\"cpuMs\":4.141,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":12,\"wallMs\":48.77412499999991,\"cpuMs\":3.738,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":13,\"wallMs\":47.951500000000124,\"cpuMs\":3.551,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":14,\"wallMs\":49.08320800000001,\"cpuMs\":3.745,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":15,\"wallMs\":48.186000000000604,\"cpuMs\":3.616,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":16,\"wallMs\":52.16070799999943,\"cpuMs\":4.346,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":17,\"wallMs\":91.39241700000002,\"cpuMs\":6.644,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":18,\"wallMs\":61.01637500000015,\"cpuMs\":4.754,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":19,\"wallMs\":54.1494589999993,\"cpuMs\":4.872,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"receiver-diverged-with-commit-graph\",\"sample\":20,\"wallMs\":50.78912500000024,\"cpuMs\":4.229,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":1,\"wallMs\":50.24579100000028,\"cpuMs\":3.886,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":2,\"wallMs\":50.196249999999964,\"cpuMs\":4.002,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":3,\"wallMs\":48.35695899999973,\"cpuMs\":3.738,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":4,\"wallMs\":48.03983299999982,\"cpuMs\":3.664,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":5,\"wallMs\":50.40700000000015,\"cpuMs\":3.68,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":6,\"wallMs\":51.704374999999345,\"cpuMs\":3.731,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":7,\"wallMs\":52.56837499999983,\"cpuMs\":4.06,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":8,\"wallMs\":52.40295799999967,\"cpuMs\":3.857,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":9,\"wallMs\":51.93241699999999,\"cpuMs\":3.857,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":10,\"wallMs\":50.51841700000023,\"cpuMs\":3.806,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":11,\"wallMs\":50.15470800000003,\"cpuMs\":3.917,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":12,\"wallMs\":52.005457999999635,\"cpuMs\":4.066,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":13,\"wallMs\":51.1772919999994,\"cpuMs\":3.941,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":14,\"wallMs\":50.134125000000495,\"cpuMs\":3.676,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":15,\"wallMs\":52.03487500000119,\"cpuMs\":4.023,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":16,\"wallMs\":49.802458000000115,\"cpuMs\":3.639,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":17,\"wallMs\":51.67183400000067,\"cpuMs\":3.944,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":18,\"wallMs\":52.474874999999884,\"cpuMs\":4.097,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":19,\"wallMs\":51.61541699999907,\"cpuMs\":4.013,\"fsReadBlocks\":0,\"fsWriteBlocks\":0},{\"name\":\"candidate\",\"workload\":\"selected-diverged-with-commit-graph\",\"sample\":20,\"wallMs\":54.7796670000007,\"cpuMs\":3.963,\"fsReadBlocks\":0,\"fsWriteBlocks\":0}],\"workload\":\"same real Git repository; alternating variants; staged cancellation, unstaged, ignored and untracked files; 10,000 commits per diverged branch, with and without a commit graph; current and explicitly selected branch; one warm-up and setup excluded\",\"limitations\":\"Warm local caches and uncontrolled external load. CPU covers Node, excluding Git children. Block counters are not physical disk bytes. No per-variant memory, cold-cache, network-filesystem or real-client latency comparison.\"}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}
