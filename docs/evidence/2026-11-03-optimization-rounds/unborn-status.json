@@ -1,0 +1,741 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 20,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-18-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "unborn-empty-baseline": 38.34072949999995,
+    "unborn-empty-candidate": 31.34460399999999,
+    "unborn-tracked-baseline": 53.9318545000001,
+    "unborn-tracked-candidate": 47.270479499999965,
+    "existing-control-baseline": 31.065917000000127,
+    "existing-control-candidate": 31.104416999999785
+  },
+  "results": [
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 31.390749999999997
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 39.643125
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 37.15437499999999
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 30.132334000000014
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 32.20962500000002
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 39.90299999999996
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 37.48741700000005
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 31.908000000000015
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 32.097083
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 39.586625000000026
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 37.735874999999965
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 31.404667000000018
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 30.954042000000072
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 37.88766700000008
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 38.585207999999966
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 31.298457999999982
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 30.701874999999973
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 38.21029199999998
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 37.25562500000001
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 30.518292000000088
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 31.56204200000002
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 38.66899999999998
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 38.55920800000001
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 31.051958000000013
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 13,
+      "wallMs": 31.273374999999987
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 13,
+      "wallMs": 38.952042000000006
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 14,
+      "wallMs": 38.365540999999894
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 14,
+      "wallMs": 31.59133399999996
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 15,
+      "wallMs": 32.018749999999955
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 15,
+      "wallMs": 38.355542000000014
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 16,
+      "wallMs": 38.32591699999989
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 16,
+      "wallMs": 31.06841600000007
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 17,
+      "wallMs": 31.45708300000001
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 17,
+      "wallMs": 38.12341700000002
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 18,
+      "wallMs": 38.668959000000086
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 18,
+      "wallMs": 31.250499999999874
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 19,
+      "wallMs": 31.426958000000013
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 19,
+      "wallMs": 37.43270800000005
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "baseline",
+      "sample": 20,
+      "wallMs": 35.82558300000005
+    },
+    {
+      "workload": "unborn-empty",
+      "variant": "candidate",
+      "sample": 20,
+      "wallMs": 31.052167000000054
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 48.58899999999994
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 53.247874999999794
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 56.93254100000013
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 47.67920799999979
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 46.36787500000014
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 53.927791999999954
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 54.523332999999866
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 48.64337499999988
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 47.961709000000155
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 54.493875000000116
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 54.455167000000074
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 47.65395899999976
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 47.146792000000005
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 55.80600000000004
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 53.77137499999981
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 46.95966599999974
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 47.394166999999925
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 53.935917000000245
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 53.39449999999988
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 48.14124999999967
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 47.536499999999705
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 54.18429100000003
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 54.31441700000005
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 46.70783300000039
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 13,
+      "wallMs": 47.942041000000245
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 13,
+      "wallMs": 52.03749999999991
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 14,
+      "wallMs": 54.43470800000023
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 14,
+      "wallMs": 47.02212499999996
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 15,
+      "wallMs": 45.494459000000006
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 15,
+      "wallMs": 52.5998340000001
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 16,
+      "wallMs": 51.14274999999998
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 16,
+      "wallMs": 45.54279100000031
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 17,
+      "wallMs": 45.115957999999864
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 17,
+      "wallMs": 54.5050839999999
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 18,
+      "wallMs": 52.639124999999694
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 18,
+      "wallMs": 46.25104099999999
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 19,
+      "wallMs": 45.82254200000034
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 19,
+      "wallMs": 52.63358299999982
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "baseline",
+      "sample": 20,
+      "wallMs": 52.18825000000015
+    },
+    {
+      "workload": "unborn-tracked",
+      "variant": "candidate",
+      "sample": 20,
+      "wallMs": 48.33012500000041
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 31.77187499999991
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 31.833290999999917
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 30.817999999999756
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 31.049666999999772
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 32.23533300000008
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 31.073750000000018
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 29.974417000000358
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 31.7956250000002
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 31.55804100000023
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 31.98070800000005
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 30.84087499999987
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 31.467540999999983
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 31.159166999999798
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 31.163958000000093
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 31.058084000000235
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 30.936666999999943
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 30.219624999999724
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 30.373000000000502
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 31.611499999999978
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 31.521041999999397
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 31.16529199999968
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 30.72137500000008
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 31.8232909999997
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 30.34270800000013
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 13,
+      "wallMs": 30.786707999999635
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 13,
+      "wallMs": 32.236041000000114
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 14,
+      "wallMs": 31.71820899999966
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 14,
+      "wallMs": 30.745167000000038
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 15,
+      "wallMs": 32.570582999999715
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 15,
+      "wallMs": 32.2642079999996
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 16,
+      "wallMs": 30.705917000000227
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 16,
+      "wallMs": 30.8779999999997
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 17,
+      "wallMs": 31.45545899999979
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 17,
+      "wallMs": 30.69604200000049
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 18,
+      "wallMs": 31.047958000000108
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 18,
+      "wallMs": 30.42029199999979
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 19,
+      "wallMs": 30.41058299999986
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 19,
+      "wallMs": 31.132541999999376
+    },
+    {
+      "workload": "existing-control",
+      "variant": "baseline",
+      "sample": 20,
+      "wallMs": 30.492709000000104
+    },
+    {
+      "workload": "existing-control",
+      "variant": "candidate",
+      "sample": 20,
+      "wallMs": 29.99487500000032
+    }
+  ],
+  "limitations": "Real empty/initial-commit Git repositories and tracking configuration; exact branch/commit/tracking fields asserted. Warm local caches, setup/assertions excluded, uncontrolled host load. No concurrent config changes, cold caches, Windows, memory, network or native-client latency comparison."
+}

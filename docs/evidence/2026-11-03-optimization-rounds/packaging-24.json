@@ -1,0 +1,25 @@
+{
+  "round": 24,
+  "recordedAt": "2026-11-03T08:48:54.525943+00:00",
+  "npm": {
+    "size": 172987,
+    "unpackedSize": 615053,
+    "entryCount": 74,
+    "shasum": "414796ab25b0bb49692643b8664c6fc7f414deae",
+    "integrity": "sha512-OuPKHEPdev2A3cF8WT1tTdEqrZ4zFp7N9u35izONbXa5tbnxflSY+mQrQwGSnMwyqdwt+ZLIAIVNQeBg89X5hg=="
+  },
+  "plugin": {
+    "files": 61,
+    "bytes": 589241
+  },
+  "assertions": [
+    "Every tarball/plugin runtime byte matches fully tested build",
+    "All npm SDK declarations unchanged from round 18",
+    "No source/build inputs or raw evidence shipped",
+    "Real offline production install with scripts enabled, CLI/installer imports, SDK message transaction and type consumer passed"
+  ],
+  "limitations": [
+    "Plugin bytes are summed file sizes, not compressed bytes or physical I/O",
+    "Npm development commands require source checkout"
+  ]
+}

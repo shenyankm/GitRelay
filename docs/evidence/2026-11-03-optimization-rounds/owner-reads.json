@@ -1,0 +1,363 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "callsPerSample": 10,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-22-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "root-baseline-wallMs": 16.339154150000002,
+    "root-baseline-cpuMs": 2.7014,
+    "root-candidate-wallMs": 15.919387500000004,
+    "root-candidate-cpuMs": 2.6787,
+    "nested-baseline-wallMs": 15.426322849999952,
+    "nested-baseline-cpuMs": 2.5271,
+    "nested-candidate-wallMs": 15.597762500000044,
+    "nested-candidate-cpuMs": 2.32605
+  },
+  "results": [
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 21.732175000000005,
+      "cpuMs": 3.4387
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 23.11263329999999,
+      "cpuMs": 3.5922
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 21.975025000000006,
+      "cpuMs": 3.7312
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 17.083320800000003,
+      "cpuMs": 2.9757
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 16.315474999999992,
+      "cpuMs": 2.7925
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 17.2808041,
+      "cpuMs": 2.7853
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 14.9756709,
+      "cpuMs": 2.5731
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 17.3616,
+      "cpuMs": 2.9539
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 23.342983299999993,
+      "cpuMs": 3.789
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 23.222162500000014,
+      "cpuMs": 3.7655
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 17.995183300000008,
+      "cpuMs": 2.7629
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 15.523300000000017,
+      "cpuMs": 2.3182
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 17.009733300000015,
+      "cpuMs": 2.6615
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 18.4044042,
+      "cpuMs": 4.0915
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 15.334625000000006,
+      "cpuMs": 2.6399
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 15.114458300000024,
+      "cpuMs": 2.4723
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 14.9490542,
+      "cpuMs": 2.3428
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 15.02033339999998,
+      "cpuMs": 2.277
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 14.811608299999989,
+      "cpuMs": 2.2415
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 15.365266599999995,
+      "cpuMs": 2.6959
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 15.371479199999976,
+      "cpuMs": 2.3599
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 15.397504200000004,
+      "cpuMs": 2.5357
+    },
+    {
+      "workload": "root",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 14.831729200000064,
+      "cpuMs": 2.4617
+    },
+    {
+      "workload": "root",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 15.092904099999942,
+      "cpuMs": 2.2253
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 15.568625000000065,
+      "cpuMs": 2.2369
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 15.98700000000008,
+      "cpuMs": 2.4667
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 16.585504100000072,
+      "cpuMs": 2.5069
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 16.533487499999957,
+      "cpuMs": 2.5086
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 16.121799999999986,
+      "cpuMs": 2.4142
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 16.433150000000023,
+      "cpuMs": 2.5871
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 15.625054099999943,
+      "cpuMs": 2.3695
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 15.626900000000024,
+      "cpuMs": 2.2487
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 15.437479199999961,
+      "cpuMs": 2.3395
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 14.942450000000008,
+      "cpuMs": 2.5473
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 15.69556249999996,
+      "cpuMs": 2.9717
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 15.537658400000055,
+      "cpuMs": 2.2447
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 16.360354199999982,
+      "cpuMs": 2.3722
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 15.22759159999996,
+      "cpuMs": 2.2131
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 15.12551250000006,
+      "cpuMs": 2.2651
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 15.676795800000036,
+      "cpuMs": 2.5182
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 15.378454200000032,
+      "cpuMs": 2.3302
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 15.027041700000064,
+      "cpuMs": 2.1585
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 18.76747919999998,
+      "cpuMs": 2.9412
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 15.72557910000005,
+      "cpuMs": 2.3219
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 14.994337499999983,
+      "cpuMs": 2.3028
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 15.224375000000146,
+      "cpuMs": 2.5708
+    },
+    {
+      "workload": "nested",
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 14.997704199999863,
+      "cpuMs": 3.2633
+    },
+    {
+      "workload": "nested",
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 14.835429199999998,
+      "cpuMs": 2.0895
+    }
+  ],
+  "limitations": "Full repository discovery/identity lock and existing-state validation from root or nested cwd, not just two JSON reads. Warm local caches, setup excluded; exact returned identity/state bytes asserted. Uncontrolled host load, no cold cache, Windows, network filesystem, peak memory or native-client comparison.",
+  "decision": "Rejected and reverted: root query improves slightly while nested cwd regresses; no consistent end-to-end benefit for the added scheduling.",
+  "candidateSourceSha256": "18c58284f0d970418f7f1d94b3cfad53dc839e1d07d2537de2c60f6841d75185",
+  "candidatePatch": "--- a/src/core/repository.ts\n+++ b/src/core/repository.ts\n@@ -327,8 +327,14 @@\n       });\n       if (existing) {\n         if (!existing.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);\n-        const ready = (await readJson(join(repo.directory, \"identity-ready.json\"))) as { id?: string } | undefined;\n-        const owner = (await readJson(join(repo.directory, \"identity-owner.json\"))) as { id?: string } | undefined;\n+        const [readyRead, ownerRead] = await Promise.allSettled([\n+          readJson(join(repo.directory, \"identity-ready.json\")),\n+          readJson(join(repo.directory, \"identity-owner.json\")),\n+        ]);\n+        if (readyRead.status === \"rejected\") throw readyRead.reason;\n+        if (ownerRead.status === \"rejected\") throw ownerRead.reason;\n+        const ready = readyRead.value as { id?: string } | undefined;\n+        const owner = ownerRead.value as { id?: string } | undefined;\n         if (ready?.id !== repo.id || owner?.id !== repo.id)\n           throw new Error(\n             `Incomplete GitRelay state initialization: ${repo.directory}; inspect and preserve it before recovery.`,\n"
+}

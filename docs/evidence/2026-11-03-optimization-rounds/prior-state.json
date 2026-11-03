@@ -1,0 +1,599 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-18-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-baseline": 0.060917000000001664,
+    "0-candidate": 0.05474999999999852,
+    "1-baseline": 0.058312499999999545,
+    "1-candidate": 0.05054200000000009,
+    "32-baseline": 0.3879790000000014,
+    "32-candidate": 0.23772899999999453,
+    "1000-baseline": 11.999582999999973,
+    "1000-candidate": 4.830833500000011
+  },
+  "results": [
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.07229200000000091
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.06550000000000011
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.12349999999999994
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.05379199999999784
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.10741700000000165
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.08462499999999906
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.08449999999999847
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.05883299999999991
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.0557079999999992
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.05291700000000077
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.06975000000000264
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.05629199999999912
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.05141700000000071
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.04587499999999878
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.0555000000000021
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.050665999999999656
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.045458
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.04274999999999807
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.04045800000000099
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.044583000000002926
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.059791000000000594
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.06354200000000176
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.058292000000001565
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.04612499999999997
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.054999999999999716
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.05783299999999869
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.05404200000000259
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.06020799999999937
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.06037500000000051
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.11158399999999702
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.06591700000000245
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.04766700000000057
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.05312499999999787
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.0587920000000004
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.07479199999999864
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.05270900000000012
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.07895900000000111
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.06745800000000202
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.06150000000000233
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.04812499999999886
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.04837500000000006
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.05137499999999662
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.05012500000000131
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.04320899999999739
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.04245900000000091
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.049875000000000114
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.049875000000000114
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.04241700000000037
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 0.24604200000000276
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 0.5483750000000001
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 0.35716599999999943
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 0.21370900000000148
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 0.21704100000000182
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 0.3959169999999972
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 0.5464169999999982
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 0.2452909999999946
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 0.25995799999999747
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 0.38245799999999974
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 0.46079199999999787
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 0.22562499999999375
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 0.22266700000000128
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 0.35762499999999875
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 0.39350000000000307
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 0.27045799999999787
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 0.2185829999999953
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 0.3682500000000033
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 0.35308299999999804
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 0.3007090000000048
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 0.23016699999999446
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 0.3433340000000058
+    },
+    {
+      "count": 32,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 0.6201670000000021
+    },
+    {
+      "count": 32,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 0.4052909999999983
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 6.8106249999999875
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 14.125708000000003
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 13.470833999999996
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 5.666249999999991
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 5.163792000000001
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 11.863500000000016
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 12.509208999999998
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 5.0734580000000165
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 4.705500000000029
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 12.103582999999958
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 11.895582999999988
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 4.496667000000002
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 4.677208000000007
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 12.17349999999999
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 12.799915999999996
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 4.642959000000019
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 4.9212080000000356
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 10.318332999999996
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 10.92837499999996
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 4.571332999999981
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 4.740458999999987
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 10.643374999999992
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 10.635667000000012
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 5.017916000000014
+    }
+  ],
+  "limitations": "Synthetic identity-history entries with present directories/files and absent states. Exact source-directory order preserved; current/invalid IDs excluded. Identity lock held. Warm caches, setup/assertions excluded, uncontrolled host load. No cold cache, Windows, concurrent identity changes or real-client latency."
+}
