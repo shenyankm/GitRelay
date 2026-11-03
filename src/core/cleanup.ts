@@ -165,22 +165,31 @@ export async function collectRepository(repo: Repository, options: CleanupOption
           const trash = join(repo.directory, "trash", eventFilename(event));
           // The rename commits deletion. A crash can only leave confirmed events in trash.
           if (!committed) await rename(join(repo.directory, "events", eventFilename(event)), trash);
-          for (const key of event.recipients) {
-            const directory = join(repo.directory, "receipts", key);
-            let byEvent = proofFiles.get(key);
-            if (!byEvent) {
-              byEvent = new Map();
-              for (const name of await readdir(directory).catch((error) => {
-                if (error.code === "ENOENT") return [];
-                throw error;
-              })) {
-                const match = /^([a-f0-9]{64})\.[a-f0-9]{64}\.pi-proof$/.exec(name);
-                if (match) byEvent.set(match[1], [...(byEvent.get(match[1]) ?? []), name]);
-              }
-              proofFiles.set(key, byEvent);
-            }
-            await rm(join(directory, `${event.id}.json`), { force: true });
-            for (const proof of byEvent.get(event.id) ?? []) await rm(join(directory, proof), { force: true });
+          for (let offset = 0; offset < event.recipients.length; offset += 32) {
+            const deletions = await Promise.allSettled(
+              event.recipients.slice(offset, offset + 32).map(async (key) => {
+                const directory = join(repo.directory, "receipts", key);
+                let byEvent = proofFiles.get(key);
+                if (!byEvent) {
+                  byEvent = new Map();
+                  for (const name of await readdir(directory).catch((error) => {
+                    if (error.code === "ENOENT") return [];
+                    throw error;
+                  })) {
+                    const match = /^([a-f0-9]{64})\.[a-f0-9]{64}\.pi-proof$/.exec(name);
+                    if (match) {
+                      const names = byEvent.get(match[1]) ?? [];
+                      names.push(name);
+                      byEvent.set(match[1], names);
+                    }
+                  }
+                  proofFiles.set(key, byEvent);
+                }
+                await rm(join(directory, `${event.id}.json`), { force: true });
+                for (const proof of byEvent.get(event.id) ?? []) await rm(join(directory, proof), { force: true });
+              }),
+            );
+            for (const deletion of deletions) if (deletion.status === "rejected") throw deletion.reason;
           }
           await rm(trash, { force: true });
           report.removed.push(event.id);
