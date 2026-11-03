@@ -116,11 +116,12 @@ export async function git(
     try {
       const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
       if (paths === "paths") return decoder.decode(stdout);
+      const prefixes = [Buffer.from("worktree "), Buffer.from("branch ")];
       for (let start = 0; start < stdout.length;) {
         const delimiter = stdout.indexOf(0, start),
           end = delimiter < 0 ? stdout.length : delimiter;
         const field = stdout.subarray(start, end);
-        for (const prefix of [Buffer.from("worktree "), Buffer.from("branch ")]) {
+        for (const prefix of prefixes) {
           if (field.subarray(0, prefix.length).equals(prefix)) decoder.decode(field.subarray(prefix.length));
         }
         start = end + 1;
