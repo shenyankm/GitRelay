@@ -2,8 +2,8 @@
 
 Requested scope: 50 consecutive, evidence-backed optimization rounds. This log
 tracks completed experiments, including rejected candidates; it does not count
-repeated tests as additional rounds. Current progress: **24 / 50 evaluated,
-19 retained**. Work remains active.
+repeated tests as additional rounds. Current progress: **30 / 50 evaluated,
+21 retained**. Work remains active.
 
 The starting worktree was clean at `f71f6f4`. Saved baseline runtime:
 `/tmp/gitrelay-optimization-20261103/baseline-dist`. Evidence and comparison
@@ -37,6 +37,12 @@ shipped documentation links historical evidence to the source repository.
 | 22    | Probe prior identity states in settled batches of at most 32                   | Retained. 1,000 history entries: 12.0 → 4.8 ms; 32 entries: 0.39 → 0.24 ms. Exact order and conservative handling of existing files are preserved. Error test drains the first batch before releasing the identity lock. See `prior-state.json`.                                                                                            |
 | 23    | Read ready/owner metadata concurrently in repository discovery                 | Rejected and reverted. Full discovery from a root improves 16.34 → 15.92 ms while a nested cwd regresses 15.43 → 15.60 ms. The benefit is not consistent enough for added scheduling. See `owner-reads.json`.                                                                                                                               |
 | 24    | Read unborn-branch remote and merge configuration concurrently                 | Retained. Unborn empty status: 38.3 → 31.3 ms; unborn tracked: 53.9 → 47.3 ms; existing-branch control 31.07 → 31.10 ms. Both configuration results settle before propagating the original first error. See `unborn-status.json`.                                                                                                           |
+| 25    | Combine installer digest metadata hash updates                                 | Rejected and reverted. Uniform-file control 83.05 → 82.48 ms, mixed sizes 82.88 → 82.61 ms; mixed CPU slightly increases. Under 1% wall-time change is insufficient. Hash/race/cancellation tests pass. See `digest-metadata.json`.                                                                                                         |
+| 26    | Split only the selected branch-status ref row                                  | Rejected and reverted. 10,000 local child refs improve 387.8 → 357.0 ms, but upstream control stays 351.0 → 350.8 ms and CPU increases. Smaller controls are mixed. See `ref-prefixes.json`.                                                                                                                                                |
+| 27    | Validate parent path segments without component arrays                         | Retained. 111,990 public validation outcomes match, including literal line terminators and POSIX backslashes. Scan of 500 events × 1,000 paths: 153.6 → 128.8 ms; empty-path control 19.95 → 20.00 ms. Strict true-end matching avoids the newline bug in a naive `$` expression. See `parent-paths.json` and `path-scan.json`.             |
+| 28    | Limit branch-status ref queries to one record                                  | Rejected on correctness before timing. A missing upstream with a later invalid-UTF-8 child must still throw `GitPathOutputError`; `--count=1` silently skips that validation. Real packed-ref counterexample: `ref-count.json`.                                                                                                             |
+| 29    | Reuse worktree protocol prefix buffers within each query                       | Retained. Synthetic 10,000-record subprocess/read/validation/parsing median 21.29 → 17.30 ms; Node CPU 21.18 → 16.77 ms. Single-record control 3.89 → 3.92 ms. Prefix allocation requests fall from 100,000 / 800,000 logical bytes to 2 / 16 bytes; this is not peak memory. See `worktree-prefixes.json`.                                 |
+| 30    | Share the fatal path decoder between Git queries                               | Rejected and reverted. 10,000-record wall median 16.95 → 16.78 ms and CPU 15.925 → 15.880 ms; 1,000-record CPU regresses. No consistent gain justifies shared state. Failure-then-valid-BOM recovery remains equivalent. See `decoder-reuse.json`.                                                                                          |
 
 The digest buffer is lazy and local to one invocation. A single tiny file can
 allocate more buffer space than before; the per-call read buffer remains capped
@@ -45,17 +51,18 @@ rechecks are unchanged. No dependency, public API, persistent cache or state
 format was added.
 
 Validation gates and exact source/build fingerprints are recorded separately in
-`validation.json` (rounds 1–6) and `validation-12.json` (rounds 7–12) and `validation-18.json` (rounds 13–18), followed by `validation-24.json` (rounds 19–24). Targeted
+`validation.json` (rounds 1–6) and `validation-12.json` (rounds 7–12) and `validation-18.json` (rounds 13–18), followed by `validation-24.json` (rounds 19–24) and `validation-30.json` (rounds 25–30). Targeted
 checks cover POSIX format collisions, exact recipient order, input snapshots,
 failed/cancelled batch draining, GC preservation, installed plugin hooks and
 installed SDK compilation. Timing and memory probes run separately from tests.
 The round-12 full gate passed 647 tests with one skipped and zero failures;
-`packaging-12.json` records that snapshot; `packaging-18.json` records that snapshot; `packaging-24.json` records the latest artifacts.
+`packaging-12.json` records that snapshot; `packaging-18.json` records that snapshot; `packaging-24.json` records that snapshot; `packaging-30.json` records the latest artifacts.
 Round 14 supersedes the broader npm inclusion kept in round 1. Historical
 evidence and build inputs remain in the repository, while npm packages contain
 prebuilt runtime files and declarations.
 The earlier main commit `972e6ef` passed all four remote CI jobs; see `ci-18.json`.
-That CI result covers rounds 1–18, separately from later local checks.
+That CI result covers rounds 1–18. Main `6de59da` also passed all four jobs; see
+`ci-24.json`. This covers rounds 1–24, separately from rounds 25–30 local checks.
 
 Reproduce after saving the named baseline builds and building the candidate.
 For rejected candidates, apply the recorded candidate patch first; the working
@@ -80,6 +87,13 @@ node docs/evidence/2026-11-03-optimization-rounds/compare-gc-receipts.mjs /absol
 node docs/evidence/2026-11-03-optimization-rounds/compare-prior-state.mjs /absolute/round-18/dist
 node docs/evidence/2026-11-03-optimization-rounds/compare-owner-reads.mjs /absolute/round-22/dist
 node docs/evidence/2026-11-03-optimization-rounds/compare-unborn-status.mjs /absolute/round-18/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-digest-metadata.mjs /absolute/round-24/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-ref-prefixes.mjs /absolute/round-24/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-parent-paths.mjs /absolute/round-26/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-path-scan.mjs /absolute/round-26/dist
+node docs/evidence/2026-11-03-optimization-rounds/probe-ref-count.mjs /absolute/round-27/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-worktree-protocol.mjs /absolute/round-27/dist
+node docs/evidence/2026-11-03-optimization-rounds/compare-worktree-protocol.mjs /absolute/round-29/dist
 ```
 
 These are macOS arm64 / Node 22.23.2 synthetic measurements with warm local
@@ -91,4 +105,4 @@ serial reads; the four-read bound does not establish a total-memory limit.
 The GC migration cache relies on cooperative session writers holding the
 publication lock. Non-cooperating edits to a previously unready session can
 conservatively delay collection until the next call; receipts are still checked.
-The remaining 26 rounds have not been performed or claimed complete.
+The remaining 20 rounds have not been performed or claimed complete.

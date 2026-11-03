@@ -1,0 +1,85 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-27-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "normal": {
+    "baseline": {
+      "accepted": true,
+      "result": {
+        "type": "worktree.branch-status",
+        "worktree": {
+          "branch": "main",
+          "commit": "433d4c79743f559b2c7f6bc2c71664abcdf585bb",
+          "dirty": false
+        },
+        "local": {
+          "ref": "refs/heads/main",
+          "commit": "433d4c79743f559b2c7f6bc2c71664abcdf585bb",
+          "tracking": {
+            "ref": "refs/remotes/origin/family",
+            "commit": null,
+            "ahead": null,
+            "behind": null
+          }
+        }
+      }
+    },
+    "candidate": {
+      "accepted": true,
+      "result": {
+        "type": "worktree.branch-status",
+        "worktree": {
+          "branch": "main",
+          "commit": "433d4c79743f559b2c7f6bc2c71664abcdf585bb",
+          "dirty": false
+        },
+        "local": {
+          "ref": "refs/heads/main",
+          "commit": "433d4c79743f559b2c7f6bc2c71664abcdf585bb",
+          "tracking": {
+            "ref": "refs/remotes/origin/family",
+            "commit": null,
+            "ahead": null,
+            "behind": null
+          }
+        }
+      }
+    }
+  },
+  "malformed": {
+    "baseline": {
+      "accepted": false,
+      "errorClass": "GitPathOutputError",
+      "error": "Git returned a path or ref that is not valid UTF-8; cannot safely continue."
+    },
+    "candidate": {
+      "accepted": true,
+      "result": {
+        "type": "worktree.branch-status",
+        "worktree": {
+          "branch": "main",
+          "commit": "433d4c79743f559b2c7f6bc2c71664abcdf585bb",
+          "dirty": false
+        },
+        "local": {
+          "ref": "refs/heads/main",
+          "commit": "433d4c79743f559b2c7f6bc2c71664abcdf585bb",
+          "tracking": {
+            "ref": "refs/remotes/origin/family",
+            "commit": null,
+            "ahead": null,
+            "behind": null
+          }
+        }
+      }
+    }
+  },
+  "decision": "Rejected before timing: --count=1 silently omits a later non-UTF-8 ref that previously failed strict decoding. Preserve the existing validation/error behavior.",
+  "limitations": "Real Git packed refs and an intentionally malformed UTF-8 child name in an isolated repository. Correctness gate only; no speed or memory claim.",
+  "candidateSourceSha256": "5d5ea9e7f3e1d4cbdacaadd756ce801dbab34aa16410ffd3c5cbfb311d759f88",
+  "candidatePatch": "--- a/src/core/branch-status.ts\n+++ b/src/core/branch-status.ts\n@@ -180,7 +180,12 @@\n   const ref = `refs/heads/${branch}`;\n   await git(cwd, [\"check-ref-format\", ref], signal);\n   const rows = gitRefLines(\n-    await git(cwd, [\"for-each-ref\", \"--format=%(refname)%00%(objectname)%00%(upstream)\", \"--\", ref], signal, \"paths\"),\n+    await git(\n+      cwd,\n+      [\"for-each-ref\", \"--format=%(refname)%00%(objectname)%00%(upstream)\", \"--count=1\", \"--\", ref],\n+      signal,\n+      \"paths\",\n+    ),\n   );\n   const row = rows.map((line) => line.split(\"\\0\")).find(([name]) => name === ref);\n   const commit = row?.[1] ?? null;\n@@ -190,7 +195,7 @@\n     const upstreamRows = gitRefLines(\n       await git(\n         cwd,\n-        [\"for-each-ref\", \"--format=%(refname)%00%(objectname)%00%(objecttype)\", \"--\", upstream],\n+        [\"for-each-ref\", \"--format=%(refname)%00%(objectname)%00%(objecttype)\", \"--count=1\", \"--\", upstream],\n         signal,\n         \"paths\",\n       ),\n"
+}

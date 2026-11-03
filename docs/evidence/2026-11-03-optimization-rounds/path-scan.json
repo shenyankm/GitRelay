@@ -1,0 +1,407 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-26-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-baseline-wallMs": 19.95456250000001,
+    "0-baseline-cpuMs": 57.474500000000006,
+    "0-candidate-wallMs": 20.004812000000015,
+    "0-candidate-cpuMs": 57.758,
+    "1000-baseline-wallMs": 153.57999999999993,
+    "1000-baseline-cpuMs": 212.187,
+    "1000-candidate-wallMs": 128.82989600000008,
+    "1000-candidate-cpuMs": 185.395
+  },
+  "results": [
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 22.101458000000008,
+      "cpuMs": 68.294
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 22.295999999999992,
+      "cpuMs": 66.717
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 22.63245900000001,
+      "cpuMs": 70.991
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 21.249333000000007,
+      "cpuMs": 66.032
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 21.025125000000003,
+      "cpuMs": 70.747
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 21.302708999999993,
+      "cpuMs": 69.675
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 19.96362499999998,
+      "cpuMs": 57.337
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 20.039916000000005,
+      "cpuMs": 57.865
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 20.280500000000018,
+      "cpuMs": 57.614
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 20.606374999999957,
+      "cpuMs": 58.313
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 19.664874999999995,
+      "cpuMs": 56.952
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 19.62504100000001,
+      "cpuMs": 56.026
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 19.78720899999996,
+      "cpuMs": 57.651
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 19.42704200000003,
+      "cpuMs": 56.372
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 19.734958000000006,
+      "cpuMs": 58.175
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 19.969708000000026,
+      "cpuMs": 58.108
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 19.529291999999998,
+      "cpuMs": 56.904
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 19.444083000000035,
+      "cpuMs": 56.641
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 20.12091700000002,
+      "cpuMs": 57.612
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 19.84908400000006,
+      "cpuMs": 57.117
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 19.828250000000025,
+      "cpuMs": 57.377
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 19.945500000000038,
+      "cpuMs": 57.161
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 19.712583999999993,
+      "cpuMs": 56.219
+    },
+    {
+      "count": 1000,
+      "paths": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 20.32720900000004,
+      "cpuMs": 58.486
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 140.4347919999999,
+      "cpuMs": 293.196
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 154.13258300000007,
+      "cpuMs": 216.668
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 179.48462500000005,
+      "cpuMs": 378.378
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 127.742708,
+      "cpuMs": 181.816
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 127.74237500000004,
+      "cpuMs": 184.697
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 154.69304199999988,
+      "cpuMs": 213.505
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 170.24191600000017,
+      "cpuMs": 309.511
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 129.91708400000016,
+      "cpuMs": 209.274
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 127.40162499999997,
+      "cpuMs": 184.705
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 153.024042,
+      "cpuMs": 209.285
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 152.99233400000003,
+      "cpuMs": 208.772
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 131.57508300000018,
+      "cpuMs": 186.085
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 146.56449999999995,
+      "cpuMs": 316.607
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 152.7341250000004,
+      "cpuMs": 210.424
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 153.31783399999995,
+      "cpuMs": 213.847
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 145.1299170000002,
+      "cpuMs": 325.352
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 126.60512500000004,
+      "cpuMs": 179.897
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 153.58779200000026,
+      "cpuMs": 210.869
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 163.6077919999998,
+      "cpuMs": 275.32
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 133.53412500000013,
+      "cpuMs": 242.214
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 124.5932499999999,
+      "cpuMs": 176.445
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 152.12516700000015,
+      "cpuMs": 206.336
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 153.5722079999996,
+      "cpuMs": 207.994
+    },
+    {
+      "count": 500,
+      "paths": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 126.60004099999969,
+      "cpuMs": 177.064
+    }
+  ],
+  "limitations": "Actual event files; 1,000 empty-file-list controls and 500 thousand-path events. Warm local caches, setup/assertions excluded; uncontrolled host load. Node CPU excludes children. No delivery, lock contention, peak-RSS, cold-cache, Windows or native-client latency comparison."
+}

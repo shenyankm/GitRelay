@@ -1,0 +1,756 @@
+{
+  "node": "v22.23.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 12,
+  "variants": {
+    "baseline": "/tmp/gitrelay-optimization-20261103/round-29-dist",
+    "candidate": "/Users/sheny/Developer/code/GitRelay/dist/"
+  },
+  "medians": {
+    "0-baseline-wallMs": 3.140103999999994,
+    "0-baseline-cpuMs": 0.298,
+    "0-candidate-wallMs": 3.148666999999996,
+    "0-candidate-cpuMs": 0.336,
+    "1-baseline-wallMs": 3.093083500000006,
+    "1-baseline-cpuMs": 0.3225,
+    "1-candidate-wallMs": 3.1167085000000014,
+    "1-candidate-cpuMs": 0.3155,
+    "1000-baseline-wallMs": 4.573124500000006,
+    "1000-baseline-cpuMs": 1.8094999999999999,
+    "1000-candidate-wallMs": 4.547124999999994,
+    "1000-candidate-cpuMs": 1.8679999999999999,
+    "10000-baseline-wallMs": 16.948395499999947,
+    "10000-baseline-cpuMs": 15.925,
+    "10000-candidate-wallMs": 16.77962500000001,
+    "10000-candidate-cpuMs": 15.8795
+  },
+  "allocations": [
+    {
+      "count": 0,
+      "variant": "baseline",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "prefixCalls": 2,
+      "prefixBytes": 16
+    }
+  ],
+  "results": [
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 3.1468339999999984,
+      "cpuMs": 0.342
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 3.0727080000000058,
+      "cpuMs": 0.305
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 3.3039169999999984,
+      "cpuMs": 0.539
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 3.0879170000000045,
+      "cpuMs": 0.338
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 3.0786250000000024,
+      "cpuMs": 0.305
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 2.9903750000000002,
+      "cpuMs": 0.292
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 3.1448749999999848,
+      "cpuMs": 0.574
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 3.156624999999991,
+      "cpuMs": 0.356
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 3.2740409999999827,
+      "cpuMs": 0.334
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 3.4202920000000177,
+      "cpuMs": 0.296
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 3.15300000000002,
+      "cpuMs": 0.324
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 3.150499999999994,
+      "cpuMs": 0.327
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 3.285833999999994,
+      "cpuMs": 0.93
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 3.135333000000003,
+      "cpuMs": 0.278
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 3.012625000000014,
+      "cpuMs": 0.266
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 3.197082999999992,
+      "cpuMs": 0.476
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 3.192875000000015,
+      "cpuMs": 0.354
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 3.149333000000013,
+      "cpuMs": 0.337
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 3.1749580000000037,
+      "cpuMs": 0.3
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 2.9843329999999924,
+      "cpuMs": 0.27
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 3.0573750000000075,
+      "cpuMs": 0.257
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 3.013750000000016,
+      "cpuMs": 0.274
+    },
+    {
+      "count": 0,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 3.0475829999999746,
+      "cpuMs": 0.27
+    },
+    {
+      "count": 0,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 3.0817910000000097,
+      "cpuMs": 0.262
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 3.233875000000012,
+      "cpuMs": 0.338
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 3.1282910000000186,
+      "cpuMs": 0.339
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 3.040374999999983,
+      "cpuMs": 0.306
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 3.176374999999979,
+      "cpuMs": 0.32
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 3.044292000000013,
+      "cpuMs": 0.338
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 3.1509169999999926,
+      "cpuMs": 0.417
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 3.0877080000000205,
+      "cpuMs": 0.26
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 3.039083000000005,
+      "cpuMs": 0.255
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 3.052833000000021,
+      "cpuMs": 0.251
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 3.015541999999982,
+      "cpuMs": 0.366
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 3.0505410000000097,
+      "cpuMs": 0.358
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 3.1319999999999766,
+      "cpuMs": 0.305
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 3.262999999999977,
+      "cpuMs": 0.344
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 3.0499169999999935,
+      "cpuMs": 0.281
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 3.1989580000000046,
+      "cpuMs": 0.542
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 3.1273750000000007,
+      "cpuMs": 0.338
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 3.106042000000002,
+      "cpuMs": 0.311
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 3.098458999999991,
+      "cpuMs": 0.288
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 3.1075839999999744,
+      "cpuMs": 0.276
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 2.956542000000013,
+      "cpuMs": 0.258
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 2.9987499999999727,
+      "cpuMs": 0.25
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 3.120083999999963,
+      "cpuMs": 0.256
+    },
+    {
+      "count": 1,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 3.032833000000039,
+      "cpuMs": 0.58
+    },
+    {
+      "count": 1,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 3.3682919999999967,
+      "cpuMs": 0.36
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 5.637790999999993,
+      "cpuMs": 6.48
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 5.787125000000003,
+      "cpuMs": 7.03
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 5.7323749999999905,
+      "cpuMs": 12.606
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 4.881209000000013,
+      "cpuMs": 7.43
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 4.847709000000009,
+      "cpuMs": 3.693
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 4.830291999999986,
+      "cpuMs": 2.229
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 4.91533400000003,
+      "cpuMs": 7.284
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 4.613625000000013,
+      "cpuMs": 1.82
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 4.475499999999954,
+      "cpuMs": 1.921
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 4.60608400000001,
+      "cpuMs": 1.787
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 4.546166000000028,
+      "cpuMs": 1.961
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 4.514541999999949,
+      "cpuMs": 1.633
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 4.5124589999999785,
+      "cpuMs": 2.602
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 4.600082999999984,
+      "cpuMs": 1.7
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 4.37541600000003,
+      "cpuMs": 1.806
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 4.579708000000039,
+      "cpuMs": 1.538
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 4.492958000000044,
+      "cpuMs": 1.867
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 4.301708000000019,
+      "cpuMs": 1.491
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 4.3830409999999915,
+      "cpuMs": 1.792
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 4.4025420000000395,
+      "cpuMs": 1.517
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 4.5975839999999835,
+      "cpuMs": 1.869
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 4.368041000000005,
+      "cpuMs": 1.506
+    },
+    {
+      "count": 1000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 4.440375000000017,
+      "cpuMs": 1.813
+    },
+    {
+      "count": 1000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 4.361917000000005,
+      "cpuMs": 1.523
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 1,
+      "wallMs": 17.172333000000037,
+      "cpuMs": 15.7
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 1,
+      "wallMs": 16.76887499999998,
+      "cpuMs": 24.579
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 2,
+      "wallMs": 17.20145800000006,
+      "cpuMs": 15.917
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 2,
+      "wallMs": 16.962541999999985,
+      "cpuMs": 15.88
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 3,
+      "wallMs": 16.786749999999984,
+      "cpuMs": 16.441
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 3,
+      "wallMs": 16.958582999999976,
+      "cpuMs": 15.369
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 4,
+      "wallMs": 16.275833000000034,
+      "cpuMs": 24.744
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 4,
+      "wallMs": 17.18983300000002,
+      "cpuMs": 15.879
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 5,
+      "wallMs": 17.72275000000002,
+      "cpuMs": 16.445
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 5,
+      "wallMs": 17.005458999999973,
+      "cpuMs": 16.729
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 6,
+      "wallMs": 16.979708000000073,
+      "cpuMs": 15.588
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 6,
+      "wallMs": 16.28895799999998,
+      "cpuMs": 24.424
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 7,
+      "wallMs": 16.91579200000001,
+      "cpuMs": 15.51
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 7,
+      "wallMs": 16.664375000000064,
+      "cpuMs": 15.718
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 8,
+      "wallMs": 16.938207999999918,
+      "cpuMs": 16.998
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 8,
+      "wallMs": 16.71333299999992,
+      "cpuMs": 14.9
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 9,
+      "wallMs": 16.354791999999975,
+      "cpuMs": 24.243
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 9,
+      "wallMs": 16.997499999999945,
+      "cpuMs": 15.624
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 10,
+      "wallMs": 16.642749999999978,
+      "cpuMs": 15.498
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 10,
+      "wallMs": 16.772500000000036,
+      "cpuMs": 16.364
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 11,
+      "wallMs": 16.693208000000027,
+      "cpuMs": 15.069
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 11,
+      "wallMs": 16.006541999999968,
+      "cpuMs": 23.319
+    },
+    {
+      "count": 10000,
+      "variant": "baseline",
+      "sample": 12,
+      "wallMs": 17.403583000000026,
+      "cpuMs": 15.933
+    },
+    {
+      "count": 10000,
+      "variant": "candidate",
+      "sample": 12,
+      "wallMs": 16.676874999999995,
+      "cpuMs": 15.463
+    }
+  ],
+  "limitations": "Synthetic porcelain byte stream emitted by a local cat shim, including invalid free-text UTF-8, valid Unicode paths, and bad-path then valid-BOM recovery. Measures subprocess read + validation/parsing, not real Git worktree discovery. Warm local caches, uncontrolled host load. Allocation instrumentation is separate, not peak RSS; Node CPU excludes children. No cold cache, Windows or real-client comparison.",
+  "decision": "Rejected and reverted: 10,000-record wall time changes by only 1%, CPU by 0.3%; 1,000-record CPU regresses. No consistent gain for shared decoder state.",
+  "candidateSourceSha256": "19c5919478abb4b0395d60a0b0b52146fe4e4daa17aa04b52d779fdf102e200f",
+  "candidatePatch": "--- a/src/core/git.ts\n+++ b/src/core/git.ts\n@@ -4,6 +4,7 @@\n import { promisify } from \"node:util\";\n \n const exec = promisify(execFile);\n+const pathDecoder = new TextDecoder(\"utf-8\", { fatal: true, ignoreBOM: true });\n \n export class GitPathOutputError extends Error {}\n \n@@ -114,15 +115,14 @@\n         ).stdout;\n     if (!paths) return stdout.toString(\"utf8\");\n     try {\n-      const decoder = new TextDecoder(\"utf-8\", { fatal: true, ignoreBOM: true });\n-      if (paths === \"paths\") return decoder.decode(stdout);\n+      if (paths === \"paths\") return pathDecoder.decode(stdout);\n       const prefixes = [Buffer.from(\"worktree \"), Buffer.from(\"branch \")];\n       for (let start = 0; start < stdout.length;) {\n         const delimiter = stdout.indexOf(0, start),\n           end = delimiter < 0 ? stdout.length : delimiter;\n         const field = stdout.subarray(start, end);\n         for (const prefix of prefixes) {\n-          if (field.subarray(0, prefix.length).equals(prefix)) decoder.decode(field.subarray(prefix.length));\n+          if (field.subarray(0, prefix.length).equals(prefix)) pathDecoder.decode(field.subarray(prefix.length));\n         }\n         start = end + 1;\n       }\n"
+}
