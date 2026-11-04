@@ -1,7 +1,8 @@
 # Source releases
 
-GitRelay is currently installed from source. These checks do not publish to npm
-or create a GitHub release.
+Versioned source tags and npm publication are separate release gates. Pushing a
+branch or tag runs validation; it does not automatically publish to npm or create
+a GitHub release.
 
 1. Keep changes under `Unreleased` in [CHANGELOG.md](../CHANGELOG.md). Record
    compatibility changes, migration instructions and remaining limitations.
@@ -27,6 +28,22 @@ or create a GitHub release.
    `vVERSION` and push the tag. The existing CI runs the same checks on tag pushes
    and rejects inconsistent metadata or missing dated notes. Verify all four
    matrix jobs for that exact tag before announcing a source release.
+
+7. For an explicitly requested npm release, verify the npm account with
+   `npm whoami`, prepare the reviewed tarball with `npm pack`, and inspect its
+   files and integrity. Publish that exact artifact only after the main/tag CI
+   gates pass:
+
+   ```sh
+   npm publish /absolute/path/git-relay-VERSION.tgz --access public --tag latest
+   npm view git-relay@VERSION version dist.integrity dist-tags --json
+   ```
+
+   Check the registry version and integrity against the local artifact, then
+   install the registry tarball into a disposable directory and exercise the
+   CLI and SDK. npm login or account two-factor authentication may require the
+   publisher's interaction. Keep unpublished or failed publication distinct
+   from a successful source push.
 
 Ordinary changes do not require a version bump. A green metadata check does not
 prove client compatibility, and a green branch build does not validate a later

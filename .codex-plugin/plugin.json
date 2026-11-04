@@ -1,6 +1,6 @@
 {
   "name": "git-relay",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Automatic Git worktree coordination and branch monitoring for Codex.",
   "author": {
     "name": "shenyankm",

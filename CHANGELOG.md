@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-04
+
+- Reduce idle Codex hook Git subprocesses from five to three and skip unchanged repository metadata writes.
+- Record 25-29% lower idle hook latency in two warm-cache comparisons, 666 passing local tests and 14 real Codex model turns.
+- Retain full legacy publication recovery and corrupt-record validation; large retained-state performance remains inconclusive.
+
 - Centralize session enable/disable transactions shared by Codex hooks and CLI controls.
 - Separate status command handling and reject options unrelated to the selected command.
 - Separate repository identity and recovery from file storage primitives; narrow session storage types.
@@ -25,5 +31,5 @@
 - Align Codex plugin metadata with listing limits and declare the MIT license.
 - Add manifest-limit assertions and a docs credential scan to local validation.
 
-This section is not a published release. See [migration](docs/migration.md) for
-behavior changes and [acceptance](docs/acceptance.md) for verified boundaries.
+See [migration](docs/migration.md) for behavior changes and
+[acceptance](docs/acceptance.md) for verified boundaries.

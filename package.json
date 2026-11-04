@@ -1,6 +1,6 @@
 {
   "name": "git-relay",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GitRelay: Git worktree change awareness for Codex",
   "license": "MIT",
   "type": "module",
@@ -56,5 +56,9 @@
     "./dist/core/consumer.js": "./dist/core/consumer.js",
     "./dist/core/mailbox.js": "./dist/core/mailbox.js",
     "./dist/core/sessions.js": "./dist/core/sessions.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shenyankm/GitRelay.git"
   }
 }
