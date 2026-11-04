@@ -1,0 +1,7 @@
+{
+  "legacyWriterCanLeavePendingPublicationWithoutNewJournal": true,
+  "acknowledgedPendingPublicationRecovered": true,
+  "inPlaceEventChangeLeavesDirectoryWitnessUnchanged": true,
+  "corruptAcknowledgedEventStillRejected": true,
+  "decision": "Reject journal-absence and directory-timestamp shortcuts; retain full recovery validation and existing storage compatibility."
+}

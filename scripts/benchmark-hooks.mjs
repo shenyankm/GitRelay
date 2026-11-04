@@ -68,7 +68,13 @@ try {
     );
   await writeFile(
     preload,
-    `import {writeFileSync} from 'node:fs'; process.on('exit',()=>writeFileSync(process.env.GITRELAY_USAGE_PATH,JSON.stringify(process.resourceUsage())));\n`,
+    `import fs from 'node:fs'; import {syncBuiltinESMExports} from 'node:module';
+let metadataWrites=0,stateWrites=0; const rename=fs.promises.rename,renameSync=fs.renameSync;
+const count=(path)=>{path=String(path);if(path.endsWith('.json'))stateWrites++;if(path.endsWith('/repo.json'))metadataWrites++;};
+fs.promises.rename=async(...args)=>{count(args[1]);return rename(...args);};
+fs.renameSync=(...args)=>{count(args[1]);return renameSync(...args);};
+syncBuiltinESMExports();
+process.on('exit',()=>fs.writeFileSync(process.env.GITRELAY_USAGE_PATH,JSON.stringify({...process.resourceUsage(),metadataWrites,stateWrites})));\n`,
   );
   const env = {
     ...process.env,
@@ -116,6 +122,8 @@ try {
       gitProcesses: commands.filter((line) => line.startsWith("git ")).length,
       psProcesses: commands.filter((line) => line.startsWith("ps ")).length,
       rootProbes: commands.filter((line) => line.includes("rev-parse --show-toplevel")).length,
+      metadataWrites: resources.metadataWrites,
+      stateWrites: resources.stateWrites,
     };
   };
   for (const cli of Object.values(variants)) await run(cli, "SessionStart");
@@ -130,7 +138,7 @@ try {
     }
   }
   assert.ok(samples.candidate.every((row) => row.psProcesses === 0));
-  assert.ok(samples.candidate.every((row) => row.rootProbes === 2));
+  assert.ok(samples.candidate.every((row) => row.rootProbes === 1));
   const loadedModules = {};
   for (const [name, cli] of Object.entries(variants)) {
     const coverage = join(temporary, `coverage-${name}`);

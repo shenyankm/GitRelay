@@ -32,7 +32,7 @@ export async function resolveMain(root: string, ref: string, signal?: AbortSigna
   if (!ref.startsWith("refs/heads/") && !ref.startsWith("refs/remotes/")) {
     throw new Error("The monitored target must be a full branch ref under refs/heads/ or refs/remotes/.");
   }
-  await git(root, ["check-ref-format", ref], signal);
+  if (ref !== "refs/heads/main") await git(root, ["check-ref-format", ref], signal);
   return (await git(root, ["rev-parse", "--verify", "--end-of-options", `${ref}^{commit}`], signal)).trim();
 }
 

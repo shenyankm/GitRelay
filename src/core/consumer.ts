@@ -22,7 +22,7 @@ import {
   type SharedEvent,
 } from "./mailbox.ts";
 import { BusyError, GC_LOCK_TOKEN, checkStateDirectory, isId, readJson, withLock, writeJson } from "./store.ts";
-import { repository, repositoryMetadata, type Repository } from "./repository.ts";
+import { repository, writeRepositoryMetadata, type Repository } from "./repository.ts";
 import { synchronizeRef } from "./publisher.ts";
 
 export interface DeliveryLocation {
@@ -54,7 +54,16 @@ export async function consumeMailbox(options: MailboxOptions): Promise<Notificat
   return consumeMailboxInternal(options, options.deliverIndividually === true);
 }
 
-async function consumeMailboxInternal(options: MailboxOptions, individually: boolean): Promise<Notification[]> {
+/** Reuse only the root already discovered by the current hook; identity and state stay fresh. */
+export async function consumeMailboxAtRoot(options: MailboxOptions, discoveredRoot: string): Promise<Notification[]> {
+  return consumeMailboxInternal(options, options.deliverIndividually === true, discoveredRoot);
+}
+
+async function consumeMailboxInternal(
+  options: MailboxOptions,
+  individually: boolean,
+  discoveredRoot?: string,
+): Promise<Notification[]> {
   const adapter = options.adapter;
   validateIdentity({ adapter, session: "snapshot" });
   const session = options.session;
@@ -66,7 +75,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
   signal?.throwIfAborted();
   const cwd = options.cwd;
   const ref = options.ref;
-  const repo = await repository(cwd, signal);
+  const repo = await repository(cwd, signal, true, discoveredRoot);
   const key = sessionKey(repo, identity, ref);
   const receipts = join(repo.directory, "receipts", key);
   await checkStateDirectory(receipts, true);
@@ -87,7 +96,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
               if (existing?.closedAt) return false;
               // A daemon hint cannot rule out a later interrupted publication.
               current = await synchronizeRef(repo, ref, identity, signal);
-              await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
+              await writeRepositoryMetadata(repo);
               const registered = await registerSession(repo, identity, ref, current, !upstreamOnly);
               if (!registered.migrated) {
                 const legacyPath = join(repo.common, "worktree-agent-sync", `${key}.json`);

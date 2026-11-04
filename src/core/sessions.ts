@@ -28,7 +28,7 @@ import {
   assertMigrationReady,
   checkRepositoryDirectories,
   repository,
-  repositoryMetadata,
+  writeRepositoryMetadata,
   withRepositoryIdentity,
   type Repository,
 } from "./repository.ts";
@@ -393,7 +393,7 @@ export async function joinSession(
         join(repo.directory, "publish.lock"),
         async () => {
           const current = await synchronizeRef(repo, options.ref, options, options.signal);
-          await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
+          await writeRepositoryMetadata(repo);
           const register = async (token?: string) => {
             return registerSession(
               repo,

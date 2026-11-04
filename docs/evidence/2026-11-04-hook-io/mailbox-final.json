@@ -1,0 +1,69 @@
+{
+  "startedAt": "2026-11-04T04:20:33.203Z",
+  "completedAt": "2026-11-04T04:21:00.611Z",
+  "source": {
+    "commit": "ef546ad7e8439db8ff1de311068769e479fe767f",
+    "dirty": true,
+    "sha256": "20bd1d887c3e34f1be3f43ebe8122dc220925cf9209ee5167101b8500cd5d35b",
+    "buildSha256": "f12ef007497bf4ee75a42d4494c6d0d0bcde37c17081851d96c2aeacec244b6c"
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64"
+  },
+  "command": ["/Users/sheny/.nvm/versions/node/v22.23.2/bin/node", "scripts/benchmark.mjs"],
+  "results": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sessions": 3,
+      "samples": 3,
+      "offlineBacklog": 32,
+      "workload": "retained broadcast messages; setup excluded; warm filesystem cache"
+    },
+    {
+      "events": 100,
+      "daemon": false,
+      "idleThreeSessionsMs": 100.6,
+      "offlineRecovery32Ms": 142.8
+    },
+    {
+      "events": 100,
+      "daemon": true,
+      "idleThreeSessionsMs": 103.2,
+      "offlineRecovery32Ms": 137.1
+    },
+    {
+      "events": 1000,
+      "daemon": false,
+      "idleThreeSessionsMs": 207,
+      "offlineRecovery32Ms": 283.3
+    },
+    {
+      "events": 1000,
+      "daemon": true,
+      "idleThreeSessionsMs": 207.1,
+      "offlineRecovery32Ms": 283.2
+    },
+    {
+      "events": 10000,
+      "daemon": false,
+      "idleThreeSessionsMs": 1610.7,
+      "offlineRecovery32Ms": 2081.7
+    },
+    {
+      "events": 10000,
+      "daemon": true,
+      "idleThreeSessionsMs": 1854.2,
+      "offlineRecovery32Ms": 2519
+    }
+  ],
+  "stdout": "{\"node\":\"v22.23.2\",\"git\":\"git version 2.54.0 (Apple Git-157)\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"sessions\":3,\"samples\":3,\"offlineBacklog\":32,\"workload\":\"retained broadcast messages; setup excluded; warm filesystem cache\"}\n{\"events\":100,\"daemon\":false,\"idleThreeSessionsMs\":100.6,\"offlineRecovery32Ms\":142.8}\n{\"events\":100,\"daemon\":true,\"idleThreeSessionsMs\":103.2,\"offlineRecovery32Ms\":137.1}\n{\"events\":1000,\"daemon\":false,\"idleThreeSessionsMs\":207,\"offlineRecovery32Ms\":283.3}\n{\"events\":1000,\"daemon\":true,\"idleThreeSessionsMs\":207.1,\"offlineRecovery32Ms\":283.2}\n{\"events\":10000,\"daemon\":false,\"idleThreeSessionsMs\":1610.7,\"offlineRecovery32Ms\":2081.7}\n{\"events\":10000,\"daemon\":true,\"idleThreeSessionsMs\":1854.2,\"offlineRecovery32Ms\":2519}\n",
+  "stderr": "",
+  "limitations": "Single local run. No baseline comparison, cold-cache guarantee, physical I/O measurement or real-client latency claim."
+}

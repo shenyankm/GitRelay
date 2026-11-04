@@ -1,0 +1,78 @@
+{
+  "sourceBaseCommit": "ef546ad7e8439db8ff1de311068769e479fe767f",
+  "workingTreeCandidate": true,
+  "localCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "passed": 666,
+    "failed": 0,
+    "skipped": 1,
+    "skippedReason": "Windows installer test on macOS",
+    "format": true,
+    "typecheck": true,
+    "releaseMetadata": true,
+    "packageDryRun": true,
+    "logSha256": "2b8211d8c910ae16d0542eddebb76707b4be63ecc3d1690780b346d5879854f1"
+  },
+  "newRegressions": [
+    "single-hook root reuse and exact Git process bound",
+    "explicit worktree selection",
+    "relative GIT_DIR pinned common-directory selection",
+    "metadata write deduplication across poll/join/send; missing, corrupt and symlink recovery; write failures"
+  ],
+  "recoveryShortcutDecision": "Rejected empty-journal and directory-witness fast paths; old writer and corruption probes passed with full recovery retained.",
+  "measurements": ["hooks-final-1.json", "hooks-final-2.json", "metadata-final.json", "mailbox-final.json"],
+  "nativeAcceptance": {
+    "status": "passed",
+    "modelTurns": 14,
+    "client": "codex-cli 0.166.0",
+    "evidence": "native-summary.json"
+  },
+  "hostedCI": "not run",
+  "largeRetainedStatePerformance": {
+    "status": "INCONCLUSIVE",
+    "performancePass": false,
+    "evidence": ["mailbox-comparison.json", "mailbox-comparison-balanced.json"],
+    "note": "Control medians are slower; no large-state speedup or reliable regression estimate claimed."
+  },
+  "runtimeBuildSha256": {
+    "baseline": "2ac7fdaeeeaad6139797b9a3a7c7159cc6d0337bd9b92b4d5bdbe021be79f09b",
+    "candidate": "80de1d86b94bef489fdfcda14691e1063f839622f7a82bc58eaa574ef9815648"
+  },
+  "completedAt": "2026-11-04T04:40:16.096Z",
+  "postGateChecks": {
+    "rootRegressions": {
+      "passed": 3,
+      "failed": 0
+    },
+    "docsSecrets": {
+      "passed": 1,
+      "failed": 0
+    },
+    "format": true,
+    "releaseMetadata": true,
+    "nativeBuildAndSourceRechecked": true,
+    "temporaryCredentialsRemoved": true,
+    "ownedDaemonStopped": true
+  },
+  "changedFilesSha256": {
+    "docs/evidence/2026-11-04-hook-io/probe-recovery-index.mjs": "323f970a36ee2c04fac0583ba19572dd80031ed4219834753785e6b8e2a36242",
+    "docs/performance.md": "049998798cfdf611e35aafc299fd60d7a8d3e79a79cf37af48fdbdb4b5a80a9a",
+    "scripts/benchmark-hooks.mjs": "c2fc88fb7d36818bc93f4a10289e6dd2dbdff308bf30e8ed045eacff881eac96",
+    "scripts/benchmark.mjs": "f8f4d41f3cc3c78437769fcf4ab1f954f1373d2db904ba6e858f230f6daab36a",
+    "src/adapters/hooks.ts": "04b52bd122800756c5319e93ec3155d386b8830e28949e673a16076e49739de1",
+    "src/core/changes.ts": "1e616b43a3257b2ff416ddb365c8803f1257a74f17276f491f2587e784208818",
+    "src/core/consumer.ts": "743a5ce07fe8022ae56a8f0257fa47b4e7c06f4199b405e44bf44dd7a96b2a1a",
+    "src/core/mailbox.ts": "0dcb5394473f3ab0858c59c107202d4b4e8fc2989684f49936c2f2e78231e642",
+    "src/core/repository.ts": "231c1d67d1a9977534d5ae6c41054083f323a5bb1eaa31f8fd7e9734374f3010",
+    "src/core/sessions.ts": "aae09ccf3e8ef21fbf25512ed57ee69475ce5c3cbe776afcbf3182e6b181ebf3",
+    "tests/adapters/hook-git-reads.test.ts": "695debe00a7403c9d75b88eb56c43eaf755097ab840deed22f7059c263342689",
+    "tests/core/repository-metadata-writes.test.ts": "bf99cc9cb570828f7f42bd84150d56b95834177a771778c3e10daa0939236738"
+  },
+  "finalPackage": {
+    "files": 73,
+    "size": 170936,
+    "unpackedSize": 607460,
+    "evidenceExcluded": true
+  }
+}

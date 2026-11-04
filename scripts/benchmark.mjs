@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir, platform, arch } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
+import { pathToFileURL } from "node:url";
 import { consumeMailbox } from "../dist/core/consumer.js";
 import { runDaemon } from "../dist/core/daemon.js";
 import { daemonStatus } from "../dist/core/daemon-state.js";
@@ -11,6 +12,15 @@ import { sessionKey } from "../dist/core/mailbox.js";
 import { hash } from "../dist/core/store.js";
 import { repository } from "../dist/core/repository.js";
 
+const [baseline, ...extra] = process.argv.slice(2);
+assert.equal(extra.length, 0, "Usage: node scripts/benchmark.mjs [baseline-dist-directory]");
+const variants = {
+  ...(baseline
+    ? { baseline: (await import(pathToFileURL(join(resolve(baseline), "core/consumer.js")))).consumeMailbox }
+    : {}),
+  candidate: consumeMailbox,
+};
+const sampleCount = baseline ? 6 : 3;
 const temporary = await mkdtemp(join(tmpdir(), "git-relay-bench-"));
 const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
 process.env.WORKTREE_SYNC_STATE_DIR = join(temporary, "state");
@@ -69,7 +79,7 @@ try {
       platform: platform(),
       arch: arch(),
       sessions: 3,
-      samples: 3,
+      samples: sampleCount,
       offlineBacklog: 32,
       workload: "retained broadcast messages; setup excluded; warm filesystem cache",
     }),
@@ -122,13 +132,26 @@ try {
             }),
           ]);
         }
-        const samples = [];
-        for (let i = 0; i < 3; i++)
-          samples.push(
-            await elapsed(async () => {
-              for (const { options } of sessions) assert.equal((await consumeMailbox(options)).length, 0);
-            }),
-          );
+        const samples = Object.fromEntries(Object.keys(variants).map((name) => [name, []]));
+        for (const consume of Object.values(variants))
+          for (const { options } of sessions) assert.equal((await consume(options)).length, 0);
+        for (let i = 0; i < sampleCount; i++) {
+          const order = Object.entries(variants);
+          if (i % 2) order.reverse();
+          for (const [name, consume] of order)
+            samples[name].push(
+              await elapsed(async () => {
+                for (const { options } of sessions) assert.equal((await consume(options)).length, 0);
+              }),
+            );
+        }
+        const medians = Object.fromEntries(
+          Object.entries(samples).map(([name, rows]) => {
+            const sorted = [...rows].sort((a, b) => a - b),
+              middle = Math.floor(sorted.length / 2);
+            return [name, sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2];
+          }),
+        );
         const unread = ids.slice(-32);
         const receiver = sessions[0];
         for (const id of unread) await rm(join(repo.directory, "receipts", receiver.key, `${id}.json`));
@@ -154,7 +177,8 @@ try {
           JSON.stringify({
             events: count,
             daemon,
-            idleThreeSessionsMs: samples.sort((a, b) => a - b)[1],
+            idleThreeSessionsMs: medians.candidate,
+            ...(baseline ? { idleByVariantMs: medians, idleSamplesByVariantMs: samples } : {}),
             offlineRecovery32Ms: offlineRecoveryMs,
           }),
         );

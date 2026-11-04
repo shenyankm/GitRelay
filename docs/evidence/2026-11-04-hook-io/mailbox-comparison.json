@@ -1,0 +1,190 @@
+{
+  "workload": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sessions": 3,
+    "samples": 5,
+    "offlineBacklog": 32,
+    "workload": "retained broadcast messages; setup excluded; warm filesystem cache"
+  },
+  "method": "Same-state alternating baseline/candidate calls; one warm-up per variant; setup excluded. Medians recomputed from retained raw samples, averaging the two middle samples for even counts.",
+  "originalRecorderRows": [
+    {
+      "node": "v22.23.2",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sessions": 3,
+      "samples": 5,
+      "offlineBacklog": 32,
+      "workload": "retained broadcast messages; setup excluded; warm filesystem cache"
+    },
+    {
+      "events": 100,
+      "daemon": false,
+      "idleThreeSessionsMs": 104.4,
+      "idleByVariantMs": {
+        "baseline": 132.7,
+        "candidate": 104.4
+      },
+      "idleSamplesByVariantMs": {
+        "baseline": [125.8, 126.4, 132.7, 133.6, 153.8],
+        "candidate": [96.2, 98.7, 104.4, 106.9, 109.4]
+      },
+      "offlineRecovery32Ms": 139.5
+    },
+    {
+      "events": 100,
+      "daemon": true,
+      "idleThreeSessionsMs": 96,
+      "idleByVariantMs": {
+        "baseline": 123.3,
+        "candidate": 96
+      },
+      "idleSamplesByVariantMs": {
+        "baseline": [121.8, 122.5, 123.3, 123.6, 147.2],
+        "candidate": [95, 95.6, 96, 96.9, 104.4]
+      },
+      "offlineRecovery32Ms": 137.2
+    },
+    {
+      "events": 1000,
+      "daemon": false,
+      "idleThreeSessionsMs": 204.1,
+      "idleByVariantMs": {
+        "baseline": 210.3,
+        "candidate": 204.1
+      },
+      "idleSamplesByVariantMs": {
+        "baseline": [209.1, 210.2, 210.3, 212.1, 212.2],
+        "candidate": [203.6, 204.1, 204.1, 205.1, 206.9]
+      },
+      "offlineRecovery32Ms": 278.5
+    },
+    {
+      "events": 1000,
+      "daemon": true,
+      "idleThreeSessionsMs": 210,
+      "idleByVariantMs": {
+        "baseline": 212.8,
+        "candidate": 210
+      },
+      "idleSamplesByVariantMs": {
+        "baseline": [208.1, 209, 212.8, 214.9, 247.7],
+        "candidate": [203.6, 205.6, 210, 224, 247.7]
+      },
+      "offlineRecovery32Ms": 295
+    },
+    {
+      "events": 10000,
+      "daemon": false,
+      "idleThreeSessionsMs": 1797.1,
+      "idleByVariantMs": {
+        "baseline": 1721.8,
+        "candidate": 1797.1
+      },
+      "idleSamplesByVariantMs": {
+        "baseline": [1634.5, 1688.9, 1721.8, 1816.1, 1835.3],
+        "candidate": [1675.8, 1681.6, 1797.1, 1922, 2107.6]
+      },
+      "offlineRecovery32Ms": 2143.4
+    },
+    {
+      "events": 10000,
+      "daemon": true,
+      "idleThreeSessionsMs": 1728.9,
+      "idleByVariantMs": {
+        "baseline": 1687.7,
+        "candidate": 1728.9
+      },
+      "idleSamplesByVariantMs": {
+        "baseline": [1629.6, 1655.8, 1687.7, 1739.6, 1802.8],
+        "candidate": [1633.1, 1709.7, 1728.9, 1750.7, 1807.9]
+      },
+      "offlineRecovery32Ms": 2149.1
+    }
+  ],
+  "results": [
+    {
+      "events": 100,
+      "daemon": false,
+      "rawSamplesMs": {
+        "baseline": [125.8, 126.4, 132.7, 133.6, 153.8],
+        "candidate": [96.2, 98.7, 104.4, 106.9, 109.4]
+      },
+      "mediansMs": {
+        "baseline": 132.7,
+        "candidate": 104.4
+      },
+      "candidateRecovery32Ms": 139.5
+    },
+    {
+      "events": 100,
+      "daemon": true,
+      "rawSamplesMs": {
+        "baseline": [121.8, 122.5, 123.3, 123.6, 147.2],
+        "candidate": [95, 95.6, 96, 96.9, 104.4]
+      },
+      "mediansMs": {
+        "baseline": 123.3,
+        "candidate": 96
+      },
+      "candidateRecovery32Ms": 137.2
+    },
+    {
+      "events": 1000,
+      "daemon": false,
+      "rawSamplesMs": {
+        "baseline": [209.1, 210.2, 210.3, 212.1, 212.2],
+        "candidate": [203.6, 204.1, 204.1, 205.1, 206.9]
+      },
+      "mediansMs": {
+        "baseline": 210.3,
+        "candidate": 204.1
+      },
+      "candidateRecovery32Ms": 278.5
+    },
+    {
+      "events": 1000,
+      "daemon": true,
+      "rawSamplesMs": {
+        "baseline": [208.1, 209, 212.8, 214.9, 247.7],
+        "candidate": [203.6, 205.6, 210, 224, 247.7]
+      },
+      "mediansMs": {
+        "baseline": 212.8,
+        "candidate": 210
+      },
+      "candidateRecovery32Ms": 295
+    },
+    {
+      "events": 10000,
+      "daemon": false,
+      "rawSamplesMs": {
+        "baseline": [1634.5, 1688.9, 1721.8, 1816.1, 1835.3],
+        "candidate": [1675.8, 1681.6, 1797.1, 1922, 2107.6]
+      },
+      "mediansMs": {
+        "baseline": 1721.8,
+        "candidate": 1797.1
+      },
+      "candidateRecovery32Ms": 2143.4
+    },
+    {
+      "events": 10000,
+      "daemon": true,
+      "rawSamplesMs": {
+        "baseline": [1629.6, 1655.8, 1687.7, 1739.6, 1802.8],
+        "candidate": [1633.1, 1709.7, 1728.9, 1750.7, 1807.9]
+      },
+      "mediansMs": {
+        "baseline": 1687.7,
+        "candidate": 1728.9
+      },
+      "candidateRecovery32Ms": 2149.1
+    }
+  ],
+  "largeRetainedStatePerformance": "INCONCLUSIVE: no large-state speedup claim. Median slowdowns remain in raw controls; external load and sample spread prevent a reliable general regression estimate."
+}

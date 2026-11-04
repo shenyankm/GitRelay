@@ -1,13 +1,98 @@
 # GitRelay performance benchmarks
 
-The active 50-round I/O and size optimization is tracked in
+The earlier 50-round I/O and size optimization is tracked in
 [optimization rounds](optimization-rounds.md).
 
-These are measurements of the named historical source snapshots, not new
-benchmarks of the Codex-only revision. Some snapshots include retired clients
+The dated sections below describe their named source snapshots. The November 4
+section measures the current Codex-only working-tree candidate; older sections
+are historical measurements. Some snapshots include retired clients
 and old synchronization or session behavior. Preserve their numbers as evidence;
 use the [current platform matrix](platform-matrix.md) and
 [acceptance guide](acceptance.md) for supported behavior and validation limits.
+
+## Hook Git reads and metadata writes: 2026-11-04
+
+The working-tree candidate based on `ef546ad7` reuses the root already discovered
+by activation within a single hook. Repository identity, common-directory
+selection, state validation and delivery-time activation checks remain fresh.
+The constant `refs/heads/main` avoids a redundant format-validation subprocess;
+custom refs still use Git validation. The public SDK's single-argument
+`consumeMailbox` signature is unchanged.
+
+The shared metadata writer also avoids atomically replacing unchanged
+`repo.json` records in poll, join and send. Missing, malformed and outdated
+metadata still uses the original atomic replacement path; symlinks are not
+followed during comparison. Session and ref timestamps continue to update.
+
+Two [full-hook comparisons](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/hooks-final-1.json)
+([second run](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/hooks-final-2.json)) each use one
+warm-up and 15 alternating idle PostToolUse samples per build on the same
+repository and state. Both compare the saved original runtime with the final
+candidate on macOS arm64, Node 22.23.2 and Git 2.54.0.
+
+| Full CLI hook metric               | Original | Candidate |
+| ---------------------------------- | -------: | --------: |
+| Median elapsed, run 1              | 112.5 ms |   84.7 ms |
+| Median elapsed, run 2              | 119.1 ms |   84.6 ms |
+| Git processes per idle hook        |        5 |         3 |
+| Root-discovery processes           |        2 |         1 |
+| Metadata atomic replacements       |        1 |         0 |
+| All state JSON atomic replacements |        3 |         2 |
+
+The observed elapsed reductions are 24.8% and 29.0%, including Node startup
+and measurement-wrapper overhead. An [isolated metadata comparison](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/metadata-final.json)
+against the already optimized Git-read build records 88.0 → 86.0 ms. That small
+elapsed difference is not a general speedup claim; the retained benefit is the
+verified removal of one metadata replacement per stable poll. Every idle sample
+asserts empty output; each run separately checks immediate
+message delivery, Stop continuation and deduplication.
+
+The proposed recovery-scan shortcuts were rejected. A [real Git probe using the
+saved older writer](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/probe-recovery-index.mjs)
+[reproduces both counterexamples](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/recovery-index-decision.json):
+an older writer can leave a published and acknowledged event without a new
+pending-transaction record, and an in-place event modification leaves the
+event-directory inode and timestamps unchanged. The current full scan recovers
+the former and rejects a corrupt acknowledged event in the latter. Neither an
+empty new journal nor matching directory timestamps can safely replace the
+existing recovery checks while retaining these compatibility and validation
+semantics. The candidate therefore keeps the existing recovery/storage protocol;
+large retained inboxes still require event and receipt scans.
+
+The [five-sample same-state mailbox control](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/mailbox-comparison.json)
+and [six-sample order-balanced repeat](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/mailbox-comparison-balanced.json)
+retain their raw samples. At 10,000 events, the first run's three-session idle
+medians are 1,721.8 → 1,797.1 ms without a daemon and 1,687.7 → 1,728.9 ms
+with one. The balanced repeat's medians, averaging the two middle samples, are
+1,682.45 → 1,773.55 ms and 1,685.0 → 1,692.5 ms. These control medians are slower;
+their broad, overlapping sample ranges make the large-state performance gate
+inconclusive. They are not counted as a performance pass or a large-state
+speedup. The raw recorder's former upper-middle statistic for even counts is
+preserved beside the recomputed medians. The benchmark now retains sample order
+and computes the usual median for both odd and even sample counts.
+
+`npm run check` passed 666 tests, with one skipped and zero failures, including
+installed SDK and plugin-package checks. [Local validation](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/validation.json)
+is separate from [14 real Codex CLI 0.166.0 model turns](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/2026-11-04-hook-io/native-summary.json):
+normal hook trust, independent messages and upstream diffs, dirty-work preservation,
+disable/resume, unread preservation, deduplication, uninstall/reinstall and busy-tool
+delivery passed. The managed runtime matches the tested build; temporary
+credentials were removed and the verified test-owned daemon was stopped.
+Installation still requires `--allow-unverified` for this client version.
+
+Reproduce with the original runtime saved before rebuilding the candidate:
+
+```sh
+node scripts/benchmark-hooks.mjs /absolute/original/dist/cli/main.js
+node scripts/benchmark.mjs /absolute/original/dist
+node docs/evidence/2026-11-04-hook-io/probe-recovery-index.mjs /absolute/original/dist
+```
+
+These are warm-cache synthetic CLI measurements with uncontrolled external load.
+CPU/RSS are per Node child and omit Git children; filesystem block counters do
+not measure physical disk bytes. Cold caches, network filesystems and native
+model latency are not established by these comparisons. Local correctness and
+native functional acceptance are recorded separately in this evidence directory.
 
 ## Repeated upstream-event ordering: 2026-10-29
 

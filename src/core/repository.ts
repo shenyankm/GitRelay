@@ -113,9 +113,10 @@ export async function withRepositoryIdentity<T>(
   signal: AbortSignal | undefined,
   run: (repo: Repository) => Promise<T>,
   initialize = true,
+  discoveredRoot?: string,
 ): Promise<T> {
   await checkManagedRoot();
-  const root = await watchRoot(cwd, signal);
+  const root = discoveredRoot ?? (await watchRoot(cwd, signal));
   const common = await realpath(
     gitPathLine(await git(root, ["rev-parse", "--path-format=absolute", "--git-common-dir"], signal, "paths")),
   );
@@ -134,12 +135,13 @@ export async function withRepositoryIdentity<T>(
   );
 }
 
-export const repositoryMetadata = (repo: Repository) => ({
-  id: repo.id,
-  common: repo.common,
-  identity: repo.identity,
-  identitySource: repo.identitySource,
-});
+/** Caller holds publish.lock; failed comparisons retain the original atomic replacement behavior. */
+export async function writeRepositoryMetadata(repo: Repository): Promise<void> {
+  const path = join(repo.directory, "repo.json");
+  const metadata = { id: repo.id, common: repo.common, identity: repo.identity, identitySource: repo.identitySource };
+  const previous = await readJson(path, true).catch(() => undefined);
+  if (JSON.stringify(previous) !== JSON.stringify(metadata)) await writeJson(path, metadata);
+}
 
 /** A claimed migration must finish before its destination can receive events. */
 export async function assertMigrationReady(repo: Repository): Promise<void> {
@@ -315,7 +317,12 @@ export async function chooseFreshRepository(
   });
 }
 
-export async function repository(cwd: string, signal?: AbortSignal, initialize = true): Promise<Repository> {
+export async function repository(
+  cwd: string,
+  signal?: AbortSignal,
+  initialize = true,
+  discoveredRoot?: string,
+): Promise<Repository> {
   return withRepositoryIdentity(
     cwd,
     signal,
@@ -381,5 +388,6 @@ export async function repository(cwd: string, signal?: AbortSignal, initialize =
       return repo;
     },
     initialize,
+    discoveredRoot,
   );
 }

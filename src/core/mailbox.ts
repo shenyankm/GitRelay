@@ -3,7 +3,7 @@ import { lstat, readdir, rename } from "node:fs/promises";
 import { join, posix } from "node:path";
 import { formatChange, type Change } from "./changes.ts";
 import { checkStateDirectory, hash, isCommit, isId, readJson, withLock, writeJson } from "./store.ts";
-import { repository, repositoryMetadata, type Repository } from "./repository.ts";
+import { repository, writeRepositoryMetadata, type Repository } from "./repository.ts";
 
 // Use a true end check: `$` also matches before a final line terminator.
 const parentPath = /(?:^|[\\/])\.\.(?![^\\/])/;
@@ -520,7 +520,7 @@ export async function sendMessage(
   return withLock(
     join(repo.directory, "publish.lock"),
     async () => {
-      await writeJson(join(repo.directory, "repo.json"), repositoryMetadata(repo));
+      await writeRepositoryMetadata(repo);
       const senderKey = sessionKey(repo, identity, ref);
       const sender = await readSession(repo, senderKey);
       if (sender?.closedAt) throw new Error("This session has left; use join before sending messages.");
