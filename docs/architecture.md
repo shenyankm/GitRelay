@@ -56,7 +56,7 @@ repository identity.
 
 ## Public and internal APIs
 
-New SDK users import `git-relay`. The root exports message consumption/sending,
+New SDK users import `@sistine29/git-relay`. The root exports message consumption/sending,
 session listing, formatting, complete enable/disable operations, the history-gap
 error and their input/event types. Type declarations are generated from the same
 source during the build. See [SDK integration](shared-messages.md#sdk-integration).

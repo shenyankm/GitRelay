@@ -4,10 +4,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 export function validateRelease(pkg, lock, plugin, changelog, tag) {
   assert.match(pkg.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/);
-  for (const metadata of [lock, lock.packages[""], plugin]) {
-    assert.equal(metadata.name, pkg.name, "Package, lockfile and plugin names must match");
+  for (const metadata of [lock, lock.packages[""]]) {
+    assert.equal(metadata.name, pkg.name, "Package and lockfile names must match");
     assert.equal(metadata.version, pkg.version, "Package, lockfile and plugin versions must match");
   }
+  assert.equal(plugin.name, pkg.name.split("/").at(-1), "Codex plugin name must match the npm package basename");
+  assert.equal(plugin.version, pkg.version, "Package, lockfile and plugin versions must match");
   assert.ok(changelog.includes("\n## [Unreleased]\n"), "Keep an Unreleased changelog section");
   if (tag) {
     assert.equal(tag, `v${pkg.version}`, "Release tag must match the package version");

@@ -2,7 +2,15 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-04
+
+- Publish under `@sistine29/git-relay`; npm rejected the unscoped name as too similar to the existing `gitrelay` package.
+- Keep the `git-relay` CLI command, its aliases and Codex plugin ID unchanged.
+- Update SDK imports, scoped installation tests and release checks while preserving the existing source tag `v0.1.1`.
+
 ## [0.1.1] - 2026-11-04
+
+Source tag only; npm publication was rejected due to the unscoped package name.
 
 - Reduce idle Codex hook Git subprocesses from five to three and skip unchanged repository metadata writes.
 - Record 25-29% lower idle hook latency in two warm-cache comparisons, 666 passing local tests and 14 real Codex model turns.

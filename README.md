@@ -10,8 +10,8 @@ GitHub branch status.
 > starts one shared daemon; it stops after the last Codex process exits.
 
 Node.js 22.19+ and Git are required. The runtime has no npm dependencies.
-`git-relay` is the package and CLI name; `worktree-relay` and `worktree-sync`
-remain CLI aliases.
+The npm package is `@sistine29/git-relay`; the CLI command is `git-relay`.
+`worktree-relay` and `worktree-sync` remain CLI aliases.
 
 ## Contents
 
@@ -28,14 +28,15 @@ remain CLI aliases.
 ## Quick start
 
 ```sh
-npm ci --ignore-scripts
-npm run build
-npm install -g /absolute/path/to/GitRelay
+npm install -g @sistine29/git-relay
 git-relay install --dry-run
 git-relay install --platform codex
 ```
 
 Reopen the receiving clients after installation.
+
+For a source checkout, run `npm ci --ignore-scripts`, `npm run build`, and
+`npm install -g /absolute/path/to/GitRelay` instead of the registry install.
 
 The installer configures Codex, preserves foreign or
 modified configuration, and keeps owned runtime copies. Codex user hooks need

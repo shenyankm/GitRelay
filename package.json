@@ -1,6 +1,6 @@
 {
-  "name": "git-relay",
-  "version": "0.1.1",
+  "name": "@sistine29/git-relay",
+  "version": "0.1.2",
   "description": "GitRelay: Git worktree change awareness for Codex",
   "license": "MIT",
   "type": "module",

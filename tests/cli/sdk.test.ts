@@ -11,17 +11,17 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 
 test("installed SDK exposes transactions, preserves unread state, and keeps documented legacy imports", async (t) => {
   const f = await fixture(t);
-  const installed = join(f.root, "node_modules", "git-relay");
+  const installed = join(f.root, "node_modules", "@sistine29/git-relay");
   await mkdir(installed, { recursive: true });
   await cp(join(root, "package.json"), join(installed, "package.json"));
   await cp(join(root, "dist"), join(installed, "dist"), { recursive: true });
   const program = `
     import assert from 'node:assert/strict';
-    import * as api from 'git-relay';
-    import { consumeMailbox } from 'git-relay/dist/core/consumer.js';
+    import * as api from '@sistine29/git-relay';
+    import { consumeMailbox } from '@sistine29/git-relay/dist/core/consumer.js';
     assert.equal(api.consumeMailbox, consumeMailbox);
     assert.equal(api.registerSession, undefined);
-    await assert.rejects(import('git-relay/dist/core/store.js'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
+    await assert.rejects(import('@sistine29/git-relay/dist/core/store.js'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
     const receiver = { cwd: ${JSON.stringify(f.b)}, ref: 'refs/heads/main', adapter: 'codex', session: 'receiver' };
     await api.enableSession(receiver);
     const event = await api.sendMessage({ cwd: ${JSON.stringify(f.a)}, adapter: 'cli', session: 'sender', text: 'preserved' });
@@ -50,7 +50,7 @@ test("installed SDK exposes transactions, preserves unread state, and keeps docu
   await writeFile(
     consumer,
     `
-    import { consumeMailbox, enableSession, type MailboxOptions, type SessionOptions } from 'git-relay';
+    import { consumeMailbox, enableSession, type MailboxOptions, type SessionOptions } from '@sistine29/git-relay';
     const session: SessionOptions = { cwd: '/repo', ref: 'refs/heads/main', adapter: 'codex', session: 's' };
     const options: MailboxOptions = { ...session, async deliver(batch) { batch[0].event.id.toUpperCase(); } };
     void enableSession(session);

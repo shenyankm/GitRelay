@@ -18,6 +18,21 @@ test("release metadata rejects mismatched versions and unrecorded tags", () => {
   assert.throws(() => validateRelease(pkg, lock, pkg, "\n## [Unreleased]\n", "v0.1.0"), /dated changelog/);
 });
 
+test("scoped npm releases retain the Codex plugin identity and exact lockfile names", () => {
+  const pkg = { name: "@sistine29/git-relay", version: "0.1.2" };
+  const lock = { ...pkg, packages: { "": pkg } };
+  const plugin = { name: "git-relay", version: pkg.version };
+  const changelog = "# Changelog\n\n## [Unreleased]\n\n## [0.1.2] - 2026-11-04\n";
+  assert.doesNotThrow(() => validateRelease(pkg, lock, plugin, changelog, "v0.1.2"));
+  assert.throws(() => validateRelease(pkg, { ...lock, name: plugin.name }, plugin, changelog), /names must match/);
+  assert.throws(
+    () => validateRelease(pkg, { ...lock, packages: { "": plugin } }, plugin, changelog),
+    /names must match/,
+  );
+  assert.throws(() => validateRelease(pkg, lock, pkg, changelog), /plugin name must match/);
+  assert.throws(() => validateRelease(pkg, lock, { ...plugin, version: "0.1.1" }, changelog), /versions must match/);
+});
+
 test(
   "release validation runs through symlinked script and checkout paths",
   { skip: process.platform === "win32" },

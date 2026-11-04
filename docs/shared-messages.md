@@ -161,7 +161,7 @@ JavaScript and TypeScript declarations; consumers do not need TypeScript source
 stripping or `allowImportingTsExtensions`:
 
 ```js
-import { consumeMailbox, sendMessage, formatNotifications } from 'git-relay';
+import { consumeMailbox, sendMessage, formatNotifications } from '@sistine29/git-relay';
 
 await consumeMailbox({
   cwd: '/project/worktree-B',

@@ -14,7 +14,7 @@ const read = (path: string) => readFile(new URL(`../../${path}`, import.meta.url
 
 test("package exposes the CLI and only the Codex adapter", async () => {
   const manifest = JSON.parse(await read("package.json"));
-  assert.equal(manifest.name, "git-relay");
+  assert.equal(manifest.name, "@sistine29/git-relay");
   assert.equal(manifest.license, "MIT");
   assert.equal(manifest.bin["git-relay"], "./dist/cli/main.js");
   assert.equal(manifest.bin["worktree-relay"], manifest.bin["git-relay"]);
@@ -90,6 +90,9 @@ test(
     assert.equal(await readFile(join(installed, "CONTRIBUTING.md"), "utf8"), await read("CONTRIBUTING.md"));
     assert.equal(await readFile(join(installed, "CHANGELOG.md"), "utf8"), await read("CHANGELOG.md"));
     const plugin = JSON.parse(await readFile(join(installed, ".codex-plugin/plugin.json"), "utf8"));
+    assert.equal(plugin.name, "git-relay");
+    assert.equal(installedPackage.name, plugin.name);
+    assert.equal(installedPackage.version, plugin.version);
     const catalog = JSON.parse(await read(".agents/plugins/marketplace.json"));
     assert.equal(catalog.plugins[0].name, plugin.name);
     assert.equal(plugin.interface.displayName, "GitRelay");

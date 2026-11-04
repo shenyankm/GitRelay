@@ -8,7 +8,7 @@
 > **会话默认自动参与。** macOS/Linux 上首个客户端加载后启动共享 daemon，
 > 最后一个 Codex 进程退出后自动停止。
 
-需要 Node.js 22.19+ 和 Git，无 npm 运行时依赖。包名及主命令为 `git-relay`，保留
+需要 Node.js 22.19+ 和 Git，无 npm 运行时依赖。npm 包名为 `@sistine29/git-relay`，主命令为 `git-relay`，保留
 `worktree-relay`、`worktree-sync` 命令别名。
 
 ## 目录
@@ -26,14 +26,15 @@
 ## 快速开始
 
 ```sh
-npm ci --ignore-scripts
-npm run build
-npm install -g /absolute/path/to/GitRelay
+npm install -g @sistine29/git-relay
 git-relay install --dry-run
 git-relay install --platform codex
 ```
 
 安装后重新打开客户端。
+
+从源码安装时，依次运行 `npm ci --ignore-scripts`、`npm run build` 和
+`npm install -g /absolute/path/to/GitRelay`，替代上述 npm 仓库安装命令。
 
 安装器仅配置 Codex，保留未被管理或已被用户修改的配置，并保存自有运行时副本。
 Codex hooks 仍须通过 `/hooks` 单独检查并信任，加载后会话自动参与。保留

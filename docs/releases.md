@@ -4,6 +4,9 @@ Versioned source tags and npm publication are separate release gates. Pushing a
 branch or tag runs validation; it does not automatically publish to npm or create
 a GitHub release.
 
+The npm package is `@sistine29/git-relay`. The Codex plugin ID and CLI command
+remain `git-relay`; the package, lockfile and plugin versions must match.
+
 1. Keep changes under `Unreleased` in [CHANGELOG.md](../CHANGELOG.md). Record
    compatibility changes, migration instructions and remaining limitations.
 2. Before a release, choose the version and update `package.json`, the root and
@@ -35,8 +38,8 @@ a GitHub release.
    gates pass:
 
    ```sh
-   npm publish /absolute/path/git-relay-VERSION.tgz --access public --tag latest
-   npm view git-relay@VERSION version dist.integrity dist-tags --json
+   npm publish /absolute/path/sistine29-git-relay-VERSION.tgz --access public --tag latest
+   npm view @sistine29/git-relay@VERSION version dist.integrity dist-tags --json
    ```
 
    Check the registry version and integrity against the local artifact, then

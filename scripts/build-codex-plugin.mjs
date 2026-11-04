@@ -6,8 +6,8 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const target = join(root, ".codex/plugin-build");
 const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const manifest = JSON.parse(await readFile(join(root, ".codex-plugin/plugin.json"), "utf8"));
-if (manifest.name !== pkg.name || manifest.version !== pkg.version)
-  throw new Error("Codex plugin identity/version must match package.json.");
+if (manifest.name !== pkg.name.split("/").at(-1) || manifest.version !== pkg.version)
+  throw new Error("Codex plugin name must match the npm package basename, and versions must match.");
 await rm(target, { recursive: true, force: true });
 await mkdir(target, { recursive: true });
 for (const path of [
@@ -34,7 +34,7 @@ for (const path of [
 await writeFile(
   join(target, "package.json"),
   JSON.stringify(
-    { name: pkg.name, version: pkg.version, license: pkg.license, type: "module", private: true },
+    { name: manifest.name, version: pkg.version, license: pkg.license, type: "module", private: true },
     null,
     2,
   ) + "\n",
