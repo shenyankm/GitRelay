@@ -63,9 +63,9 @@ test("failed pending enables preserve successful or later activation choices", a
   );
 });
 
-test("activation defaults off without creating state and is isolated by native session, instance, worktree and ref", async (t) => {
+test("activation defaults off without creating state and is isolated by session, instance, worktree and ref", async (t) => {
   const f = await fixture(t),
-    options = { cwd: f.b, ref: "refs/heads/main", adapter: "codex", session: "receiver" };
+    options = { cwd: f.b, ref: "refs/heads/main", adapter: "mcp", session: "receiver" };
   assert.equal(await sessionActivation(options), false);
   await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
   await sessionActivation(options, true);

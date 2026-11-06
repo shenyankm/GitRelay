@@ -263,7 +263,7 @@ export async function withLock<T>(
           });
           options.signal?.throwIfAborted();
           if (latest && info && latest.dev === info.dev && latest.ino === info.ino && latest.mtimeMs === info.mtimeMs) {
-            throw new BusyError(`Worktree-sync is busy: ${path}`);
+            throw new BusyError(`GitRelay is busy: ${path}`);
           }
         }
       }
@@ -271,10 +271,10 @@ export async function withLock<T>(
       // Age alone says nothing about a long-running daemon's health.
       if (options.waitMs && performance.now() >= deadline) {
         throw new Error(
-          `Worktree-sync lock remains busy: ${path} (PID ${owner?.pid ?? "unknown"}). Retry later; do not remove a live lock.`,
+          `GitRelay lock remains busy: ${path} (PID ${owner?.pid ?? "unknown"}). Retry later; do not remove a live lock.`,
         );
       }
-      if (!options.waitMs) throw new BusyError(`Worktree-sync is busy: ${path}`);
+      if (!options.waitMs) throw new BusyError(`GitRelay is busy: ${path}`);
       await delay(Math.min(10 + Math.random() * 30, Math.max(1, deadline - performance.now())), undefined, {
         signal: options.signal,
       });

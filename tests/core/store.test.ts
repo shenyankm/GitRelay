@@ -38,10 +38,13 @@ test("GC busy marker only skips a fresh live matching lock", { skip: process.pla
   const attempt = () =>
     withLock(path, async () => assert.fail("must not acquire"), { waitMs: 30, busyToken: GC_LOCK_TOKEN });
   await writeFile(path, JSON.stringify({ pid: process.pid, token: GC_LOCK_TOKEN }));
-  await assert.rejects(attempt(), BusyError);
+  await assert.rejects(
+    attempt(),
+    (error: unknown) => error instanceof BusyError && /GitRelay is busy/.test(error.message),
+  );
   await assert.rejects(
     withLock(path, async () => {}, { waitMs: 30 }),
-    /lock remains busy/,
+    /GitRelay lock remains busy/,
   );
   const old = new Date(Date.now() - 61_000);
   await utimes(path, old, old);

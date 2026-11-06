@@ -20,7 +20,7 @@ export async function enableSession(options: SessionOptions): Promise<Session | 
   await sessionActivation(options, true, undefined, {
     token,
     phase: "begin",
-    priorEnabled: await sessionActivation({ ...options, defaultEnabled: false }),
+    priorEnabled: await sessionActivation(options),
   });
   try {
     await joinSession(options, async (register, repositoryId, subscriptionKey) => {

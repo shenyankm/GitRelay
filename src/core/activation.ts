@@ -11,12 +11,10 @@ type ActivationOptions = Identity & {
   cwd: string;
   ref: string;
   signal?: AbortSignal;
-  defaultEnabled?: boolean;
-  onRoot?(root: string): void;
 };
 type Prepared = { token: string; repositoryId: string; subscriptionKey?: string };
 
-/** Persist explicit choices; native adapters may participate by default. */
+/** Persist explicit subscription choices and recover interrupted enrollment. */
 export async function sessionActivation(
   options: ActivationOptions,
   enabled?: boolean,
@@ -107,11 +105,7 @@ export async function sessionActivation(
     : undefined;
   const worktreeRoot = async () =>
     watchRoot(cwd, options.signal)
-      .then(async (root) => {
-        const canonical = await realpath(resolve(root));
-        options.onRoot?.(canonical);
-        return canonical;
-      })
+      .then((root) => realpath(resolve(root)))
       .catch(async (error: Error & { cause?: { code?: number; signal?: NodeJS.Signals | null; killed?: boolean } }) => {
         options.signal?.throwIfAborted();
         // shortcut: Git exit 128 also covers damaged repositories; distinguish discovery failures when Git can do so reliably.
@@ -134,20 +128,6 @@ export async function sessionActivation(
         throw error;
       });
   if (enabled === undefined) {
-    if (options.defaultEnabled) {
-      for (let candidate = selected ?? cwd; ; candidate = dirname(candidate)) {
-        const current = (await read(candidate)).current;
-        if (current?.enabled === false && !(await matchingRepository(candidate, current))) return false;
-        const marker = await lstat(join(candidate, ".git")).catch((error: NodeJS.ErrnoException) => {
-          if (error.code === "ENOENT" || error.code === "ENOTDIR") return undefined;
-          throw error;
-        });
-        if (marker || dirname(candidate) === candidate) break;
-      }
-      const root = await worktreeRoot();
-      const current = (await read(root)).current;
-      return current === undefined || (await enabledAt(root, current));
-    }
     if (process.env.GIT_WORK_TREE) {
       const selectedState = selected ? (await read(selected)).current : undefined;
       if (selected && (selectedState?.enabled === true || (await matchingRepository(selected, selectedState)))) {

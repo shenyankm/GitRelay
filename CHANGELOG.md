@@ -8,6 +8,7 @@
 - Add typed query, session, message, explicit acknowledgement, synchronization and maintenance tools.
 - Remove the Web console, HTTP listener and catalog tools; select repositories with explicit tool cwd arguments.
 - Bound tool-call rates and concurrency, sanitize diagnostics and allow same-connection protocol-version retries.
+- Remove obsolete Codex environment actions, unused native-adapter options and the orphaned Darwin I/O benchmark helper; use GitRelay in lock diagnostics.
 - Keep existing repository state and recovery contracts; native inbox identities are not silently transferred.
 - Use connected MCP processes for shared monitoring and failover; automatic context injection and Stop continuation are removed.
 - Prepare version 0.2.0. Publication and hosted CI remain separate steps.
