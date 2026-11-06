@@ -1,97 +1,23 @@
-# Contributing to GitRelay
+# Contributing
 
-Bug reports, documentation fixes, tests, and focused pull requests are welcome.
-For a larger feature or a change to delivery or state semantics, open an issue
-first so the scope can be discussed.
-
-## Development setup
-
-Use Node.js 22.19.0 or newer, npm, and Git. GitHub branch queries also require
-an authenticated GitHub CLI (`gh`); ordinary development does not.
-
-Fork the repository, clone your fork, and create a branch for your change:
+Requires Node.js 22.19+ and Git.
 
 ```sh
-git clone https://github.com/YOUR-USERNAME/GitRelay.git
-cd GitRelay
-git switch -c fix/your-change
 npm ci --ignore-scripts
-npm run build
-```
-
-The build generates runnable `dist/` JavaScript using Node's built-in TypeScript stripping and emits SDK declarations with the installed TypeScript compiler. Edit
-source files rather than generated output. Do not commit `dist/`,
-`node_modules/`, or `.codex/plugin-build/`.
-
-## Making a change
-
-- Keep the change focused and reuse existing helpers. The runtime uses Node's
-  standard library and local Git; avoid adding runtime dependencies.
-- See [architecture](docs/architecture.md) for transaction ownership, storage boundaries and the public SDK.
-- Shared Git, state, and delivery logic lives in `src/core/`; Codex integration
-  belongs in `src/adapters/`, and CLI behavior in `src/cli/`.
-- Add a regression test for a bug fix. Tests live in `tests/core/`,
-  `tests/adapters/`, and `tests/cli/`; reuse the temporary repositories and
-  isolated state directories in `tests/helpers.ts`.
-- Preserve unread events, independent receiver receipts, compatibility aliases,
-  and existing user configuration. Document any migration or behavior change.
-- Keep code, comments, and documentation in English. `README.zh-CN.md` is the
-  Chinese entry point; update both READMEs when shared user instructions change.
-- Never include credentials, private messages, or personal client configuration
-  in fixtures, logs, or reports. `npm run check` scans `docs/` for common
-  credential patterns.
-
-## Validation
-
-Run the same checks as CI before opening a pull request:
-
-```sh
 npm run check
 ```
 
-`npm run format` applies the pinned formatter. Type checking also rejects unused
-locals and parameters. Generated output, vendored sources and historical raw
-acceptance evidence are excluded from formatting.
+GitRelay is a local stdio MCP service. Keep stdout protocol-only. Reuse the core
+identity, publication, delivery and GC machinery; do not implement another state
+store or client-specific hook adapter. Validate inputs and preserve lock ordering,
+unread events and recovery journals.
 
-`check` runs formatting, type checking, release metadata, tests, a docs
-credential scan, and packaging sequentially. Do not run builds, tests or
-packaging concurrently in one checkout: they replace the same `dist/`. For a
-focused iteration:
+New MCP behavior needs a focused protocol/regression test. For messages, verify
+that receiving does not acknowledge and that explicit acceptance survives retry.
+For lifecycle changes, verify EOF/cancellation cleanup and shared monitor
+failover. Test the packaged runtime without source or development dependencies.
 
-```sh
-npm run build
-node --experimental-strip-types --test tests/cli/package.test.ts
-```
-
-CI checks Linux and macOS on Node.js 22.19.0 and 24. For performance changes, run
-the [benchmark recorder](docs/performance.md#record-a-reproducible-run) and report
-the workload and environment. For Codex plugin
-packaging changes, run `npm run build:codex-plugin`.
-
-Use disposable repositories and isolated state for manual integration checks.
-Report local tests, real-client acceptance, and CI results separately. Include
-the client version and tested source revision for host-specific behavior;
-passing unit tests alone does not establish delivery into a real agent session.
-See the [integration guide](docs/integrations.md),
-[acceptance records](docs/acceptance.md), and
-[performance notes](docs/performance.md) for scope and known limitations.
-
-## Issues and pull requests
-
-For a bug report, include the OS, Node.js/Git versions, relevant agent version,
-GitRelay revision, reproduction steps, expected behavior, and actual behavior.
-Redact sensitive paths and content from logs.
-
-In a pull request, explain the problem, the resulting behavior, and validation
-commands with their results. State any checks you could not run. Use a concise
-English commit subject following the existing Conventional Commits style, such
-as `fix(cli): Preserve unread messages on exit`.
-
-See [source releases](docs/releases.md) for version/tag consistency and the
-release acceptance checklist. A normal contribution does not publish a release.
-
-## License
-
-By contributing, you agree that your contributions are licensed under the
-project's [MIT License](LICENSE). Retain existing third-party copyright and
-license notices, including [`vendor/smol-toml/LICENSE`](https://github.com/shenyankm/GitRelay/blob/main/vendor/smol-toml/LICENSE).
+Benchmarks run against a built tree. `scripts/benchmark-delivery.mjs` measures the
+MCP path; the other focused scripts measure core operations. Do not compare
+pre-MCP hook/CLI numbers as if they measured the same protocol. Keep controls and
+failed candidates when recording performance evidence.

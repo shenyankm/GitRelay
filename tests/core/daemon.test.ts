@@ -606,6 +606,6 @@ test("blocked daemon output releases publish.lock and remains abortable", async 
 
 test("daemon validates limits and supports cancellation before acquiring its lock", async () => {
   await assert.rejects(runDaemon({ signal: AbortSignal.abort() }), /abort/i);
-  await assert.rejects(runDaemon({ signal: new AbortController().signal, intervalMs: 0 }), /interval-ms/);
-  await assert.rejects(runDaemon({ signal: new AbortController().signal, retentionDays: NaN }), /retention-days/);
+  await assert.rejects(runDaemon({ signal: new AbortController().signal, intervalMs: 0 }), /intervalMs/);
+  await assert.rejects(runDaemon({ signal: new AbortController().signal, retentionDays: NaN }), /retentionDays/);
 });

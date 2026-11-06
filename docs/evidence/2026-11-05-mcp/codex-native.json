@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-05",
+  "codexVersion": "codex-cli 0.166.0",
+  "serverInfo": {
+    "name": "git-relay",
+    "title": null,
+    "version": "0.2.0",
+    "description": null,
+    "icons": null,
+    "websiteUrl": null
+  },
+  "runtimeStatus": "connected",
+  "tools": [
+    "acknowledge_messages",
+    "add_repository",
+    "branch_status",
+    "choose_fresh_repository",
+    "collect_garbage",
+    "join_session",
+    "leave_session",
+    "list_repositories",
+    "list_sessions",
+    "migrate_repository",
+    "monitor_status",
+    "open_console",
+    "receive_messages",
+    "recover_repository",
+    "remove_repository",
+    "repository_status",
+    "retire_session",
+    "send_message",
+    "sync_branch"
+  ],
+  "toolCount": 19,
+  "readOnlyCall": {
+    "method": "mcpServer/tool/call",
+    "tool": "branch_status",
+    "result": {
+      "type": "worktree.branch-status",
+      "worktree": {
+        "branch": "main",
+        "commit": "a5fbfb7193802b2823e8b68ddcc9d70c3e434daf",
+        "dirty": false
+      },
+      "local": {
+        "ref": "refs/heads/main",
+        "commit": "a5fbfb7193802b2823e8b68ddcc9d70c3e434daf",
+        "tracking": null
+      }
+    }
+  },
+  "methodSequence": [
+    "initialize",
+    "mcpServerStatus/list",
+    "thread/start",
+    "mcpServerStatus/list",
+    "mcpServer/tool/call"
+  ],
+  "isolation": {
+    "ephemeralThread": true,
+    "temporaryCodexHome": true,
+    "temporaryGitFixture": true,
+    "normalConfigModified": false,
+    "modelTurns": 0
+  },
+  "limits": [
+    "No real model workflow",
+    "No desktop GUI verification",
+    "Native acceptance is Codex CLI 0.166.0 only"
+  ]
+}

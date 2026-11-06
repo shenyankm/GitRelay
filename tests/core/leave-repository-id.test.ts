@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { lstat, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -7,6 +7,8 @@ import { test, type TestContext } from "node:test";
 import { sessionKey } from "../../src/core/mailbox.ts";
 import { leaveSession, leaveSessionIfRepository, preflightLeaveSession } from "../../src/core/sessions.ts";
 import { hash } from "../../src/core/store.ts";
+import { mcpIdentity, newSessionToken } from "../../src/core/mcp-mailbox.ts";
+import { connectMcp } from "../mcp/helpers.ts";
 
 async function fixture(t: TestContext) {
   const directory = await mkdtemp(join(tmpdir(), "git-relay-leave-id-"));
@@ -147,50 +149,26 @@ test("explicit selection validates the selected state and subscription", async (
   assert.equal(JSON.parse(await readFile(path, "utf8")).closedAt, undefined);
 });
 
-test("repository selection cannot be used on another command", async () => {
-  const cli = join(process.cwd(), "src", "cli", "main.ts");
-  const result = spawnSync(
-    process.execPath,
-    [
-      "--disable-warning=ExperimentalWarning",
-      "--experimental-strip-types",
-      cli,
-      "sessions",
-      "--repository-id",
-      "a".repeat(64),
-    ],
-    { encoding: "utf8", env: process.env },
-  );
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /--repository-id requires leave/);
+test("MCP repository selection cannot be used on another tool", async (t) => {
+  const f = await fixture(t);
+  const { call } = await connectMcp(t, f.directory);
+  await assert.rejects(call("join_session", { repositoryId: "a".repeat(64) }));
 });
 
-test("CLI leave accepts a selected state repository", async (t) => {
+test("MCP leave accepts a selected state repository for a removed worktree", async (t) => {
   const f = await fixture(t),
     a = await f.add("a");
-  const cli = join(process.cwd(), "src", "cli", "main.ts");
-  const text = execFileSync(
-    process.execPath,
-    [
-      "--disable-warning=ExperimentalWarning",
-      "--experimental-strip-types",
-      cli,
-      "leave",
-      "--cwd",
-      f.root,
-      "--agent",
-      f.actor.adapter,
-      "--session",
-      f.actor.session,
-      "--repository-id",
-      a.id,
-    ],
-    { encoding: "utf8", env: process.env },
-  );
-  const result = JSON.parse(text);
+  const sessionToken = newSessionToken(),
+    identity = mcpIdentity(sessionToken);
+  const key = sessionKey({ root: f.root }, identity, f.ref);
+  const original = join(a.target, "sessions", `${f.key}.json`);
+  const path = join(a.target, "sessions", `${key}.json`);
+  await writeFile(path, JSON.stringify({ ...JSON.parse(await readFile(original, "utf8")), ...identity, key }));
+  await rm(original);
+  const { call } = await connectMcp(t, f.directory);
+  const result = await call("leave_session", { cwd: f.root, sessionToken, repositoryId: a.id });
   assert.equal(result.left, true);
-  assert.ok(result.session.closedAt);
-  assert.ok(JSON.parse(await readFile(join(a.target, "sessions", `${f.key}.json`), "utf8")).closedAt);
+  assert.ok(JSON.parse(await readFile(path, "utf8")).closedAt);
 });
 
 test(

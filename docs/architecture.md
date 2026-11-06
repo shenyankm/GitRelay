@@ -1,77 +1,65 @@
 # GitRelay architecture
 
-GitRelay coordinates Codex sessions and manual CLI consumers across worktrees
-for one OS user. State lives on the local filesystem; it is not a network service
-or a database abstraction. The public package SDK is `src/index.ts`.
+GitRelay is a local stdio MCP server over a filesystem coordination engine. The
+MCP service and shared ref monitor use the same
+repository identities, event files, receipts and locks for one OS user.
 
-## Entry points and command handling
+## Entrypoints and protocol
 
-- `src/cli/main.ts` owns process signals, bounded diagnostics, stdout completion,
-  command dispatch and exit codes. Output completion remains the delivery boundary.
-- `src/cli/args.ts` parses options and rejects explicitly supplied options outside
-  the selected command's contract. Parser defaults do not count as explicit input.
-- `src/cli/status.ts` owns snapshot polling, optional synchronization, rendering,
-  file output and status broadcasts. It uses the CLI's output and cancellation context.
-- `src/adapters/hooks.ts` validates native input and maps notifications to Codex
-  hook responses. It delegates explicit activation changes to the core lifecycle.
+`src/mcp/main.ts` owns stdio serving, process signals, bounded stderr diagnostics
+and shutdown. It uses the official MCP TypeScript server SDK and serves both
+modern clients and older initialize-based clients through the SDK's stdio entry.
+Stdout carries only protocol traffic, except explicit `--help`/`--version` output.
 
-## Session and message transactions
+`src/mcp/server.ts` registers strict input schemas, tool annotations and workflow
+instructions. It combines request cancellation with connection shutdown, tracks
+in-flight operations and starts monitoring lazily on participation. `src/index.ts` exports the embeddable server factory.
 
-`src/core/session-lifecycle.ts` owns complete enable/disable operations for both
-hooks and CLI commands. Enable preserves the existing begin/prepare/register
-protocol and failure recovery. Disable records opt-out before closing enrollment.
-Adapters do not manage transaction phases or rollback.
+There are no Codex hook adapters, client process scanners, plugin manifests,
+installers, shell-command dispatchers or generated TOML vendor bundles.
 
-`activation.ts` persists choices and pending activation recovery; `sessions.ts`
-contains low-level enrollment, missing-worktree lookup and subscription checks.
-These lower-level operations remain separate because automatic receiving and
-legacy callers need subscription operations without changing explicit choices.
+## Sessions and acknowledgement
 
-`consumer.ts` registers a receiver, synchronizes its monitored ref and consumes
-its independent inbox. `publisher.ts` repairs interrupted publications before
-advancing a ref cursor. `mailbox.ts` validates session/event/receipt records,
-persists messages and formats delivered notifications. `cleanup.ts` removes only
-confirmed events through its deletion journal.
+`join_session` generates a random private handle or resumes a supplied handle.
+`mcpIdentity` derives a public session identity from its digest, so listed session
+records never expose the resumable handle. The same token can be used after
+reconnect; separate participants need separate tokens. This is a binding and
+resumption mechanism, not tenant isolation from the same OS user.
 
-Consumers and join/leave operations acquire the session lock before the
-publication lock. GC owns the publication lock and probes session locks without
-waiting; a busy receiver keeps its events. `synchronizeRef` and `registerSession`
-are internal operations requiring the caller's publication lock. Preserve that
-transaction scope when moving code; locking each write independently is insufficient.
+`session-lifecycle.ts` retains transactional enable/disable and interrupted
+activation recovery. It is no longer driven by natural-language prompt matching.
 
-## Storage and repository identity
+`mcp-mailbox.ts` receives through the existing consumer with `deliver` returning
+false. It persists the bounded pending batch in the receiver's receipt directory
+and returns a `deliveryId`; no delivered receipt is written by receive itself.
+`acknowledge_messages` validates the latest batch and session, then writes
+receipts only after the client explicitly accepts the response. Corrupt delivery
+state is preserved and rejected. A later receive can supersede an older batch.
 
-`src/core/store.ts` owns state-root configuration, directory checks, bounded JSON
-I/O, atomic file replacement and owned filesystem locks. It does not discover Git
-repositories or import repository lifecycle code.
+The session lock precedes the publication lock. GC holds the publication lock
+and probes session locks without waiting; busy receivers retain their events.
+Acknowledgement and cleanup keep these same ordering and recovery boundaries.
 
-`src/core/repository.ts` owns Git common-directory discovery, persistent repository
-identity, initialization, migration readiness and explicit recovery/fresh-state
-choices. It depends on storage primitives; storage does not depend on it.
-`identity-migration.ts` handles the explicit legacy-data copy protocol.
+## Shared monitoring and observation
 
-Storage functions accept only the repository fields they use. In particular,
-registering a session needs `root` and `directory`, not a fabricated complete
-repository identity.
+`monitor.ts` runs the existing daemon under its singleton filesystem lock and
+retries contention so another connected process can take over. Shutdown is tied
+to the owning MCP connection, not the executable name of a specific host. Durable
+subscriptions remain after disconnect; only an explicit leave closes them.
+The monitor publishes events; it does not deliver them into an idle model.
 
-## Public and internal APIs
+`repository.ts` owns discovery, identity, initialization and migration readiness.
+`inspectRepository` observes existing state without creating identities,
+directories or locks. Read-only MCP tools and `core/repository-snapshot.ts` use this path.
+`store.ts` retains bounded JSON I/O, atomic writes, directory checks and locks.
 
-New SDK users import `@sistine29/git-relay`. The root exports message consumption/sending,
-session listing, formatting, complete enable/disable operations, the history-gap
-error and their input/event types. Type declarations are generated from the same
-source during the build. See [SDK integration](shared-messages.md#sdk-integration).
-
-The package export map retains the documented legacy consumer, mailbox and
-session paths for compatibility. Other subpaths are private; repository layout,
-locks and low-level persistence functions are not part of the public SDK.
-Relative imports in project tests and benchmark scripts exercise those internals
-without making them public package exports.
+The server has no HTTP listener or Web console. Tools select repositories through
+explicit `cwd` arguments; no repository catalog is needed.
 
 ## Validation
 
-`npm run check` runs formatting, strict type checking, release metadata checks,
-the tests and npm packaging. SDK tests use a copied installation without sources,
-exercise unread preservation and compile a consumer against the shipped declarations.
-Existing interruption, lock contention, output backpressure and native-Git race
-regressions remain acceptance gates for refactoring. Local passes do not establish
-real Codex discovery/trust, model behavior or hosted CI results.
+Core regressions preserve native Git races, publication interruption, GC journals,
+path/UTF-8 handling and lock ordering. MCP tests use real stdio clients, explicit
+message acknowledgement, disconnect/reconnect and production package installs.
+The absence of a delivery receipt remains observable before explicit acceptance.
+A successful local test does not establish hosted CI or an actual model workflow.

@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-05",
+  "status": "passed",
+  "purpose": "Follow-up MCP usability acceptance after the 0.2 refactor",
+  "sourceAndTestsSha256": "5bb829b92d6b9290716a06397ec90f6c28d7da754439a59eae7a4bd5d11af6b3",
+  "sourceChangedSinceRefactorAcceptance": false,
+  "checks": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "passed": 433,
+    "failed": 0,
+    "skipped": 0,
+    "coreAndMcpTests": 432,
+    "productionPackageTests": 1,
+    "log": "check.log",
+    "covered": [
+      "formatting",
+      "strict TypeScript",
+      "release metadata",
+      "core Git/storage/GC regressions",
+      "MCP stdio discovery and validation",
+      "message send/receive/acknowledge/reconnect",
+      "monitor failover",
+      "Web lifecycle and repository catalog isolation",
+      "production tarball install and public factory export"
+    ]
+  },
+  "nativeCodex": {
+    "version": "codex-cli 0.166.0",
+    "toolCount": 19,
+    "successfulToolCalls": 21,
+    "modelTurns": 0,
+    "evidence": "native-workflow.json",
+    "harness": "native-workflow.py",
+    "log": "native.log",
+    "steps": [
+      "native discovery of 19 tools and read-only calls without relay initialization",
+      "two native Codex threads join and exchange a message without implicit acknowledgement",
+      "host restart preserves unread delivery; explicit acknowledgement is durable and idempotent",
+      "upstream notification and blocked synchronization preserve dirty bytes and HEAD",
+      "Web console and browser observation preserve unread state",
+      "explicit leave retains session records; final disconnect closes Web listener and monitor"
+    ]
+  },
+  "browser": {
+    "browser": "Google Chrome",
+    "control": "native accessibility via CUA; browser connection host was unavailable",
+    "passed": [
+      "MCP-opened console loads a real three-worktree repository",
+      "two subscribed sessions, real retained event counts and dirty Git state visible",
+      "message list navigation",
+      "Chinese query narrows three retained events to one matching message",
+      "message detail opens and shows pending receipt",
+      "HTML-like message is displayed as literal text",
+      "automatic refresh can be paused without losing query"
+    ],
+    "observations": [
+      "Search result: 1 matching event out of 3 retained",
+      "Detail body: 浏览器验收：中文消息与 <b>纯文本</b>",
+      "Delivery status: 待回执"
+    ],
+    "limits": [
+      "Shutdown error banner was not checked in Chrome because the user changed the active tab during automation; native HTTP shutdown and monitor exit checks passed.",
+      "No broad responsive or accessibility audit was repeated."
+    ]
+  },
+  "isolation": {
+    "temporaryGitWorktrees": true,
+    "temporaryStateAndCodexHome": true,
+    "normalUserConfigurationModified": false,
+    "runtimeSourceModified": false
+  },
+  "limits": [
+    "No model turns or model-driven autonomous polling tested",
+    "No Codex desktop integration workflow tested",
+    "No Windows or hosted CI acceptance run",
+    "No public npm publication or deployment"
+  ]
+}

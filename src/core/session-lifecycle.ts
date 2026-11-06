@@ -64,7 +64,7 @@ export async function disableSession(options: LeaveOptions): Promise<Session | u
       if (error.code === "ENOENT") return undefined;
       throw error;
     });
-    if (!exists) throw new Error("Worktree is unavailable; select --repository-id if needed.");
+    if (!exists) throw new Error("Worktree is unavailable; select repositoryId if needed.");
   }
   return session;
 }

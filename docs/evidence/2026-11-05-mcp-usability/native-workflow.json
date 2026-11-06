@@ -1,0 +1,126 @@
+{
+  "status": "passed",
+  "codexVersion": "codex-cli 0.166.0",
+  "serverVersion": "0.2.0",
+  "toolCount": 19,
+  "steps": [
+    "native discovery of 19 tools and read-only calls without relay initialization",
+    "two native Codex threads join and exchange a message without implicit acknowledgement",
+    "host restart preserves unread delivery; explicit acknowledgement is durable and idempotent",
+    "upstream notification and blocked synchronization preserve dirty bytes and HEAD",
+    "Web console and browser observation preserve unread state",
+    "explicit leave retains session records; final disconnect closes Web listener and monitor"
+  ],
+  "calls": [
+    {
+      "name": "branch_status",
+      "elapsedMs": 47.8,
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "elapsedMs": 25.05,
+      "passed": true
+    },
+    {
+      "name": "join_session",
+      "elapsedMs": 101.24,
+      "passed": true
+    },
+    {
+      "name": "join_session",
+      "elapsedMs": 99.39,
+      "passed": true
+    },
+    {
+      "name": "send_message",
+      "elapsedMs": 39.9,
+      "passed": true
+    },
+    {
+      "name": "receive_messages",
+      "elapsedMs": 92.54,
+      "passed": true
+    },
+    {
+      "name": "receive_messages",
+      "elapsedMs": 271.04,
+      "passed": true
+    },
+    {
+      "name": "acknowledge_messages",
+      "elapsedMs": 53.5,
+      "passed": true
+    },
+    {
+      "name": "acknowledge_messages",
+      "elapsedMs": 38.36,
+      "passed": true
+    },
+    {
+      "name": "receive_messages",
+      "elapsedMs": 79.32,
+      "passed": true
+    },
+    {
+      "name": "receive_messages",
+      "elapsedMs": 199.04,
+      "passed": true
+    },
+    {
+      "name": "acknowledge_messages",
+      "elapsedMs": 38.42,
+      "passed": true
+    },
+    {
+      "name": "sync_branch",
+      "elapsedMs": 123.29,
+      "passed": true
+    },
+    {
+      "name": "send_message",
+      "elapsedMs": 44.71,
+      "passed": true
+    },
+    {
+      "name": "open_console",
+      "elapsedMs": 30.22,
+      "passed": true
+    },
+    {
+      "name": "receive_messages",
+      "elapsedMs": 116.04,
+      "passed": true
+    },
+    {
+      "name": "acknowledge_messages",
+      "elapsedMs": 43.37,
+      "passed": true
+    },
+    {
+      "name": "leave_session",
+      "elapsedMs": 135.47,
+      "passed": true
+    },
+    {
+      "name": "leave_session",
+      "elapsedMs": 114.95,
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "elapsedMs": 22.24,
+      "passed": true
+    },
+    {
+      "name": "monitor_status",
+      "elapsedMs": 137.02,
+      "passed": true
+    }
+  ],
+  "modelTurns": 0,
+  "normalConfigModified": false,
+  "elapsedSeconds": 190.96,
+  "fixtureRoot": "/var/folders/1b/b19xbzjx7xqc4kl0k9x_y4y80000gp/T/gitrelay-mcp-usability-debkynx3",
+  "consoleUrl": "http://127.0.0.1:64938"
+}

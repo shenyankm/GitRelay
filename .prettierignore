@@ -1,4 +1,3 @@
-vendor/
 assets/
 package-lock.json
 docs/acceptance-results.json

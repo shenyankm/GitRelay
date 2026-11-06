@@ -5,7 +5,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { branchStatus } from "../../src/core/branch-status.ts";
-import { formatBranchStatus } from "../../src/core/status-format.ts";
 
 test("ambiguous Git HEAD labels distinguish branches from detached or non-branch HEAD", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "git-relay-status-"));
@@ -49,7 +48,6 @@ test("ambiguous Git HEAD labels distinguish branches from detached or non-branch
   git("symbolic-ref", "HEAD", "refs/tags/other");
   const nonBranch = await branchStatus({ cwd: repo, branch: "main" });
   assert.equal(nonBranch.worktree.branch, null);
-  assert.match(formatBranchStatus(nonBranch), /HEAD is not on a local branch/);
   await assert.rejects(branchStatus({ cwd: repo }), /HEAD does not point to a local branch/);
   git("symbolic-ref", "HEAD", "refs/heads/main");
   git("switch", "-c", "(null)");

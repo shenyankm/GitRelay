@@ -1,218 +1,94 @@
-# GitRelay: User-level shared message storage
+# MCP tools and shared messages
 
-Native Codex root sessions participate automatically at their first supported hook unless explicitly disabled; see [automatic sessions](integrations.md#automatic-sessions).
+All calls are local MCP tools. Unless specified, `cwd` uses the server's default
+worktree and `ref` uses `WORKTREE_MAIN_REF` or `refs/heads/main`. A monitored ref
+must be a full ref under `refs/heads/` or `refs/remotes/`. Standard input schemas
+reject unrelated fields before invoking the engine.
 
-All adapters use the same platform-independent message layer. Messages and receipts live in the user state directory; a writable Git common directory contains a repository identity marker.
+## Sessions
 
-The state and Git common directories must not be modified concurrently by
-non-cooperating processes. GitRelay's path-based temporary-file and lock
-checks are not atomic conditions on file identity: an external process that
-replaces a checked temporary or lock path can cause a replacement file to be
-removed, overwrite a state file, or invalidate mutual exclusion. These windows
-have been reproduced by isolated fault injection; they have not been shown to
-occur between ordinary GitRelay participants following the locking protocol.
+`join_session({cwd?, ref?, sessionToken?})` creates a private token if omitted and
+returns it with the public subscription. Save it outside public session lists.
+To resume after a host reconnect, pass the same token. The initial join establishes
+an upstream baseline and does not replay messages sent before enrollment.
 
-## Storage and isolation
+`leave_session({cwd?, ref?, sessionToken, repositoryId?})` records opt-out before
+closing enrollment. Unread data and receipts remain. Use `repositoryId` when
+necessary to identify state for a removed worktree.
 
-The default is `~/.local/state/worktree-agent-sync`, or `$XDG_STATE_HOME/worktree-agent-sync` when `XDG_STATE_HOME` is absolute. An absolute `WORKTREE_SYNC_STATE_DIR` overrides the entire state root. All participants must use the same root.
+`list_sessions({cwd?})` reads existing records and strips activation tokens. A
+public ID or `lastSeen` does not authenticate another participant or prove it is
+online. `retire_session({cwd?, key})` is an administrative, explicit operation for
+closing an identified subscription, including a legacy one. It does not delete
+its unread data.
 
-```text
-<state-root>/repos/<repo-id>/
-├── identity-ready.json          # Completed state initialization
-├── repo.json                    # Common directory and repository identity
-├── publish.lock                 # Short exclusive publication/registration lock
-├── refs/<ref-key>.json           # Position of each monitored ref
-├── sessions/<session-key>.json   # Adapter, native ID, worktree, subscription, lastSeen
-├── sessions/<session-key>.lock   # Per-session consumption lock
-├── events/<event-id>.json        # One shared copy of each event
-├── events/<event-id>.posix.json  # Message with POSIX-only file names
-├── trash/                       # Recovery journal for approved deletions
-└── receipts/<session-key>/
-    ├── <event-id>.json           # Independent delivery/irrelevance receipt
-    ├── delivery-cursor.json     # Scheduling only; never an acknowledgement
-    └── <event-id>.<hash>.pi-proof # legacy pre-delivery proof; retained for recovery
+## Send, receive, accept
+
+`send_message({cwd?, ref?, sessionToken, text, files?})` publishes an authorized
+message under the sender's derived identity. It does not implicitly subscribe
+the sender. Omitting files broadcasts to other active recipients; a path list
+uses the engine's existing worktree relevance rules. The response's recipient
+count is an audience count, not a delivery guarantee.
+
+`receive_messages({cwd?, ref?, sessionToken, acceptUnavailableHistory?})` returns:
+
+```json
+{
+  "notifications": [],
+  "deliveryId": null
+}
 ```
 
-- `repo-id` is the SHA-256 of the canonical absolute Git common-directory path and a persistent random repository identity. GitRelay creates `<git-common-dir>/.git-relay-id` on first use, containing a 64-character hexadecimal identity. Worktrees of the same repository share it; independent clones at different paths remain separate.
-- If a repository is recreated at the same path, its new marker selects a new state. GitRelay detects earlier state for the path and requires an explicit choice to migrate eligible legacy state or start fresh. It preserves the earlier data. See [migration](migration.md#repository-identity-and-existing-state).
-- Existing markers must be regular files with valid contents. GitRelay preserves and rejects invalid markers and links. Do not remove or replace a marker while clients or the daemon are running. If a marker is copied or restored at the same path, it identifies the same state; give an independent replacement a new identity and follow the explicit recovery prompts. A separate process replacing the Git directory during an operation cannot be serialized by GitRelay.
-- Initial state publication requires hard-link support in the state root's `repos` directory. If the link is refused, initialization can leave an empty directory without an ownership marker; retries and automatic recovery refuse it because its ownership cannot be proved. Stop participating processes and inspect the reported path before any manual recovery. State directories and events are preserved. An external repository identity can avoid creating a marker in an unsupported Git common directory, but does not remove the state-root hard-link requirement.
-- Session keys combine the real worktree path, monitored ref, adapter, native session ID, and optional native `instance`. Legacy instances and unbound inboxes are preserved. Identical IDs on different platforms do not consume each other's messages; subscriptions to different refs are independent.
-- Hooks with a nonempty `agent_id` return an empty response. This skips Codex subagents; they do not register subscriptions or consume their parent's inbox. The parent can check its inbox at its next hook.
-- Directories are created with mode `0700`, JSON files with `0600`. Messages stay outside version control. Windows permissions still depend on system ACLs.
-- The selected state root and its ancestors may be symbolic links, but GitRelay's managed child directories (including each repository's `sessions`, `events`, `receipts`, `refs` and `trash`, and accessed `receipts/<session-key>` directories) must be real directories. Delivery receipts must be regular files, not symbolic links. GitRelay rejects and preserves these links; stop all participants and inspect any existing linked layout before moving its contents into real managed directories. This changes prior behavior for linked receipt files and internal directories. Other JSON readers can still follow file links, and hard links are not rejected. These checks address static layouts, not a process replacing directories or modifying files after inspection. Windows behavior has not been verified for this change.
-- This is local cooperation by one OS user, not a sandbox against malicious processes under that user or a cross-user/cross-machine service.
+A nonempty batch contains at most eight notifications and has a `deliveryId`.
+Receiving updates subscription/cursor state and may record irrelevant events, but
+never writes delivered receipts for the returned notifications. After accepting
+the complete batch, call:
 
-### Read-only Git common directories
-
-An existing valid marker remains readable when the common directory becomes read-only. If no marker exists and GitRelay cannot create one, provide `WORKTREE_SYNC_REPOSITORY_IDS` as a JSON object mapping each **canonical absolute Git common-directory path** to its stable 64-character lowercase hexadecimal identity. For example, obtain the canonical common-directory path with `git rev-parse --path-format=absolute --git-common-dir` and resolve any symlinks; generate an identity once with `openssl rand -hex 32`, and retain the resulting mapping outside the repository:
-
-```sh
-# Replace the examples with your canonical path and the identity you generated once.
-export WORKTREE_SYNC_REPOSITORY_IDS='{"/absolute/path/to/repository/.git":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}'
+```json
+{
+  "sessionToken": "<private handle returned by join_session>",
+  "deliveryId": "<deliveryId returned by receive_messages>"
+}
 ```
 
-Configure the same mapping in every client, hook, and daemon process that uses that repository. The object may contain entries for multiple repositories. An explicit mapping takes precedence over a marker, so changing or removing an entry changes which state identity the process selects. When replacing a repository at the same path, assign the replacement a **different** identity; a path-keyed mapping cannot detect that replacement automatically. An inconsistent or reused mapping can split state or expose old messages to the replacement repository. Preserve the old identity and state for recovery.
+Pass that object to `acknowledge_messages` with the same worktree and ref. Repeat
+acknowledgement of the latest completed batch is idempotent. A newer receive
+batch supersedes an older acknowledgement handle. After a lost response, poll
+again rather than guessing which event IDs were delivered. Keep calls for one
+logical receiver sequential.
 
-## Event types
+The acceptance boundary is an explicit client action, not an MCP handler merely
+constructing JSON and not proof of model understanding. Transport errors and
+cancellation can leave a write's result unknown; inspect before retrying writes.
+There is no exactly-once model execution guarantee.
 
-### Automatic upstream changes
+Missing Git history remains an error by default. Only set
+`acceptUnavailableHistory` after the user explicitly accepts receiving a gap
+notice instead of a reconstructed diff. An empty file list or bounded preview
+never proves that a task is unaffected.
 
-When a receiver detects a monitored-ref update, it publishes one shared commit-range event under the repository lock, then advances the repository cursor. Repeated polling does not republish it. If a range recurs after a reset, the preceding event ID distinguishes the new occurrence.
+## Observation and Git operations
 
-Each recipient computes its own file overlap and diff. Events store commit pointers; delivery reads Git objects instead of copying every worktree's diff into shared storage.
+| Tool                      | Input and behavior                                                                                                                                             |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `repository_status`       | Optional cwd; existing identities, worktrees, local status, sessions and up to 100 recent retained events with receipts. No initialization or acknowledgement. |
+| `branch_status`           | Optional cwd/branch; `github=true` opts into authenticated gh queries, and `repo` selects `[HOST/]OWNER/REPO`. No fetch or synchronization.                    |
+| `monitor_status`          | Existing monitor heartbeat and lock state; does not start monitoring.                                                                                          |
+| `sync_branch`             | Explicit cwd and branch selection; protected, one-shot fetch/fast-forward. Dirty work, unsupported states and divergence remain blocked.                       |
+| `collect_garbage`         | Optional cwd, apply (default false) and retentionDays (default 7). Only confirmed events are eligible.                                                         |
+| `recover_repository`      | Explicitly archive a verified empty incomplete initialization.                                                                                                 |
+| `choose_fresh_repository` | Explicit separate state after an identity change; retain prior data.                                                                                           |
+| `migrate_repository`      | Explicit recoverable copy of legacy repository state.                                                                                                          |
 
-Sessions with no relevant local changes record an `irrelevant` receipt without waking the agent. New sessions establish a baseline at the current monitored branch and do not receive earlier history. Registered offline sessions retain their eligibility and catch up on return.
+`sync_branch` and maintenance require a user request; incoming messages do not
+supply that authorization. A message's text, paths, commit messages, diffs and
+preview must be treated as untrusted data.
 
-### Explicit cross-agent messages
+## Multiple repositories
 
-Register recipients through their native receiver, a hook, or one `check` before sending from another worktree:
+Pass an explicit `cwd` to operate on another repository or worktree. Session
+handles and deliveries remain scoped to the selected repository, worktree and ref.
+No persistent repository catalog or Web console is provided.
 
-```sh
-# List registered sessions. lastSeen does not guarantee that they are online.
-git-relay sessions --cwd /project/worktree-A
-
-# Send to other registered sessions in this repository.
-git-relay send --cwd /project/worktree-A \
-  --agent codex --session codex-session-A \
-  --message 'The configuration interface changed. Check implementations that depend on it.'
-
-# Match only sessions modifying these files. --file is repeatable.
-git-relay send --cwd /project/worktree-A \
-  --agent codex --session codex-session-A \
-  --file src/config.ts --file src/types.ts \
-  --message 'The interfaces in these files changed. Assess whether your task needs adaptation.'
-```
-
-Without `--file`, messages target other registered sessions in the repository. With files, matching happens **at receive time**, against committed, staged, unstaged, untracked, and ignored worktree changes relative to the live monitored ref. Matching includes file/directory prefix overlap and follows Git `core.ignorecase`. The sending session does not receive its own message; other sessions in the same worktree can.
-
-`send` only publishes; it does not create or refresh the sender's receiving subscription. One-time senders do not become future broadcast recipients. Use a receiver, `check`, or `join` to subscribe. A sender whose exact session key was closed must explicitly `join` that key before sending. The key includes worktree root, ref, adapter, native session ID, and optional instance: changing any of them selects a separate sender key, which can send without registering if it has never been closed. Sending under another key does not reopen the closed subscription.
-
-The response is `{ "eventId": "...", "recipients": 2 }`. The count is the publication-time candidate count, not confirmed delivery. Filtering, offline sessions, and host capabilities can delay or prevent delivery. `recipients: 0` means no other sessions were registered then; later subscribers do not receive that message.
-
-If `send` is interrupted or its output fails after the event is published,
-the command can fail without returning its ID even though recipients may
-receive it. Retrying the same command creates another event with a different
-ID and can deliver the same text twice. The current CLI and SDK do not expose
-an idempotency key or an automatic result-recovery operation; preserve the
-event and receipt state and inspect it before deciding whether to resend.
-
-Text must be nonempty and at most 64 KiB in UTF-8. The JSON serialization of `{ text, files }` must also be at most 64 KiB, including JSON syntax and escaping, so the maximum text size depends on its contents and file list. Files must be repository-relative file paths: no absolute paths, directories, or `..` traversal. Existing directories are rejected even without a trailing slash. Deleted or renamed paths and files present only in other worktrees are allowed; a regular file at a sender-side prefix does not invalidate an otherwise valid target.
-
-On POSIX, names rejected by older cross-platform validation (such as `\\notes`, `C:notes`, and `dir\\..\\inside`) use a separate event format that preserves backslashes as literal characters. Sending such a message requires every open recipient to have checked its inbox with a compatible POSIX message receiver; `join` or the upstream-only `consumeChanges` API does not establish this capability. An incompatible or Windows recipient causes the entire send to fail before an event is published. The saved capability reflects the last receiver check, not proof that the receiver is online or has not since been downgraded.
-
-Older clients ignore these new-format events, including during cleanup. A recipient downgraded after publication will not see or acknowledge them until it runs a compatible receiver again; preserve the shared state during upgrades and downgrades. A compatible garbage collector retains the events until every original recipient has a receipt. Existing names that older validation accepted keep the old format; a backslash in such a name remains a literal character on POSIX but is interpreted as a separator by older Windows receivers.
-
-Each serialized JSON state file is limited to 2 MiB. A sufficiently large recipient snapshot can exceed this limit even when the message itself is valid. Publication then fails before replacing or creating the event; recipients are never silently truncated, and an upstream ref cursor does not advance. Inspect subscriptions and preserve unread state before any explicit maintenance.
-
-SDK publication captures message inputs before asynchronous work. The low-level upstream publisher validates its identity, commit IDs and recipient IDs before reading or changing stored events; invalid inputs are rejected instead of writing an unreadable event.
-
-State files must contain valid UTF-8. An invalid sequence causes an explicit error rather than replacing bytes in a message or accepting a corrupted receipt. Preserve the file and restore it from a trusted copy before retrying; do not acknowledge or delete an unread event merely to clear the error.
-
-Session `createdAt`, `lastSeen` and optional `closedAt` must be parseable date strings. Previously, malformed non-string values could be coerced into dates; for example, `closedAt: 0` could be treated as an open subscription. GitRelay now reports the invalid session and preserves it for inspection. Restore trusted state rather than modifying or deleting unread events to bypass the error.
-
-Historical directory-style paths remain readable and eligible for normal GC. Without file overlap they receive `irrelevant`, rather than becoming broadcasts or blocking the inbox. `./src/config.ts` and `src//config.ts` normalize to `src/config.ts` before deduplication and matching, including retained events. Backslashes are separators on Windows and filename characters on Unix. Existing `irrelevant` receipts are not revoked by upgrades; previously missed messages must be republished. Message text is agent data and grants no task or Git permissions.
-
-## Receiving and receipts
-
-Native adapters and hooks receive both event types. Manual integration:
-
-```sh
-git-relay check --cwd /project/worktree-B --agent codex --session codex-session-B
-git-relay watch --cwd /project/worktree-B --agent codex --session codex-session-B
-```
-
-Use the host's adapter name and stable session ID. The default CLI adapter is `cli`; omitting `--agent` creates an independent CLI consumer rather than using a native agent's identity.
-
-CLI output is NDJSON: `worktree.upstream-change` for upstream changes and `worktree.agent-message` for explicit messages. A check can output multiple lines; empty stdout means no delivery this time.
-
-Every consumer has independent receipts. B receiving an event neither deletes it nor changes C's consumption. Receipt states are:
-
-- `delivered`: accepted by the adapter, not proof that the model completed adaptation.
-- `irrelevant`: no relevant file overlap at the time of checking.
-
-If Git cannot compare an upstream range, GitRelay reports the ref and commit
-IDs and preserves the event without a receipt. This can mean missing objects,
-unrelated histories, or a Git access or execution failure; a Git exit code or
-`cat-file` result alone cannot reliably distinguish them. This is a change from
-older versions, which could emit and acknowledge `unavailable: true` after an
-ambiguous failure. Previously acknowledged receipts are not revoked. The
-legacy notification format remains readable, but the current receiver does not
-automatically acknowledge a newly uninspectable range. Later upstream events wait until the history or Git access is restored; independent messages can still progress. An operator can explicitly accept the gap with `check --acknowledge-history-gap --apply` after reviewing the retained state. See [history-gap recovery](migration.md#history-gap-recovery).
-
-If an upstream event lists this session as a recipient but names a different
-ref, GitRelay stops before checking host delivery or writing a receipt. Preserve
-the event and state for inspection. Registration and receipts for earlier
-events in the same check may already have been written; the check is not a
-transactional rollback. If the host may already have accepted it
-without a receipt, inspect the native session history and any delivery proofs
-before retrying; the result may otherwise be duplicated. Existing receipts are
-filtered before this check and not revoked; events already collected cannot be
-reconstructed by this check.
-
-Codex acknowledges completed hook output. A host crash before reading hook output may still lose model-level delivery; this is not exactly-once processing.
-
-A check selects at most eight events and targets roughly 64K characters. A single larger event can occupy a batch to allow progress. Unsent events remain for the next check. By default, `consumeMailbox` sends the selected events as one batch; a failed or cancelled delivery does not acknowledge that batch. With `deliverIndividually: true`, it sends and acknowledges each notification separately. CLI `check`/`watch` and the compatibility API `consumeChanges` use individual delivery, so a later output failure retains earlier successful receipts. In either mode, interruption after a successful callback but before its receipt is written can cause redelivery.
-
-## SDK integration
-
-Install the package and import its public SDK by name. The root entry provides
-JavaScript and TypeScript declarations; consumers do not need TypeScript source
-stripping or `allowImportingTsExtensions`:
-
-```js
-import { consumeMailbox, sendMessage, formatNotifications } from '@sistine29/git-relay';
-
-await consumeMailbox({
-  cwd: '/project/worktree-B',
-  ref: 'refs/heads/main',
-  adapter: 'my-agent',
-  session: 'stable-native-session-id',
-  async deliver(notifications) {
-    await host.acceptMessage(formatNotifications(notifications));
-    // Returning acknowledges; throw on failure or return false if only queued.
-  },
-});
-```
-
-The supported root exports are `consumeMailbox`, `consumeChanges`, `sendMessage`,
-`listSessions`, `formatNotifications`, `enableSession`, `disableSession`, and
-`HistoryUnavailableError`, together with their public input and event types.
-`enableSession` commits explicit activation with enrollment and rolls back a
-failed enrollment; a concurrent disable can return no session. `disableSession`
-persists opt-out and closes enrollment without acknowledging unread events.
-Both snapshot their options before asynchronous work.
-
-The formerly documented `git-relay/dist/core/consumer.js`,
-`git-relay/dist/core/mailbox.js`, and `git-relay/dist/core/sessions.js` imports
-remain compatibility paths. Other package subpaths are private. New integrations
-must use the root SDK; the low-level legacy session helpers do not coordinate
-activation and enrollment as one operation.
-
-`signal` cancels Git checks and lock waits; sending, join/leave, and GC also support cancellation. Repository publication locks normally retry with jitter for up to five seconds, then report the lock path and PID. During a fresh identifiable GC, consumers instead skip a round and join/leave report busy; long or unverifiable locks fall back to the normal wait. An active per-session consumption lock skips that round to prevent duplicate delivery. Lock age does not prove a stalled owner; locks are not stolen. See [maintenance](maintenance.md) for the GC barrier and its limits.
-
-`consumeMailbox` captures the identity, working directory, ref, and signal when called. It reads the ref before resolving the repository, so an error from a ref getter can precede a repository error. It reads callbacks and `initialCursor` when needed; callers should not mutate these while a check is running. Callback methods retain the original options object as `this`.
-
-`joinSession` and `leaveSession` likewise capture their identity, working directory, ref, and signal when called; `leaveSession` also captures `repositoryId`. As a result, ref and signal getters can run earlier than in older versions, including before repository lookup or missing-worktree discovery.
-
-`isDelivered(eventId)` lets hosts with durable history confirm previous acceptance on retry. A pending legacy delivery proof blocks ordinary CLI `check`/`watch` and `consumeChanges` from acknowledging that event: successful CLI output alone is not proof that the retired client accepted it. Existing manual consumption without a pending legacy proof remains available. The native adapter's verification callbacks are a trusted integration contract, not protection against a malicious SDK caller. `consumeChanges({ deliver })` remains an upstream-only compatibility API and does not acknowledge explicit messages. Its session can still be a recipient of broadcasts, so those messages remain unread and cannot be collected while it only uses `consumeChanges`. To process them, use `consumeMailbox` or the matching `check` identity; leaving alone preserves the unread messages. This also lets an existing session switch to the full mailbox without losing messages sent before the switch.
-
-## Legacy state migration and maintenance
-
-- Older shared state used only the common-directory path for its repository key. It is not silently claimed by a new identity. Use the explicit [migration procedure](migration.md#repository-identity-and-existing-state), or choose fresh state while retaining the old directory. The old state may already contain data from multiple repositories previously recreated at the same path; inspect its provenance before claiming it.
-- Legacy `<git-common-dir>/worktree-agent-sync/<key>.json` cursors are imported read-only into session-specific catch-up events. Source files are not deleted or overwritten.
-- Upgrades do not delete or close old subscriptions. Old send-only identities or `parent-session/agent_id` subagent identities may have left stale registrations. Inspect `sessions` first. Explicit `leave` prevents future delivery while retaining unread events. To acknowledge old messages, pause other publishers/receivers, repeatedly `check` with the matching `--cwd`, `--agent`, and `--session`, review output until empty, then `leave` and use normal GC. Closed identities need `join` first. Do not automatically retire genuinely offline sessions.
-- A killed process may leave a `.lock`. Confirm the owner has exited before removing only that lock, never its events or receipts. Locks possibly held by live processes are not stolen.
-- `leave` stops future subscriptions; `join` resumes them. Leaving does not acknowledge messages. `gc` previews by default and only collects fully acknowledged events past retention. The optional daemon attempts GC when discovering a repository and hourly after a successful pass; failed or busy passes are retried. There is no offline TTL; `lastSeen` is diagnostic. See [maintenance](maintenance.md).
-- Inbox scanning reads retained event and session receipt filenames, validates receipts first, and loads only unacknowledged event bodies, with up to 32 concurrent reads per batch. Recognizable upstream publication chains and migration predecessors are delivered in causal order; an unconfirmed upstream event holds its successors. Independent messages rotate through a durable scheduling cursor to avoid starvation. See [maintenance](maintenance.md#upstream-publication-recovery-and-upgrades) for historical-event and failure boundaries. Corrupt receipts fail rather than count as read. A consume that acquires the locks and proceeds for an active session synchronizes its ref and separately validates all retained events and trash, including events that the session has already confirmed; GC also validates all events. A Git or state read failure stops that consume, including delivery of unrelated messages, until it can be retried. Safe periodic cleanup reduces scanning. Before clearing state, stop the daemon and all participants and back it up; clearing loses pending messages and deduplication records.
-- Shared storage does not bypass host delivery limits. Codex hooks cannot wake an already idle session. Local cancellation cannot retract a request already accepted by a remote host.
-
-Git paths and refs used for repository identity, file relevance and branch
-operations must be valid UTF-8. If Git returns an unrepresentable path or ref,
-GitRelay reports an error and does not acknowledge the affected unread event;
-repair or rename the affected path or ref using tools that can safely represent
-its bytes, then retry. A valid Unicode replacement character is distinct from
-invalid UTF-8 bytes. Free-text Git output retains its normal decoding behavior.
-See [migration](migration.md#repository-paths-ending-in-carriage-return) before
-handling state produced by older versions for Unix paths ending in carriage
-return.
+See [maintenance](maintenance.md) for state recovery and [migration](migration.md)
+for the removal of legacy command and hook integration.

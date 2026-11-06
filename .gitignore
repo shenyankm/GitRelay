@@ -9,5 +9,4 @@ dist/
 !/.env.sample.local
 !/.env.template.local
 .zvec-grep/
-.codex/git-relay-status.md
-.codex/plugin-build/
+.taste-skill/

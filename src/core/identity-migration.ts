@@ -86,7 +86,7 @@ export async function migrateLegacyState(
     await directory(oldDirectory);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT")
-      throw new Error("No path-keyed legacy state exists; use identity-fresh --apply to start a new inbox.");
+      throw new Error("No path-keyed legacy state exists; call choose_fresh_repository to start a new inbox.");
     throw error;
   }
   const alreadyMigrated = await withLock(
@@ -96,7 +96,7 @@ export async function migrateLegacyState(
         await readState(join(oldDirectory, "repo.json")).catch((error: NodeJS.ErrnoException) => {
           if (error.code === "ENOENT")
             throw new Error(
-              "Legacy repository metadata is missing; inspect the source and use identity-fresh --apply to start a new inbox.",
+              "Legacy repository metadata is missing; inspect the source and call choose_fresh_repository to start a new inbox.",
             );
           throw error;
         })

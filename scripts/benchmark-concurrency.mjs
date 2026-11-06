@@ -3,7 +3,6 @@ import { execFile, execFileSync } from "node:child_process";
 import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { consumeMailbox } from "../dist/core/consumer.js";
 import { collectRepository } from "../dist/core/cleanup.js";
@@ -14,7 +13,7 @@ import { hash } from "../dist/core/store.js";
 import { repository } from "../dist/core/repository.js";
 
 const exec = promisify(execFile);
-const cli = fileURLToPath(new URL("../dist/cli/main.js", import.meta.url));
+const consumer = new URL("../dist/core/consumer.js", import.meta.url).href;
 const temporary = await mkdtemp(join(tmpdir(), "git-relay-concurrency-bench-"));
 const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
 const git = (...args) =>
@@ -46,7 +45,8 @@ try {
       git: git("--version"),
       events: 1000,
       samples: 3,
-      workload: "independent CLI processes in one worktree; process startup included; setup excluded; warm caches",
+      workload:
+        "independent core consumer processes in one worktree; process startup included; setup excluded; warm caches",
     }),
   );
   for (const count of [1, 4, 8]) {
@@ -90,7 +90,16 @@ try {
         sessions.map(async ({ options }, index) => {
           const { stdout } = await exec(
             process.execPath,
-            [cli, "check", "--cwd", temporary, "--agent", options.adapter, "--session", options.session],
+            [
+              "--input-type=module",
+              "--eval",
+              `import { consumeMailbox } from ${JSON.stringify(consumer)};
+              await consumeMailbox({ cwd: process.argv[1], adapter: process.argv[2], session: process.argv[3], ref: 'refs/heads/main',
+                async deliver(batch) { for (const item of batch) console.log(JSON.stringify({ eventId: item.event.id })); } });`,
+              temporary,
+              options.adapter,
+              options.session,
+            ],
             { timeout: 30_000 },
           );
           const received = stdout

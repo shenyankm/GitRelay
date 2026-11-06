@@ -1,0 +1,2 @@
+{"phase": "browser-ready", "url": "http://127.0.0.1:64938", "root": "/var/folders/1b/b19xbzjx7xqc4kl0k9x_y4y80000gp/T/gitrelay-mcp-usability-debkynx3"}
+{"phase": "complete", "status": "passed", "result": "/var/folders/1b/b19xbzjx7xqc4kl0k9x_y4y80000gp/T/gitrelay-mcp-usability-debkynx3/result.json", "nativeToolCalls": 21}

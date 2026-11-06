@@ -1,170 +1,97 @@
 # GitRelay
 
-[English](README.md) | [简体中文](README.zh-CN.md) · [贡献指南](CONTRIBUTING.md) · [MIT 许可证](LICENSE)
+<img src="assets/logo.svg" alt="GitRelay" width="80" />
 
-面向 **Codex** 的多工作树协作工具：投递相关上游变更、共享 agent
-消息、查看本地及 GitHub 分支状态。
+用于 Git 多工作树协作的本地 MCP 服务。通过结构化工具查询分支与会话、发送消息、收取上游变化并确认接收。
 
-> **会话默认自动参与。** macOS/Linux 上首个客户端加载后启动共享 daemon，
-> 最后一个 Codex 进程退出后自动停止。
+[English](README.md) · [工具与消息协议](docs/shared-messages.md) · [迁移说明](docs/migration.md)
 
-需要 Node.js 22.19+ 和 Git，无 npm 运行时依赖。npm 包名为 `@sistine29/git-relay`，主命令为 `git-relay`，保留
-`worktree-relay`、`worktree-sync` 命令别名。
+0.2 版本完整切换到 stdio MCP，移除了旧命令 CLI、Codex hooks 和插件安装器。
+客户端需要主动轮询和确认消息；服务不会自动注入聊天上下文、要求 Stop 继续执行或唤醒空闲模型。
 
-## 目录
+## 从源码运行
 
-- [快速开始](#快速开始)
-- [自动参与与启停](#自动参与与启停)
-- [平台支持](#平台支持)
-- [客户端配置](#客户端配置)
-  - [Codex 插件](#codex-插件)
-- [常用命令](#常用命令)
-- [状态与边界](#状态与边界)
-- [开发与验证](#开发与验证)
-- [文档索引](#文档索引)
-
-## 快速开始
-
-```sh
-npm install -g @sistine29/git-relay
-git-relay install --dry-run
-git-relay install --platform codex
-```
-
-安装后重新打开客户端。
-
-从源码安装时，依次运行 `npm ci --ignore-scripts`、`npm run build` 和
-`npm install -g /absolute/path/to/GitRelay`，替代上述 npm 仓库安装命令。
-
-安装器仅配置 Codex，保留未被管理或已被用户修改的配置，并保存自有运行时副本。
-Codex hooks 仍须通过 `/hooks` 单独检查并信任，加载后会话自动参与。保留
-`--platform codex` 和 `--skip codex`；其他平台名会被拒绝。卸载预览及保留
-文件的规则见[自动安装](docs/integrations.md#automatic-setup)。
-
-## 自动参与与启停
-
-Codex 根会话在首次生命周期 hook 时自动参与，无需先输入启用命令。首次登记建立基线，不补收此前的广播。
-子代理不单独登记。
-
-输入 `关闭 GitRelay` 或 `Disable GitRelay` 可停止当前会话订阅，未读消息和回执保留。
-恢复同一会话会保留停用选择；输入 `启用 GitRelay` 或 `Enable GitRelay` 可重新加入。
-停用期间的广播不会补发。引用和工具输出不能改变显式选择。
-
-macOS/Linux 上，原生 Codex hook 加载时自动启动同一用户、同一
-状态目录下的共享 daemon。每 5 秒检查客户端进程，最后一个 `codex`
-进程退出后自动停止并清理锁；新客户端可再次启动它。不安装开机常驻服务。
-已运行的旧客户端需要重新加载插件，安装文件不会向旧进程注入新代码。详见
-[会话生命周期](docs/integrations.md#automatic-sessions)。
-
-## 平台支持
-
-| 平台  | 接入方式                  | 自动投递方式                                  |
-| ----- | ------------------------- | --------------------------------------------- |
-| Codex | 生命周期 hooks 或独立插件 | 提示词、工具结束时注入上下文；Stop 可请求继续 |
-
-Codex hooks 无法主动唤醒已经空闲的会话。
-安装、hook 信任和真实宿主收件属于不同验证阶段，见[接入指南](docs/integrations.md)
-及[平台矩阵](docs/platform-matrix.md)。
-
-## 客户端配置
-
-### Codex 插件
-
-```sh
-npm run build:codex-plugin
-codex plugin marketplace add /absolute/path/to/GitRelay
-codex plugin add git-relay@git-relay-local
-codex plugin list --marketplace git-relay-local --json
-```
-
-插件携带 CLI、一个 `git-relay` 技能、四个 hook 事件、文档及许可证。重新打开聊天并检查 `/hooks` 后，会话自动参与。避免插件 hooks 与用户 hooks 重复。插件卡片或配置文件存在不代表宿主已加载或
-信任；更新源码后需要重新构建并刷新已安装副本。
-
-插件通过本地或仓库 marketplace 分发。Codex 公开目录不接受带生命周期 hooks 的插件。
-
-手动配置模板为 [`src/adapters/codex/hooks.json`](src/adapters/codex/hooks.json)。
-插件版通过 `${PLUGIN_ROOT}` 调用自带 CLI。启用后的 hooks 可以显示本地分支状态，
-不会自动 fetch、查询 GitHub 或同步分支。
-
-## 常用命令
-
-| 目的                 | 命令                                                            |
-| -------------------- | --------------------------------------------------------------- |
-| 本地分支快照         | `git-relay status`                                              |
-| GitHub 实时比较      | `git-relay status --github`                                     |
-| 用户要求的只读监控   | `git-relay status --github --watch`                             |
-| 明确加入会话订阅     | `git-relay join --agent codex --session NATIVE_ID`              |
-| 停止订阅             | `git-relay leave --agent codex --session NATIVE_ID`             |
-| 查看已登记会话       | `git-relay sessions`                                            |
-| 单次接收 / NDJSON 流 | `git-relay check --session ID` / `git-relay watch --session ID` |
-| 预览已确认事件清理   | `git-relay gc`                                                  |
-| 可选集中监控         | `git-relay daemon`                                              |
-
-用 `--cwd /absolute/worktree` 和 `--ref refs/heads/main` 指定工作树及监听引用。
-使用真实、稳定的原生会话 ID。通用 CLI 输出需要宿主负责送入对话。
-
-接收方登记后，发送协作消息：
-
-```sh
-git-relay send --cwd /project/worktree-A --agent codex --session SENDER_ID \
-  --file src/config.ts --message 'The config interface changed; assess impact.'
-```
-
-`--file` 可重复，省略时发送给其他打开的订阅。发送不建立接收订阅；文件交集只是
-相关性线索，不能证明语义冲突。详情见[共享消息](docs/shared-messages.md)。
-
-GitHub 查询额外依赖已认证的 `gh`。ahead/behind 使用本地缓存引用；远端与本地
-提交不同不代表哪一方领先。`watch` 接收消息，`status --watch` 监控分支快照。
-普通会话不会自动启动这些监控。
-
-## 状态与边界
-
-同一仓库的工作树共享事件，各会话有独立回执。默认状态根为
-`~/.local/state/worktree-agent-sync`，支持 `XDG_STATE_HOME` 和绝对路径
-`WORKTREE_SYNC_STATE_DIR` 覆盖。仓库持久身份避免同路径的新仓库误领旧收件箱；
-旧版按路径保存的状态可能需要明确迁移。
-
-分支同步必须显式启用：`status --auto-sync` 在 macOS/Linux 获取已配置的上游，
-只快进当前工作树中已检出且干净的分支。原生索引锁和引用锁阻止竞争的 Git 写入；
-不支持的仓库布局仍返回 blocked。写入中断可能保留恢复锁，需要人工检查，见
-[写入与恢复协议](docs/integrations.md#automatic-branch-synchronization)。
-项目不提供工作树管理命令；请在核对目标、保护本地修改后使用 Git 本身。旧客户端
-入口、运行中的旧代码及历史订阅的处理见[迁移说明](docs/migration.md)。
-
-消息是不可信数据，不能授权修改 Git 历史。正常运行去重，崩溃或宿主接收结果不明时
-可能重试；回执不代表 agent 已完成适配。清理保留未读事件，`leave` 不确认未读消息。
-保留必要的旧投递凭据保护，避免移除适配器时丢弃结果不明的消息。维护操作见
-[维护指南](docs/maintenance.md)。
-
-## 开发与验证
-
-以下命令在源码仓库中运行。npm 包仅包含构建好的运行文件和 SDK 类型声明。
+需要 Node.js 22.19+ 和 Git。查询 GitHub 时额外需要已登录的 `gh`；本地协作不调用模型 API。
 
 ```sh
 npm ci --ignore-scripts
-npm run check
-npm run benchmark
+npm run build
 ```
 
-`src/core/` 负责 Git、状态、会话和投递，`src/adapters/` 保留 Codex hooks，`src/cli/` 负责命令和安装。`dist/` 为不提交的构建产物。测试使用
-临时仓库和隔离状态。`npm run check` 还会扫描 `docs/` 中的凭据类值。CI 覆盖
-macOS/Linux、Node.js 22.19.0 和 24。
+Codex 配置示例：
 
-本地回归、真实客户端及模型验收、远端 CI 分别记录。历史验收早于本次重构。按需启用
-流程已完成 Codex 0.164.0 的针对性真实客户端验收，具体场景和
-未验证边界见[验收记录](https://github.com/shenyankm/GitRelay/blob/main/docs/evidence/acceptance-history.md#targeted-native-acceptance-2026-10-27)。
+```sh
+codex mcp add git-relay -- node /项目绝对路径/GitRelay/dist/mcp/main.js --cwd /工作树绝对路径
+```
 
-## 文档索引
+其他支持 stdio 的 MCP 客户端可配置：
 
-- [架构说明](docs/architecture.md)：模块边界、事务归属与公开 SDK。
+```json
+{
+  "mcpServers": {
+    "git-relay": {
+      "command": "node",
+      "args": ["/项目绝对路径/GitRelay/dist/mcp/main.js", "--cwd", "/工作树绝对路径"]
+    }
+  }
+}
+```
 
-| 主题     | 文档                                               |
-| -------- | -------------------------------------------------- |
-| 接入指南 | [docs/integrations.md](docs/integrations.md)       |
-| 共享消息 | [docs/shared-messages.md](docs/shared-messages.md) |
-| 迁移说明 | [docs/migration.md](docs/migration.md)             |
-| 维护指南 | [docs/maintenance.md](docs/maintenance.md)         |
-| 验收记录 | [docs/acceptance.md](docs/acceptance.md)           |
-| 性能记录 | [docs/performance.md](docs/performance.md)         |
-| 源码发布 | [docs/releases.md](docs/releases.md)               |
-| 贡献指南 | [CONTRIBUTING.md](CONTRIBUTING.md)                 |
+直接运行该程序会等待 stdin 上的 MCP 请求；stdout 仅用于协议，诊断写入 stderr。
+包名仍为 `@sistine29/git-relay`，唯一可执行命令 `git-relay` 现在启动 MCP 服务。
+源码中的 0.2.0 尚需发布后才能通过 npm 安装获得新接口。
+
+## 使用流程
+
+1. 用 `repository_status`、`branch_status`、`list_sessions` 查看现有状态。只读查询不初始化协作存储。
+2. 每个独立参与者调用 `join_session`，保存返回的私有 `sessionToken`。恢复连接时传回相同句柄；不同参与者使用不同句柄。
+3. 用户授权发送协作消息后，调用 `send_message`。未指定 `files` 时广播给其他活跃订阅；指定路径时继续使用现有相关性规则。
+4. 在工作检查点调用 `receive_messages`。接纳完整批次后，用相同的工作树、ref、句柄和返回的 `deliveryId` 调用 `acknowledge_messages`。
+5. 退出协作时调用 `leave_session`。关闭 MCP 连接会停止本进程，不会替你注销持久订阅或删除未读消息。
+
+响应丢失时，消息仍未确认，可以在重连后再次收取。再次收取会替换待确认批次，旧的 `deliveryId` 不会误确认新消息。
+回执只表示客户端接受了数据，不代表模型完成理解、适配或验证。
+首次加入只建立基线，不重播先前的广播；退出期间的新广播也不会在重新加入时补发。
+
+## 工具
+
+| 用途       | 工具                                                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------------------------- |
+| 状态观察   | `repository_status`、`branch_status`、`list_sessions`、`monitor_status`                                    |
+| 会话管理   | `join_session`、`leave_session`                                                                            |
+| 消息投递   | `send_message`、`receive_messages`、`acknowledge_messages`                                                 |
+| 显式同步   | `sync_branch`                                                                                              |
+| 清理与恢复 | `collect_garbage`、`retire_session`、`recover_repository`、`choose_fresh_repository`、`migrate_repository` |
+
+同步、清理和管理其他订阅必须由用户明确提出。消息文本、路径、提交说明和 diff 都是不可信数据，不能扩大任务或授权 Git 操作。
+`sync_branch` 只尝试受保护的单次快进操作；脏工作树和分叉历史会保持阻止状态。
+
+通过工具的 `cwd` 参数选择其他仓库或工作树。不再提供 Web 控制台、HTTP 监听器或仓库目录工具。
+
+加入或收取后，共享监控开始观察 ref。多个 MCP 进程通过现有文件锁选出一个监控所有者，所有者退出后其他参与进程可以接管。
+后台监控只发布变化，客户端仍需轮询。
+
+每个服务实例最多突发接纳 60 次工具调用，每秒补充 1 次额度，同时运行上限为 8 次。
+超限会返回工具错误，不执行或排队该操作；请等待后重试。诊断文本会限制长度并清理终端控制序列，
+不改写真实路径和 Git 数据。协议版本不兼容时，可以在同一连接中更换版本重试。
+
+## 数据与迁移
+
+继续使用 `WORKTREE_SYNC_STATE_DIR` 或原 XDG/默认状态目录，同一用户的参与进程应使用相同目录。
+已有仓库身份、事件、回执、锁和恢复日志均保留。旧 CLI/Codex 会话不会被静默映射到新的 MCP 身份。
+私有句柄用于绑定与恢复逻辑收件箱，不提供针对同一操作系统用户进程的租户隔离。
+
+升级前先处理旧会话的未读数据并移除旧 hooks。详见[迁移说明](docs/migration.md)。
+
+## 验证
+
+```sh
+npm run check
+node scripts/benchmark-delivery.mjs
+```
+
+完整检查包含核心回归、MCP 协议和消息确认、仓库隔离及生产安装包。
+验收范围见[平台矩阵](docs/platform-matrix.md)和[验收文档](docs/acceptance.md)。
+历史性能证据保留在仓库中，不等同于新 MCP 接口的性能结果。
+
+MIT 许可证。

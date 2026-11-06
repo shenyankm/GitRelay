@@ -28,7 +28,7 @@ export interface DaemonOptions {
 export async function runDaemon(options: DaemonOptions): Promise<void> {
   const intervalMs = options.intervalMs ?? 5000;
   if (!Number.isInteger(intervalMs) || intervalMs < 50 || intervalMs > 60_000)
-    throw new Error("interval-ms must be an integer between 50 and 60000.");
+    throw new Error("intervalMs must be an integer between 50 and 60000.");
   const days = retentionDays(options.retentionDays);
   options.signal.throwIfAborted();
   const root = stateDirectory();

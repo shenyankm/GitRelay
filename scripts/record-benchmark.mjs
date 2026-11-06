@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { arch, platform, release } from "node:os";
 import { relative, resolve } from "node:path";
@@ -15,7 +16,6 @@ const scripts = {
   delivery: "benchmark-delivery.mjs",
   maintenance: "benchmark-maintenance.mjs",
   concurrency: "benchmark-concurrency.mjs",
-  hooks: "benchmark-hooks.mjs",
   sync: "benchmark-sync.mjs",
   "git-reads": "benchmark-git-reads.mjs",
   ordering: "benchmark-ordering.mjs",
@@ -36,14 +36,13 @@ const paths = (
     "--",
     "src",
     "scripts",
-    "vendor",
     "package.json",
     "package-lock.json",
     "tsconfig.json",
   )
 )
   .split("\0")
-  .filter(Boolean)
+  .filter((path) => path && existsSync(resolve(root, path)))
   .sort();
 const fingerprint = async (files) => {
   const hash = createHash("sha256");

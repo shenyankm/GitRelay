@@ -54,16 +54,7 @@ export async function consumeMailbox(options: MailboxOptions): Promise<Notificat
   return consumeMailboxInternal(options, options.deliverIndividually === true);
 }
 
-/** Reuse only the root already discovered by the current hook; identity and state stay fresh. */
-export async function consumeMailboxAtRoot(options: MailboxOptions, discoveredRoot: string): Promise<Notification[]> {
-  return consumeMailboxInternal(options, options.deliverIndividually === true, discoveredRoot);
-}
-
-async function consumeMailboxInternal(
-  options: MailboxOptions,
-  individually: boolean,
-  discoveredRoot?: string,
-): Promise<Notification[]> {
+async function consumeMailboxInternal(options: MailboxOptions, individually: boolean): Promise<Notification[]> {
   const adapter = options.adapter;
   validateIdentity({ adapter, session: "snapshot" });
   const session = options.session;
@@ -75,7 +66,7 @@ async function consumeMailboxInternal(
   signal?.throwIfAborted();
   const cwd = options.cwd;
   const ref = options.ref;
-  const repo = await repository(cwd, signal, true, discoveredRoot);
+  const repo = await repository(cwd, signal);
   const key = sessionKey(repo, identity, ref);
   const receipts = join(repo.directory, "receipts", key);
   await checkStateDirectory(receipts, true);

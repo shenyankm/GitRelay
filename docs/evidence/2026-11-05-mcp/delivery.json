@@ -1,0 +1,47 @@
+{
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "platform": "darwin",
+  "arch": "arm64",
+  "startupMs": 215.29,
+  "samples": [
+    {
+      "sendMs": 39.85,
+      "receiveMs": 83.13,
+      "acknowledgeMs": 41.37,
+      "endToEndMs": 164.35
+    },
+    {
+      "sendMs": 40.47,
+      "receiveMs": 78.54,
+      "acknowledgeMs": 39.77,
+      "endToEndMs": 158.79
+    },
+    {
+      "sendMs": 38.07,
+      "receiveMs": 78.54,
+      "acknowledgeMs": 41.51,
+      "endToEndMs": 158.11
+    },
+    {
+      "sendMs": 40.93,
+      "receiveMs": 76.85,
+      "acknowledgeMs": 38.33,
+      "endToEndMs": 156.11
+    },
+    {
+      "sendMs": 37.46,
+      "receiveMs": 74.56,
+      "acknowledgeMs": 39.33,
+      "endToEndMs": 151.34
+    },
+    {
+      "sendMs": 39.74,
+      "receiveMs": 79.64,
+      "acknowledgeMs": 39.85,
+      "endToEndMs": 159.22
+    }
+  ],
+  "medianEndToEndMs": 158.11,
+  "workload": "two persistent stdio MCP clients; linked worktrees; explicit receive and acknowledgement; shared monitor; first sample excluded from median"
+}

@@ -195,7 +195,8 @@ test(
         at: new Date(0).toISOString(),
       });
     }
-    const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
+    const source = `import { collectGarbage } from ${JSON.stringify(new URL("../../src/core/cleanup.ts", import.meta.url).href)};
+      console.log(JSON.stringify(await collectGarbage(process.argv[1], { apply: true, retentionDays: 0 })));`;
     const { stdout } = await exec(
       "sh",
       [
@@ -204,13 +205,10 @@ test(
         "sh",
         process.execPath,
         "--experimental-strip-types",
-        cli,
-        "gc",
-        "--cwd",
+        "--input-type=module",
+        "--eval",
+        source,
         f.a,
-        "--apply",
-        "--retention-days",
-        "0",
       ],
       { env: process.env, timeout: 15000 },
     );

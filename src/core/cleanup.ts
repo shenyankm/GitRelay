@@ -28,7 +28,7 @@ export interface CleanupReport {
 
 export function retentionDays(value = 7): number {
   if (!Number.isFinite(value) || value < 0 || value * 86_400_000 > Number.MAX_SAFE_INTEGER)
-    throw new Error("retention-days must be a finite, non-negative number of days.");
+    throw new Error("retentionDays must be a finite, non-negative number of days.");
   return value;
 }
 

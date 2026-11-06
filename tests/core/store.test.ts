@@ -3,7 +3,6 @@ import { execFile, execFileSync } from "node:child_process";
 import fs from "node:fs";
 import {
   appendFile,
-  lstat,
   mkdir,
   mkdtemp,
   open,
@@ -19,13 +18,11 @@ import {
 } from "node:fs/promises";
 import { syncBuiltinESMExports } from "node:module";
 import { tmpdir } from "node:os";
-import { delimiter, join } from "node:path";
+import { join } from "node:path";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { collectGarbage } from "../../src/core/cleanup.ts";
-import { installCodex } from "../../src/cli/install-codex.ts";
 import { sendMessage, sessionKey } from "../../src/core/mailbox.ts";
 import { BusyError, GC_LOCK_TOKEN, readJson, withLock, writeJson } from "../../src/core/store.ts";
 import { repository } from "../../src/core/repository.ts";
@@ -508,29 +505,6 @@ test("dangling state links are not mistaken for missing data", { skip: process.p
   await rm(target);
   await assert.rejects(readJson(link), /State path exists but cannot be read/);
   assert.equal(await readlink(link), "target.json");
-  const workspace = join(directory, "workspace"),
-    agent = join(directory, "agent");
-  await mkdir(workspace);
-  await mkdir(agent);
-  await writeFile(join(workspace, ".git-relay-owner"), "git-relay installer v1\n");
-  const home = join(directory, "codex-home"),
-    bin = join(directory, "bin");
-  await mkdir(home);
-  await mkdir(bin);
-  await writeFile(join(bin, "codex"), "#!/bin/sh\nprintf '{\"installed\":[]}\\n'\n", { mode: 0o755 });
-  const env = { ...process.env, CODEX_HOME: home, PATH: `${bin}${delimiter}${process.env.PATH ?? ""}` };
-  for (const name of ["codex-install.json", "codex-hooks.json"]) {
-    const state = join(workspace, name);
-    await symlink("missing-state.json", state);
-    await assert.rejects(
-      installCodex({ workspace, sourceRoot: directory, env, clientVersion: "0.164.0" }),
-      name === "codex-hooks.json" ? /Invalid Codex installation record/ : /State path exists but cannot be read/,
-    );
-    assert.ok((await lstat(state)).isSymbolicLink());
-    assert.equal(await readlink(state), "missing-state.json");
-    await assert.rejects(lstat(join(home, "hooks.json")), { code: "ENOENT" });
-    await rm(state);
-  }
 });
 
 test(
@@ -544,13 +518,12 @@ test(
     const repo = await repository(f.b);
     const fifo = join(repo.directory, "events", `${"a".repeat(64)}.json`);
     execFileSync("mkfifo", [fifo]);
-    const cli = fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url));
-    for (const args of [
-      ["check", "--cwd", f.b, "--agent", receiver.adapter, "--session", receiver.session],
-      ["gc", "--cwd", f.b, "--apply", "--retention-days", "0"],
+    for (const operation of [
+      `const { consumeMailbox } = await import(${JSON.stringify(new URL("../../src/core/consumer.ts", import.meta.url).href)}); await consumeMailbox({ cwd: process.argv[1], ref: 'refs/heads/main', adapter: 'test', session: 'fifo', async deliver() {} });`,
+      `const { collectGarbage } = await import(${JSON.stringify(new URL("../../src/core/cleanup.ts", import.meta.url).href)}); await collectGarbage(process.argv[1], { apply: true, retentionDays: 0 });`,
     ]) {
       await assert.rejects(
-        exec(process.execPath, ["--experimental-strip-types", cli, ...args], {
+        exec(process.execPath, ["--experimental-strip-types", "--input-type=module", "--eval", operation, f.b], {
           env: process.env,
           timeout: 3000,
           killSignal: "SIGKILL",

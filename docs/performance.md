@@ -1,3 +1,5 @@
+> Historical pre-MCP measurements. CLI/hook commands below require the recorded old revision and do not measure the 0.2 MCP service. For current transport measurements, use `node scripts/benchmark-delivery.mjs`.
+
 # GitRelay performance benchmarks
 
 The earlier 50-round I/O and size optimization is tracked in

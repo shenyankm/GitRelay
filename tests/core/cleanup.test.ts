@@ -389,8 +389,8 @@ test("retention starts after the latest confirmation, not merely an old event ti
   const receipt = (await readJson(receiptPath)) as object;
   await writeJson(receiptPath, { ...receipt, at: old });
   assert.deepEqual((await collectGarbage(f.b, { apply: true })).removed, [event.id]);
-  await assert.rejects(collectGarbage(f.b, { retentionDays: -1 }), /retention-days/);
-  await assert.rejects(collectGarbage(f.b, { retentionDays: Infinity }), /retention-days/);
+  await assert.rejects(collectGarbage(f.b, { retentionDays: -1 }), /retentionDays/);
+  await assert.rejects(collectGarbage(f.b, { retentionDays: Infinity }), /retentionDays/);
 });
 
 test("GC skips a busy consumer instead of deleting a cached event or deadlocking", async (t) => {

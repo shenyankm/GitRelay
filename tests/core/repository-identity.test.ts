@@ -429,8 +429,8 @@ test("prior identity state does not recommend legacy migration", async (t) => {
   await repository(f.main);
   await writeFile(join(f.main, ".git", ".git-relay-id"), `${"0".repeat(64)}\n`);
   await assert.rejects(repository(f.main), (error: Error) => {
-    assert.match(error.message, /identity-fresh --apply/);
-    assert.doesNotMatch(error.message, /identity-migrate/);
+    assert.match(error.message, /choose_fresh_repository/);
+    assert.doesNotMatch(error.message, /migrate_repository/);
     return true;
   });
 });
@@ -446,5 +446,5 @@ test("path-keyed prior state offers migration", async (t) => {
   const f = await fixture(t);
   const common = join(f.main, ".git");
   await mkdir(join(stateDirectory(), "repos", hash(common)), { recursive: true });
-  await assert.rejects(repository(f.main), /identity-fresh --apply or identity-migrate --apply/);
+  await assert.rejects(repository(f.main), /choose_fresh_repository or migrate_repository/);
 });

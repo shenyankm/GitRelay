@@ -14,6 +14,7 @@ import {
 } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { branchStatus } from "./branch-status.ts";
+import { diagnosticMessage } from "./diagnostics.ts";
 import { git, gitPathLine, gitRefLine, gitRefLines } from "./git.ts";
 import { isCommit, writeJson } from "./store.ts";
 
@@ -445,7 +446,7 @@ export async function syncBranch(cwd: string, branch: string, signal?: AbortSign
     committed = true;
     return { state: "updated", remote };
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = diagnosticMessage(error);
     const recovery =
       applying && !committed
         ? ` Synchronization may be partial (${phase}); Git index/worktree locks and recovery data were retained at ${staging}. Inspect HEAD, both indexes and working files; do not delete locks or retry blindly.`

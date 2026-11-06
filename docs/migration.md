@@ -1,176 +1,52 @@
-# Migrating to GitRelay
+# Migrating to GitRelay 0.2 MCP
 
-## Codex only; sessions participate automatically
+This is a breaking interface change. The local event/receipt storage remains;
+the old shell subcommands, compatibility executable aliases, public core deep
+imports, Codex hooks, installer and plugin marketplace are removed.
 
-This revision removes OpenCode support and retains only Codex integration. Before upgrading an old installation,
-use that old version's uninstall flow or inspect and remove its owned entry in
-the retired client's settings. Stop its running sessions. This checkout does
-not edit other installed clients or delete their settings, runtime archives,
-subscriptions, receipts, or unread messages.
+## Before upgrading an existing installation
 
-Rebuild/reinstall and reload Codex to load the new runtime. Root
-sessions now participate without an enable prompt. Explicit saved disables are
-preserved; use `Enable GitRelay` or `启用 GitRelay` to reopen one. Native clients
-start the shared daemon automatically on macOS/Linux; it exits after the last
-native client process closes. No login service is installed. See
-[automatic sessions](integrations.md#automatic-sessions).
+1. Finish or inspect unread work under the old native subscriptions. Keep the
+   original state root and repository identity markers.
+2. If managed hooks were installed by 0.1.2, use that version's uninstall before
+   upgrading, for example `npx --yes @sistine29/git-relay@0.1.2 uninstall --platform codex`.
+   Review its result; it preserves user-owned configuration and uncertain state.
+3. If installed as a local Codex plugin, remove `git-relay@git-relay-local` through
+   Codex's plugin manager. Remove any independently configured duplicate hooks
+   only after identifying their owner. Restart the host afterwards.
 
-Old inactive subscription records can still be selected by publishers and pin
-unread data. Inspect `git-relay sessions`, then use `leave` with the exact old
-identity only when retiring that subscription is intended. Unread events remain
-preserved; removing an adapter does not authorize acknowledging or deleting them.
-Legacy delivery-proof retention guards remain for this reason.
+The refactor does not edit your normal Codex configuration or silently uninstall
+an existing global runtime. Do not leave old hooks pointing at the new executable:
+`git-relay hook codex` is no longer a valid command.
 
-GitRelay covers branch monitoring and worktree coordination. Branch synchronization is available only through the explicitly requested protected write protocol described below.
+## Connect MCP
 
-| Identity                  | Current value               | Compatibility                                           |
-| ------------------------- | --------------------------- | ------------------------------------------------------- |
-| Project                   | GitRelay                    | Formerly Worktree Relay                                 |
-| GitHub repository         | `shenyankm/GitRelay`        | Existing repository renamed in place                    |
-| npm package / primary CLI | `git-relay`                 | CLI aliases `worktree-relay` and `worktree-sync` remain |
-| Codex plugin              | `git-relay@git-relay-local` | Reinstall under the new identity                        |
+Build this checkout, then configure a stdio server as described in
+[integration](integrations.md). The source version is 0.2.0; publishing npm or a
+public listing is a separate action.
 
-## Update the checkout and CLI
+Call `join_session` once for each logical participant. Save its private token and
+resume with the same token after reconnect. Do not put one shared token in every
+agent's configuration. New MCP identities do not assume an old native session ID.
+Old subscriptions and unread records remain on disk; there is no automatic inbox
+transfer or automatic acknowledgement. Use `list_sessions` and
+`repository_status` to inspect existing records, then explicitly retire a listed
+subscription after reviewing its data.
 
-For an existing checkout of this repository:
+## Workflow changes
 
-```sh
-git remote set-url origin https://github.com/shenyankm/GitRelay.git
-npm ci --ignore-scripts
-npm run build
-npm install -g .
-git-relay --help
-```
+| Former behavior                                   | MCP behavior                                                      |
+| ------------------------------------------------- | ----------------------------------------------------------------- |
+| Hook-driven automatic enrollment                  | Explicit `join_session`                                           |
+| Context injection after tools / Stop continuation | Client polls `receive_messages` at work checkpoints               |
+| Output completion confirms delivery               | Explicit `acknowledge_messages` after accepting the batch         |
+| Codex process scanner owns the daemon             | Connected participating MCP processes own monitoring and failover |
+| CLI status / synchronization                      | `branch_status` / explicit `sync_branch` tools                    |
 
-These instructions install from source; they do not assume an npm registry release. Node.js 22.19+ and Git are required. GitHub queries additionally require authenticated `gh`. Changing the remote URL does not fetch, synchronize branches, or publish local changes.
+The Web console, HTTP listener and catalog tools are removed. Select repositories
+with explicit `cwd` arguments. Existing saved catalog files are left untouched;
+Git repositories, messages and receipts are not deleted.
 
-Update Codex integration entrypoints and commands to `git-relay`.
-
-## Update the Codex plugin
-
-Use a Codex CLI with plugin and lifecycle-hook support:
-
-```sh
-npm ci --ignore-scripts
-npm run build:codex-plugin
-codex plugin marketplace add /absolute/path/to/GitRelay --json
-codex plugin add git-relay@git-relay-local --json
-codex plugin list --json
-```
-
-After confirming the new plugin is installed, remove the old `worktree-relay` plugin if present, using the exact installed identity shown by `codex plugin list`. Disable duplicate manually configured hooks. Reopen the chat and inspect `/hooks`; installation does not grant hook trust. Review and trust hooks through Codex's normal flow.
-
-The former help, synchronization and coordination skills are consolidated into the single `git-relay` skill. Old chat menus may retain previous entries until the client reloads.
-
-After changing bundled code, documentation, or skills, rebuild and repeat `codex plugin add git-relay@git-relay-local --json` to refresh the installed copy. CLI installation/enabled status and actual App rendering are separate checks. See [integration details](integrations.md#codex-app-status-and-actions).
-
-## SDK and command-boundary update
-
-New integrations import the public SDK from `git-relay`; JavaScript and TypeScript
-declarations are shipped together. Use `enableSession` and `disableSession` for
-complete activation/enrollment changes. The formerly documented consumer, mailbox
-and session deep imports remain compatibility paths; other package subpaths are
-private. Code importing repository or file-lock internals by package subpath must
-migrate to the public SDK. See [SDK integration](shared-messages.md#sdk-integration).
-
-Internal source imports now use `core/repository.ts` for repository discovery,
-identity, initialization and recovery; `core/store.ts` contains file storage and
-lock primitives. These module changes require no state-file migration. Source
-builds require the existing development dependencies to generate SDK declarations:
-run `npm ci --ignore-scripts` before `npm run build`.
-
-Commands now reject explicitly supplied options unrelated to that command.
-Remove flags previously ignored by accident, such as `status --apply` or
-`status --retention-days 7`. Supported command behavior and option defaults are
-unchanged; check `git-relay --help` for command usage.
-
-## Repository identity and existing state
-
-The state root, `WORKTREE_SYNC_STATE_DIR`, `WORKTREE_MAIN_REF`, session IDs, and event types remain unchanged. The retired `/worktree` commands have been removed. The repository state key now includes both the canonical Git common-directory path and a persistent identity. See [shared storage](shared-messages.md#storage-and-isolation) for the marker and the read-only configuration. Moving a checkout can still change repository or session identity; renaming the GitHub repository does not move a local checkout.
-
-Existing path-keyed state is retained but is **not automatically associated** with the new identity. A path may have been used by multiple unrelated repositories, so inspect the old data and verify that its messages and subscriptions belong to the current repository before claiming it. The tool cannot establish that provenance. Keep a separate backup; do not delete old state to clear an error.
-
-To claim the old **path-keyed shared state** for the current repository:
-
-1. Stop the GitRelay daemon and all clients, hooks, watchers, and old plugin versions using that state. Keep them stopped during migration. Old versions do not understand the new identity and can write to the retained old directory if started later; running them after migration can split state or cause duplicate delivery. Update or disable those entrypoints before restarting clients.
-2. Use the same state-root environment used by the old clients. Keep the state root's `identity-migration-claims` and `repos` directories on the same filesystem: migration publishes files between them using hard links. If either is separately mounted on a different filesystem, publication fails; the source and any partial target are retained for inspection. For a read-only common directory without a marker, configure and retain the [external identity mapping](shared-messages.md#read-only-git-common-directories) in the migration command, every client, and the daemon.
-3. Before any new state is created for the identity, run:
-
-   ```sh
-   git-relay identity-migrate --cwd /absolute/path/to/worktree --apply
-   ```
-
-   The command checks the legacy state, copies it into a separate identity directory, and leaves the source intact. It refuses to overwrite or merge an unrelated existing target and rejects unsafe or unexpected state. A migration claim records the selected target; an interrupted migration can resume by running the same command if the retained files and ownership records still match. Conflicts are preserved and reported. The command only imports the former path-keyed shared directory, not another identity's directory.
-
-   Older read-only commands could create an empty legacy directory without `repo.json`. Migration requires that metadata to verify the source; inspect the preserved directory and use `identity-fresh --apply` if you choose a new inbox instead.
-
-4. Review the output and restart only updated clients with the same state root and identity configuration. Check the intended sessions and unread messages. Preserve the old state: the copy is not a synchronization relationship with the old version. Repeating a completed migration does not replay the old inbox; if the completed target is missing or its required identity metadata has changed, the command stops for inspection instead of recreating it.
-
-To use a new, empty inbox instead of claiming old data, stop the old clients as above and explicitly select fresh state:
-
-```sh
-git-relay identity-fresh --cwd /absolute/path/to/worktree --apply
-```
-
-This preserves prior state but does not import its unread messages, receipts, or subscriptions. It does not overwrite an existing new-identity directory. If initialization was interrupted, stop all participants and inspect the incomplete directory. `git-relay identity-recover --cwd /absolute/path/to/worktree --apply` can move it aside and report its archive path only when it has a matching ownership marker, recognized empty subdirectories, and optionally regular temporary files from an interrupted `identity-ready.json` write. The archive retains those temporary files. It refuses an initialized directory, missing or invalid ownership marker, unexpected files, and any recognized subdirectory containing data; preserve those cases for manual inspection. An interrupted migration containing copied data is not eligible for this recovery command: retry the same migration as described above, and inspect any reported conflict. Never delete unread state merely to force a retry. If a repository identity marker was lost, identify the original marker and state from a trusted backup before choosing a fresh identity; a fresh choice keeps the old inbox separate.
-
-Historical acceptance paths, package names, hashes, and measurements remain in [acceptance](acceptance.md) and [performance](performance.md). They are evidence from those runs, not newly executed checks.
-
-## History-gap recovery
-
-Earlier versions could acknowledge an upstream history-gap notification when
-Git returned a missing-object error. Git can return the same status, or even a
-successful `missing` probe, when existing object storage is inaccessible. The
-current receiver therefore preserves the unread event whenever it cannot compare
-the commits, rather than automatically confirming an ambiguous history gap.
-Later upstream notifications wait for this range; independent messages can still progress. Previously written receipts remain unchanged.
-
-1. Stop the affected session and other GitRelay participants using this state;
-   preserve a backup of the repository and its GitRelay state. The error reports
-   the monitored ref and `previous` and `commit` IDs. Inspect the repository's
-   retained `events/` files under the configured state root using those IDs to
-   locate the event; these files can contain private messages.
-2. Inspect Git's availability, repository permissions, object directories,
-   alternates and shallow-clone configuration. A failed `git cat-file -e` or a
-   `missing` result alone does not prove an object was pruned. Restore required
-   objects from a trusted repository or backup, or repair the Git environment.
-3. Restart the updated participants and retry. Once Git can compare the range,
-   normal delivery and receipt handling resume. Do not delete the event, forge
-   a receipt, or claim it was delivered merely to clear the error. If trusted
-   history cannot be recovered, preserve the state for manual investigation;
-   an explicit acknowledgement is available only after that review:
-
-   ```sh
-   git-relay check --cwd /absolute/worktree --agent AGENT --session SESSION_ID \
-     --acknowledge-history-gap --apply
-   ```
-
-   For an existing inbox with an instance, include the exact `--instance` shown by `git-relay sessions`. This accepts every selected uninspectable upstream range for that inbox, emits `unavailable: true`, and writes receipts only after successful output. It does not recover a diff or prove the agent assessed it. Spawn errors, cancellation and timeouts remain errors; ordinary hooks and polling never opt in.
-
-## Monitoring and automatic synchronization
-
-`watch` receives coordination events. `daemon` centralizes monitored-ref checks and acknowledged-event cleanup. `status --watch` independently monitors branch state. None enables automatic synchronization by default.
-
-Explicit `status --auto-sync` now uses native Git index/ref locks, a private detached checkout and expected-ID ref updates to prevent a competing checkout from redirecting a fast-forward. It supports ordinary indexes with Git's files backend on macOS/Linux; unsupported layouts stay blocked. `status --watch` without `--auto-sync` remains read-only. Interrupted writes can retain recovery guards and partially updated files/index/refs; follow the [write protocol and recovery guide](integrations.md#automatic-branch-synchronization) rather than retrying or rolling back blindly. An upgrade does not stop old processes: stop each older `status --watch --auto-sync` terminal process with Ctrl+C. Starting a second monitor, stopping the daemon, or leaving a subscription does not stop it.
-
-If you choose to update manually, stop concurrent Git operations in that worktree, inspect `git status --branch` and `git branch -vv`, and confirm the checked-out branch, upstream and local changes. Then, in that worktree, run `git fetch --no-tags --no-recurse-submodules` and inspect the resulting status before deciding whether to run `git -c submodule.recurse=false merge --ff-only --no-autostash --no-overwrite-ignore '@{upstream}'`. Fetch changes remote-tracking refs. Manual Git commands also race with concurrent checkout or writes; do not run them concurrently. A failed merge must be investigated without forcing, resetting or stashing user data. These commands are an interactive alternative, not an automatic recovery guarantee.
-
-See [maintenance](maintenance.md) for subscription and cleanup procedures. Repository renaming alone does not commit, push, publish, or release the updated package.
-
-## Repository paths ending in carriage return
-
-On Unix, older versions could remove a valid trailing carriage return from a
-repository path returned by Git. A repository such as `repo\r` could then be
-associated with its separate `repo` neighbor. The corrected version preserves
-that character and resolves the actual repository. It does not automatically
-move or reconcile incorrectly attributed state.
-
-Stop older GitRelay clients and back up both repositories and their state before
-investigating. The older state may contain sessions, events and receipts from
-both repositories, and those records cannot necessarily be separated without
-additional evidence. Inspect their provenance and native session histories; do
-not automatically claim, merge, delete or acknowledge mixed state. Choose fresh
-state or recover verified records only after establishing their origin. No
-lossless automatic migration is available for this case. Unix trailing-CR paths
-were tested with real Git; Windows line-ending handling has only been simulated,
-not tested on a Windows host.
+Dirty-work protection, native Git locking, publication recovery, unread retention,
+receipt validation, path relevance and safe GC remain core contracts. MCP does
+not provide exactly-once model processing or guarantee wake-up of idle models.

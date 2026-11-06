@@ -1,0 +1,89 @@
+{
+  "date": "2026-11-05",
+  "version": "0.2.0",
+  "status": "passed",
+  "environment": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "snapshot": {
+    "baseCommit": "18b64026cc4c4cf1c92345e330f6006038d085bb",
+    "workingTree": "uncommitted MCP refactor; includes preserved preexisting Web console work",
+    "sourceAndTestsSha256": "5bb829b92d6b9290716a06397ec90f6c28d7da754439a59eae7a4bd5d11af6b3",
+    "buildSha256": "be20bfbce9308fb25226a1a4389f6837466a0751c63fbc70a51fe069920b3a1a"
+  },
+  "checks": {
+    "combined": {
+      "command": "npm run check",
+      "exitCode": 0,
+      "format": "passed",
+      "typecheck": "passed",
+      "releaseMetadata": "passed",
+      "coreAndMcpTests": 432,
+      "productionPackageTests": 1,
+      "passed": 433,
+      "failed": 0,
+      "skipped": 0,
+      "packageDryRun": "passed",
+      "log": "check.log"
+    },
+    "additionalAcceptance": {
+      "lifecycleLog": "lifecycle.log",
+      "packageLog": "package.log",
+      "installedRootExport": "createGitRelayServer instantiated and closed without source or dev dependencies",
+      "legacyMcp": "2025-06-18 initialize/discovery/EOF with no state writes",
+      "nativeCodex": "codex-native.json",
+      "markdownTargetsChecked": 29,
+      "missingMarkdownTargets": 0,
+      "productionAuditVulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    },
+    "deliveryBenchmark": {
+      "command": "node scripts/benchmark-delivery.mjs",
+      "exitCode": 0,
+      "evidence": "delivery.json",
+      "scope": "two persistent stdio MCP clients, linked worktrees, explicit acceptance, shared monitor",
+      "limits": "Six samples, first excluded from median. Local smoke measurement with warm caches and uncontrolled load; no baseline comparison, physical I/O or model latency claim."
+    },
+    "coreConcurrency": {
+      "command": "node scripts/benchmark-concurrency.mjs",
+      "exitCode": 0,
+      "evidence": "concurrency.jsonl",
+      "scope": "1/4/8 independent core consumer processes, monitor on/off, recover eight events per receiver, concurrent GC with unread preservation",
+      "limits": "Core filesystem/lock acceptance; not a measurement of eight MCP/model hosts."
+    }
+  },
+  "migration": {
+    "removed": [
+      "old shell subcommands and aliases",
+      "Codex hooks and plugin/marketplace manifests",
+      "installer and TOML vendor",
+      "old public storage deep exports"
+    ],
+    "retained": [
+      "repository identities and existing state",
+      "activation/publication/deletion recovery protocols",
+      "unread events and verified receipts",
+      "protected Git synchronization",
+      "local multi-repository Web console"
+    ],
+    "behavior": "Explicit join, receive and acknowledge; no automatic context injection or idle model wake-up",
+    "guide": "../../migration.md"
+  },
+  "notPerformed": [
+    "No real model turns",
+    "No desktop GUI acceptance for MCP integration",
+    "No Windows acceptance",
+    "No hosted CI run",
+    "No npm publication or Git push",
+    "No change to normal user MCP/hook configuration"
+  ]
+}

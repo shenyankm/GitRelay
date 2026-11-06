@@ -1,0 +1,10 @@
+{"node":"v22.23.2","git":"git version 2.54.0 (Apple Git-157)","events":1000,"samples":3,"workload":"independent core consumer processes in one worktree; process startup included; setup excluded; warm caches"}
+{"processes":1,"daemon":false,"idleRoundsMs":[148.6,131.5,133],"medianIdleMs":133,"recoverEightPerProcessMs":135,"gcAndPollMs":323,"gcBusy":3}
+{"processes":1,"daemon":true,"idleRoundsMs":[132.9,133.8,129.3],"medianIdleMs":132.9,"recoverEightPerProcessMs":135.7,"gcAndPollMs":256,"gcBusy":0}
+{"processes":1,"concurrentDeletionVerified":true,"skippedFirstPoll":1}
+{"processes":4,"daemon":false,"idleRoundsMs":[297,301.4,323.2],"medianIdleMs":301.4,"recoverEightPerProcessMs":307.8,"gcAndPollMs":567.3,"gcBusy":5}
+{"processes":4,"daemon":true,"idleRoundsMs":[299.8,320.9,290.9],"medianIdleMs":299.8,"recoverEightPerProcessMs":305.6,"gcAndPollMs":618.7,"gcBusy":5}
+{"processes":4,"concurrentDeletionVerified":true,"skippedFirstPoll":4}
+{"processes":8,"daemon":false,"idleRoundsMs":[535.6,547.8,549.8],"medianIdleMs":547.8,"recoverEightPerProcessMs":578.1,"gcAndPollMs":904.8,"gcBusy":9}
+{"processes":8,"daemon":true,"idleRoundsMs":[542.2,554,534.1],"medianIdleMs":542.2,"recoverEightPerProcessMs":573.4,"gcAndPollMs":910.3,"gcBusy":10}
+{"processes":8,"concurrentDeletionVerified":true,"skippedFirstPoll":8}

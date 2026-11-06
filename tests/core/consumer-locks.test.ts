@@ -4,7 +4,6 @@ import fs from "node:fs";
 import { syncBuiltinESMExports } from "node:module";
 import { join } from "node:path";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { collectGarbage } from "../../src/core/cleanup.ts";
 import { consumeMailbox } from "../../src/core/consumer.ts";
@@ -67,14 +66,11 @@ test("ownerless session locks are reported without acknowledging unread messages
     await assert.rejects(
       promisify(execFile)(process.execPath, [
         "--experimental-strip-types",
-        fileURLToPath(new URL("../../src/cli/main.ts", import.meta.url)),
-        "check",
-        "--cwd",
+        "--input-type=module",
+        "--eval",
+        `import { consumeMailbox } from ${JSON.stringify(new URL("../../src/core/consumer.ts", import.meta.url).href)};
+         await consumeMailbox({ cwd: process.argv[1], adapter: 'test', session: 'b', ref: 'refs/heads/main', async deliver() {} });`,
         f.b,
-        "--agent",
-        "test",
-        "--session",
-        "b",
       ]),
       (error: Error & { stderr?: string }) => error.stderr?.includes(lock) === true,
     );

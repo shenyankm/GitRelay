@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { git, gitRefLine, gitRefLines } from "./git.ts";
 import { isCommit } from "./store.ts";
+import { diagnosticMessage } from "./diagnostics.ts";
 
 const exec = promisify(execFile);
 
@@ -274,7 +275,7 @@ export async function branchStatus(options: BranchStatusOptions) {
       };
     } catch (error) {
       signal?.throwIfAborted();
-      github = { error: error instanceof Error ? error.message : String(error) };
+      github = { error: diagnosticMessage(error) };
     }
   }
   return { type: "worktree.branch-status", worktree, local, ...(github ? { github } : {}) };

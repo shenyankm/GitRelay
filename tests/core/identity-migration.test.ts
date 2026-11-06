@@ -131,7 +131,7 @@ test("missing legacy metadata reports an actionable error and leaves fresh state
         identitySource: current.identitySource,
       }),
     ),
-    /Legacy repository metadata is missing.*identity-fresh/,
+    /Legacy repository metadata is missing.*choose_fresh_repository/,
   );
   assert.equal((await chooseFreshRepository(f.b)).id, repo.id);
   assert.deepEqual((await readdir(oldDirectory)).sort(), ["events", "receipts", "refs", "sessions", "trash"]);
@@ -452,7 +452,7 @@ test("a migrated native session receives unread events without replaying its rec
 test("missing legacy directories report that no path-keyed state exists", async (t) => {
   const f = await fixture(t);
   await rm(f.oldDirectory, { recursive: true });
-  await assert.rejects(migrateLegacyState(f.options), /no path-keyed legacy state.*identity-fresh/i);
+  await assert.rejects(migrateLegacyState(f.options), /no path-keyed legacy state.*choose_fresh_repository/i);
   await rm(join(f.root, "repos"), { recursive: true });
-  await assert.rejects(migrateLegacyState(f.options), /no path-keyed legacy state.*identity-fresh/i);
+  await assert.rejects(migrateLegacyState(f.options), /no path-keyed legacy state.*choose_fresh_repository/i);
 });

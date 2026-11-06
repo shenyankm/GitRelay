@@ -101,7 +101,7 @@ async function leavingRepository(options: LeaveOptions, protectPrior = false): P
   // Only a missing worktree permits lookup by its persisted absolute root.
   if (!(await unavailableWorktree(raw)) || (raw !== root && !(await unavailableWorktree(root)))) {
     if (options.repositoryId !== undefined)
-      throw new Error("--repository-id is only for a missing worktree; use the normal leave operation.");
+      throw new Error("repositoryId is only for a missing worktree; use the normal leave operation.");
     throw error;
   }
   await checkManagedRoot();

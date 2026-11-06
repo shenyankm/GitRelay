@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Breaking: MCP service
+
+- Replace Codex hooks, the plugin installer/marketplace and shell subcommands with a local stdio MCP server.
+- Add typed query, session, message, explicit acknowledgement, synchronization and maintenance tools.
+- Remove the Web console, HTTP listener and catalog tools; select repositories with explicit tool cwd arguments.
+- Bound tool-call rates and concurrency, sanitize diagnostics and allow same-connection protocol-version retries.
+- Keep existing repository state and recovery contracts; native inbox identities are not silently transferred.
+- Use connected MCP processes for shared monitoring and failover; automatic context injection and Stop continuation are removed.
+- Prepare version 0.2.0. Publication and hosted CI remain separate steps.
+
 ## [0.1.2] - 2026-11-04
 
 - Publish under `@sistine29/git-relay`; npm rejected the unscoped name as too similar to the existing `gitrelay` package.

@@ -1,31 +1,30 @@
 {
   "name": "@sistine29/git-relay",
-  "version": "0.1.2",
-  "description": "GitRelay: Git worktree change awareness for Codex",
+  "version": "0.2.0",
+  "description": "Local MCP server for reliable Git worktree coordination, messages and branch monitoring",
   "license": "MIT",
   "type": "module",
   "keywords": [
     "git",
     "worktree",
+    "mcp",
+    "model-context-protocol",
     "coding-agent"
   ],
   "files": [
     "dist",
-    "src/adapters/codex/*.json",
-    "skills",
+    "assets",
     "docs/*.md",
     "!docs/optimization-rounds.md",
+    "!docs/performance.md",
     "README.md",
+    "README.zh-CN.md",
     "CONTRIBUTING.md",
     "CHANGELOG.md",
-    "LICENSE",
-    ".codex-plugin",
-    "assets"
+    "LICENSE"
   ],
   "bin": {
-    "git-relay": "./dist/cli/main.js",
-    "worktree-relay": "./dist/cli/main.js",
-    "worktree-sync": "./dist/cli/main.js"
+    "git-relay": "./dist/mcp/main.js"
   },
   "engines": {
     "node": ">=22.19.0"
@@ -36,13 +35,13 @@
     "check:release": "node scripts/check-release.mjs",
     "check": "npm run format:check && npm run typecheck && npm run check:release && npm test && npm pack --dry-run",
     "build": "node scripts/build.mjs",
-    "build:codex-plugin": "npm run build && node scripts/build-codex-plugin.mjs",
     "prepare": "npm run build",
     "typecheck": "tsc --noEmit",
     "benchmark": "npm run build && node scripts/benchmark.mjs",
-    "test": "npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/adapters/*.test.ts tests/cli/*.test.*"
+    "test": "npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/mcp/*.test.* && node --experimental-strip-types --test tests/mcp/package.integration.ts"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "2.4.0",
     "@types/node": "22.19.7",
     "prettier": "3.9.10",
     "typescript": "5.9.3"
@@ -52,13 +51,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./dist/core/consumer.js": "./dist/core/consumer.js",
-    "./dist/core/mailbox.js": "./dist/core/mailbox.js",
-    "./dist/core/sessions.js": "./dist/core/sessions.js"
+    }
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shenyankm/GitRelay.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.4.0",
+    "zod": "4.6.7"
   }
 }

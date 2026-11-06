@@ -107,6 +107,30 @@ export async function repositoryIdentity(
   return identity ? { identity, identitySource: "marker" } : undefined;
 }
 
+/** Inspect existing state without creating identities, directories, or locks. */
+export async function inspectRepository(cwd: string, signal?: AbortSignal) {
+  const root = await watchRoot(cwd, signal);
+  const common = await realpath(
+    gitPathLine(await git(root, ["rev-parse", "--path-format=absolute", "--git-common-dir"], signal, "paths")),
+  );
+  await checkManagedRoot();
+  const identity = await repositoryIdentity(common, false);
+  const id = identity ? hash([common, identity.identity]) : null;
+  const location = { root, common, id };
+  if (!identity || id === null) return { ...location, repository: undefined };
+  const directory = join(stateDirectory(), "repos", id);
+  await checkStateDirectory(directory, true);
+  const ready = (await readJson(join(directory, "identity-ready.json"), true)) as { id?: string } | undefined;
+  if (!ready) return { ...location, repository: undefined };
+  const owner = (await readJson(join(directory, "identity-owner.json"), true)) as { id?: string } | undefined;
+  if (ready.id !== id || owner?.id !== id)
+    throw new Error("Incomplete GitRelay state initialization; inspect prior state.");
+  await checkRepositoryDirectories(directory);
+  const repository: Repository = { root, common, id, directory, ...identity };
+  await assertMigrationReady(repository);
+  return { ...location, repository };
+}
+
 /** Identity initialization and legacy migration share this lock. */
 export async function withRepositoryIdentity<T>(
   cwd: string,
@@ -167,7 +191,7 @@ export async function assertMigrationReady(repo: Repository): Promise<void> {
     provenance.id !== repo.id
   )
     throw new Error(
-      `GitRelay migration is incomplete for ${repo.common}; resume identity-migrate and preserve the prior state.`,
+      `GitRelay migration is incomplete for ${repo.common}; resume migrate_repository and preserve the prior state.`,
     );
 }
 
@@ -349,7 +373,7 @@ export async function repository(
           { id?: string } | undefined;
         if (prior.length && choice?.id !== repo.id)
           throw new Error(
-            `Earlier GitRelay state exists for ${repo.common}; run git-relay identity-fresh --apply${prior.includes(hash(repo.common)) ? " or identity-migrate --apply" : ""} after inspecting it. Prior state is preserved.`,
+            `Earlier GitRelay state exists for ${repo.common}; call choose_fresh_repository${prior.includes(hash(repo.common)) ? " or migrate_repository" : ""} after inspecting it. Prior state is preserved.`,
           );
         await recordRepositoryIdentity(repo);
         await mkdir(join(stateDirectory(), "repos"), { recursive: true, mode: 0o700 });

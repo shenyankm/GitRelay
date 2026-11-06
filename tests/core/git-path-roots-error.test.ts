@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { chmod, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
-import { runHook } from "../../src/adapters/hooks.ts";
+import { consumeMailbox } from "../../src/core/consumer.ts";
 import { branchStatus } from "../../src/core/branch-status.ts";
 import { GitPathOutputError, git, gitPathLine } from "../../src/core/git.ts";
 import { readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
@@ -22,21 +22,26 @@ async function shim(root: string, target: string, value: string) {
 }
 
 test(
-  "invalid top-level pathname causes hook error and leaves message unread",
+  "invalid top-level pathname causes consumption error and leaves message unread",
   { skip: process.platform === "win32" },
   async (t) => {
     const f = await fixture(t),
-      input = { hook_event_name: "UserPromptSubmit", prompt: "Enable GitRelay", session_id: "B", cwd: f.b };
-    await runHook(input, ref, async () => {});
+      receiver = { cwd: f.b, adapter: "mcp", session: "B", ref, async deliver() {} };
+    await consumeMailbox(receiver);
     const event = await sendMessage({ cwd: f.a, ref, adapter: "test", session: "A", text: "unread" });
     const repo = await repository(f.b),
-      key = sessionKey(repo, { adapter: "codex", session: "B" }, ref);
+      key = sessionKey(repo, receiver, ref);
     const bin = await shim(f.root, " rev-parse --show-toplevel", "/invalid_\\377\\n");
     const prior = process.env.PATH;
     process.env.PATH = `${bin}:${prior ?? ""}`;
     try {
       await assert.rejects(
-        runHook(input, ref, async () => assert.fail("no silent response")),
+        consumeMailbox({
+          ...receiver,
+          async deliver() {
+            assert.fail("no silent response");
+          },
+        }),
         GitPathOutputError,
       );
     } finally {
@@ -45,8 +50,11 @@ test(
     }
     assert.equal(await readReceipt(repo, key, event.id), undefined);
     const out: object[] = [];
-    await runHook(input, ref, async (value) => {
-      out.push(value);
+    await consumeMailbox({
+      ...receiver,
+      async deliver(value) {
+        out.push(value);
+      },
     });
     assert.equal(out.length, 1);
     assert.ok(JSON.stringify(out[0]).includes("unread"));
