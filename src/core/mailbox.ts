@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { lstat, readdir, rename } from "node:fs/promises";
+import { lstat, mkdir, readdir, rename } from "node:fs/promises";
 import { join, posix } from "node:path";
 import { formatChange, type Change } from "./changes.ts";
 import { checkStateDirectory, hash, isCommit, isId, readJson, withLock, writeJson } from "./store.ts";
@@ -553,6 +553,66 @@ export async function sendMessage(
       signal?.throwIfAborted();
       await writeJson(join(repo.directory, "events", eventFilename(event)), event);
       return event;
+    },
+    { signal, waitMs: 5000 },
+  );
+}
+
+export async function publishCoordination(
+  repo: Repository,
+  session: Session,
+  source: string,
+  text: string,
+  active: boolean,
+  signal?: AbortSignal,
+): Promise<void> {
+  validateMessage(text, [], true);
+  await withLock(
+    join(repo.directory, "publish.lock"),
+    async () => {
+      const tracking = (await readJson(join(repo.directory, "tracking.json"), true)) as
+        { enabled?: boolean; source?: string } | undefined;
+      if (!tracking || typeof tracking.enabled !== "boolean" || typeof tracking.source !== "string")
+        throw new Error("Invalid tracking state at publication; preserve state.");
+      if (!tracking.enabled || tracking.source !== source) return;
+      const current = await readSession(repo, session.key);
+      if (!current || current.closedAt) return;
+      const directory = join(repo.directory, "receipts", session.key);
+      await checkStateDirectory(directory, true);
+      await mkdir(directory, { recursive: true, mode: 0o700 });
+      const path = join(directory, "coordination.json");
+      const previous = (await readJson(path, true)) as { digest: string; eventId?: string } | undefined;
+      if (previous && (!isId(previous.digest) || (previous.eventId !== undefined && !isId(previous.eventId))))
+        throw new Error("Corrupt coordination cursor; unread messages were preserved.");
+      const digest = hash(text);
+      if (previous?.digest === digest) return;
+      if (!active && !previous?.eventId) {
+        await writeJson(path, { digest });
+        return;
+      }
+      const id = hash(["coordination", session.key, digest, previous?.eventId ?? ""]);
+      const event: AgentMessage = {
+        id,
+        kind: "message",
+        createdAt: new Date().toISOString(),
+        sender: { adapter: "git-relay", session: "coordination", root: repo.root },
+        recipients: [session.key],
+        text,
+        files: [],
+      };
+      const location = join(repo.directory, "events", eventFilename(event));
+      const existing = await readJson(location, true);
+      if (existing !== undefined) {
+        const saved = validateEvent(existing, id, false);
+        if (
+          saved.kind !== "message" ||
+          saved.text !== text ||
+          saved.recipients.length !== 1 ||
+          saved.recipients[0] !== session.key
+        )
+          throw new Error("Conflicting coordination publication; preserve state.");
+      } else await writeJson(location, event, () => signal?.throwIfAborted());
+      await writeJson(path, { digest, eventId: id }, () => signal?.throwIfAborted());
     },
     { signal, waitMs: 5000 },
   );

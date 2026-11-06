@@ -5,6 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { collectRepository, retentionDays } from "./cleanup.ts";
 import { sessionsIn } from "./mailbox.ts";
 import { synchronizeRef } from "./publisher.ts";
+import { scanCoordination } from "./coordination.ts";
 import {
   BusyError,
   checkManagedRoot,
@@ -229,6 +230,17 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                 await emit({
                   type: "daemon.error",
                   repo: id,
+                  message: error instanceof Error ? error.message : String(error),
+                });
+            }
+          }
+          if (!options.signal.aborted) {
+            try {
+              await scanCoordination(options.signal);
+            } catch (error) {
+              if (!options.signal.aborted)
+                await emit({
+                  type: "coordination.error",
                   message: error instanceof Error ? error.message : String(error),
                 });
             }

@@ -28,7 +28,15 @@ must use the same root to coordinate. `WORKTREE_MAIN_REF` can set the default
 full monitored branch ref. Explicit tool fields select other worktrees or refs.
 
 The server does not load model API credentials. `branch_status` only queries
-GitHub when requested with `github=true`; gh handles its authentication.
+GitHub when requested with `github=true`. Authorized `track_repository` enables
+private fetches of configured remote branches; its `github=true` additionally
+enables GitHub fork/PR APIs. gh handles GitHub authentication.
+
+Some hosts require approval for open-world tracking tools, even with
+`github=false`. An operator can enable tracking explicitly before the model joins.
+If a host filters subprocess environment variables, configure
+`WORKTREE_SYNC_STATE_DIR` explicitly in the MCP server's `env`, not only in the
+host launcher environment.
 
 ## Host lifecycle and polling
 
@@ -38,9 +46,14 @@ Subscriptions persist unless explicitly closed. The shared monitor starts on
 join/receive and can fail over between participating MCP processes.
 
 A generic MCP connection is not a lifecycle-hook trigger or a guarantee that an
-idle model will process a notification. Poll `receive_messages` at useful work
-checkpoints, then explicitly acknowledge accepted batches. Do not claim automatic
-injection or wake-up support on the basis of tool discovery.
+idle model will process a notification. Joined connections receive
+`notifications/resources/updated` for the returned inbox URI, and automatic
+coordination reports via `notifications/message` (SDK logging compatibility;
+logging is deprecated in the 2026 protocol). The connection-bound inbox resource
+is the non-logging read path. Read/notification delivery never acknowledges events.
+Hosts ignoring notifications should poll `receive_messages` at work checkpoints,
+then explicitly acknowledge accepted batches. Do not claim model injection or
+wake-up support from transport delivery. See [coordination](coordination.md).
 
 All commands' stdout is reserved for MCP JSON-RPC, except `--help` and `--version`
 when explicitly invoked outside a protocol session. Send diagnostics to stderr.

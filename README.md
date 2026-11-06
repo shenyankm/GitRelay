@@ -2,14 +2,16 @@
 
 <img src="assets/logo.svg" alt="GitRelay" width="80" />
 
-A local MCP server for Git worktree coordination. Inspect branches and sessions,
-exchange messages, and receive upstream changes through structured tools.
+Source-centered Git coordination through a local MCP server. Track related local
+repositories, branches and worktrees plus remote branches and GitHub forks/open
+PRs; automatically diagnose conflicts and notify the relevant connected sessions.
 
 [中文说明](README.zh-CN.md) · [Tools](docs/shared-messages.md) · [Migration](docs/migration.md)
 
 Version 0.2 replaces the former command CLI and Codex lifecycle plugin. The server
-uses MCP over stdio and supports explicit polling and acknowledgement. It does
-not inject context into chats, continue a stopped turn, or wake an idle model.
+uses MCP over stdio, pushes automatic coordination notices to bound connections,
+and retains explicit polling and acknowledgement. Host-side model activation is
+separate: it does not itself inject chat context or wake an idle model.
 
 ## Run from source
 
@@ -72,11 +74,34 @@ The first join establishes a ref baseline without replaying older broadcasts.
 Independent participants must use different tokens. Tokens bind resumable inboxes;
 they are not tenant isolation against another process owned by the same OS user.
 
+## Automatic source coordination
+
+With user authorization, call `track_repository` once for each independent local
+clone; local remotes are discovered recursively. Remote identities associate
+same-source clones without merging their existing private mailboxes. Use
+`github=true` to additionally resolve GitHub fork ancestry and observe accessible
+forks, branches and open PRs. Configured remote branches are fetched into a private
+observer, never into user refs or worktrees.
+
+The monitor examines registered local branches and clean/dirty worktree snapshots
+on each pass (normally five seconds); remote/API inventories refresh at most once
+per minute. Findings distinguish confirmed Git conflicts, cleanly mergeable path
+overlap, and unknown/incomplete analysis. Changed findings and resolutions become
+durable, session-scoped messages. Joined connections receive inbox resource
+updates and MCP message notifications; hosts ignoring notifications can poll and
+must explicitly acknowledge complete batches.
+
+Use `coordination_status` to inspect coverage/errors and `scan_repository` for an
+immediate local scan (the remote cache still applies). `list_sessions.online`
+means a live transport lease, not proof of model activity. See
+[coordination](docs/coordination.md) for setup, limitations and the protocol.
+
 ## Tools
 
 | Purpose                  | MCP tools                                                                                                  |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | Observe                  | `repository_status`, `branch_status`, `list_sessions`, `monitor_status`                                    |
+| Source coordination      | `track_repository`, `coordination_status`, `scan_repository`                                               |
 | Participate              | `join_session`, `leave_session`                                                                            |
 | Messages                 | `send_message`, `receive_messages`, `acknowledge_messages`                                                 |
 | Explicit Git update      | `sync_branch`                                                                                              |
@@ -91,7 +116,8 @@ No Web console, HTTP listener or repository catalog is included.
 
 The shared ref monitor starts on join/receive, uses the existing filesystem lock,
 and is owned by a connected MCP process. Another participating process can take
-over when its owner exits. It publishes events; clients still need to poll.
+over when its owner exits. Each bound connection pushes automatic coordination
+notices without acknowledging them; polling remains the fallback.
 
 Each server instance admits a burst of 60 tool calls, replenishes one call per
 second, and runs at most 8 calls concurrently. Excess calls return a tool error

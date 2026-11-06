@@ -56,6 +56,36 @@ directories or locks. Read-only MCP tools and `core/repository-snapshot.ts` use 
 The server has no HTTP listener or Web console. Tools select repositories through
 explicit `cwd` arguments; no repository catalog is needed.
 
+## Source coordination and connection delivery
+
+`coordination.ts` stores opt-in `tracking.json` beside each existing repository
+identity. Canonical upstream/origin URLs or local Git common directories link
+related clones. The daemon groups registrations by source and serializes each
+group under `coordination.lock`; it does not merge ordinary mailboxes. Local
+remote registrations are recursive; unrelated disk paths are not crawled.
+
+`conflicts.ts` imports refs into a private bare `observer.git`. Separate temporary
+indexes and fixed-date synthetic commits represent staged and working snapshots.
+Global/system Git config and hooks are disabled for observer operations. Native
+`merge-tree` establishes actual conflicts; path overlap is a separate warning.
+Missing history, unsupported/racing snapshots and failed observations remain
+unknown. No user ref/index/worktree is synchronized by analysis.
+
+`cloud.ts` refreshes configured remote refs and GitHub fork/branch/open-PR
+inventories using a one-minute cache, pinned SHAs, validated metadata and private
+fetch refspecs. Cloud caches are source-scoped. Failures remain in reports;
+stale fetch refs are never substituted for successful cloud observation.
+
+Automatic findings use the existing message event/receipt machinery. Per-session
+coordination cursors deduplicate stable reports, preserve interrupted publication
+and distinguish subsequent changes/resolutions. Unread notices survive disconnect.
+
+`connections.ts` binds joined/resumed subscriptions to this transport. It renews
+10-second presence leases, pushes automatic notices and inbox resource updates,
+and removes its presence on shutdown. Resource reads are connection-bound and do
+not confirm receipt. There is no cross-process command execution or implicit ACK.
+MCP logs/resources are transport signals, not guaranteed model-context injection.
+
 ## Validation
 
 Core regressions preserve native Git races, publication interruption, GC journals,

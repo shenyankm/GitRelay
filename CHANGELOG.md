@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Source-centered automatic coordination
+
+- Associate registered same-source clones through normalized upstream/origin identities and recursively discover local remotes, without merging existing mailboxes.
+- Observe local branches and clean/dirty/staged worktree snapshots, configured remote branches, GitHub fork networks and open PRs using private observer objects/refs/indexes.
+- Distinguish confirmed Git conflicts, mergeable path overlap and unknown coverage; publish deduplicated findings and resolution messages with existing explicit ACK/recovery.
+- Add tracking/status/immediate-scan tools, connection-bound inbox resources, automatic MCP notifications and expiring online transport leases.
+- Add real Git, multi-process stdio, read-only live GitHub PR and authenticated native Codex acceptance scripts; retain the boundary between transport notification and model activation.
+
 ### Breaking: MCP service
 
 - Replace Codex hooks, the plugin installer/marketplace and shell subcommands with a local stdio MCP server.

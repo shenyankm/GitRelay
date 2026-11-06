@@ -14,6 +14,28 @@ participating server remains. It publishes changes but does not acknowledge
 messages or run model turns. An old subscription's heartbeat does not prove the
 agent is still online.
 
+## Tracked source state
+
+`tracking.json` enables same-source analysis. Disable with
+`track_repository({enabled:false})` to stop that local registration; recursively
+discovered source repositories have independent registrations and may also need
+disabling. Existing inbox data is retained. Registrations are tied to the main
+worktree/bare root rather than an ephemeral calling worktree.
+
+`coordination-report.json` records inventories, coverage errors and scan times;
+cloud and remote snapshots have a one-minute cache. Check timestamps before
+assuming a report is current. Missing repositories are unknown, not clean, and
+healthy members continue scanning. Corrupt state is rejected and preserved.
+
+The private `observer.git` retains imported objects and synthetic snapshots.
+It can consume significant disk space for large fork networks. Do not remove it
+while monitoring; no automatic observer-compaction policy is claimed here.
+Ordinary message GC does not compact Git object databases.
+
+`connections/` contains expiring per-transport leases. Graceful shutdown removes
+only the owning connection file; crashes expire within ten seconds. A lease says
+nothing about whether a model is running or has understood a notice.
+
 ## Cleanup
 
 Call `collect_garbage` without apply to preview. Set apply=true only for explicitly

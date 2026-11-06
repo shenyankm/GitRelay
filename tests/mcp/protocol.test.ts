@@ -12,7 +12,7 @@ test("MCP discovers typed tools and reads new/dirty repositories without state w
   const f = await fixture(t);
   const { client, call, stderr } = await connectMcp(t, f.b);
   const tools = (await client.listTools()).tools;
-  assert.equal(tools.length, 15);
+  assert.equal(tools.length, 18);
   const removed = ["open_console", "list_repositories", "add_repository", "remove_repository"];
   assert.ok(tools.every((tool) => !removed.includes(tool.name)));
   assert.ok(tools.some((tool) => tool.name === "receive_messages" && tool.annotations?.readOnlyHint === false));

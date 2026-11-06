@@ -34,6 +34,34 @@ including host restart, unread recovery, explicit acknowledgement and dirty-work
 preservation. Its browser checks describe the since-removed Web console, not the
 current runtime. No model turns were run.
 
+## Source coordination acceptance
+
+The source-centered implementation adds real-Git tests for independent and nested
+clones, unmerged peer branches, staged/dirty snapshots, structural conflicts,
+cleanly mergeable overlap, missing repositories, resolution/deduplication,
+corrupt publication cursors, sparse snapshots and observer merge-driver isolation.
+GitHub pagination/fork/open-PR/closure fixtures exercise real local fetches and
+merge diagnosis; fixture HTTP responses are not counted as live API evidence.
+
+Real independent stdio processes verify automatic detection/push, connection-bound
+resource access, online/offline leases, no implicit ACK and unread reconnection.
+
+Additional acceptance is deliberately separate from `npm test`:
+
+```sh
+# Read-only live GitHub source/open-PR + actual local conflict → push → ACK
+node scripts/acceptance-live.mjs https://github.com/koriym/Koriym.Psr4List
+# Real authenticated native Codex model/tool consumption, with explicit ACK
+node --experimental-strip-types scripts/acceptance-codex.mjs
+```
+
+Both scripts use disposable local state, preserve user Git work, and make no
+remote writes. The native model used polling fallback; this does not establish
+idle-model wake-up or automatic context injection. Its operator pre-enables
+tracking because native open-world tool approvals are independent of MCP input
+validation. See [coordination](coordination.md) and
+[evidence/2026-11-07-coordination](evidence/2026-11-07-coordination/README.md).
+
 ## Historical results
 
 The archive preserves pre-MCP benchmarks and hook/native-model traces. They

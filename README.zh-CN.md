@@ -2,12 +2,12 @@
 
 <img src="assets/logo.svg" alt="GitRelay" width="80" />
 
-用于 Git 多工作树协作的本地 MCP 服务。通过结构化工具查询分支与会话、发送消息、收取上游变化并确认接收。
+以源仓库为中心的 Git 协作感知与冲突通知服务：关联本地仓库、分支、工作树及远端分支、GitHub fork 和开放 PR，自动分析冲突并通知相关的已连接会话。通过本地 MCP 接入编程助手。
 
 [English](README.md) · [工具与消息协议](docs/shared-messages.md) · [迁移说明](docs/migration.md)
 
 0.2 版本完整切换到 stdio MCP，移除了旧命令 CLI、Codex hooks 和插件安装器。
-客户端需要主动轮询和确认消息；服务不会自动注入聊天上下文、要求 Stop 继续执行或唤醒空闲模型。
+自动协作通知会主动发送到绑定的 MCP 连接；不处理通知的客户端可轮询，完整批次仍需显式确认。宿主是否把通知交给模型是独立能力，服务本身不会注入聊天上下文或唤醒空闲模型。
 
 ## 从源码运行
 
@@ -53,11 +53,22 @@ codex mcp add git-relay -- node /项目绝对路径/GitRelay/dist/mcp/main.js --
 回执只表示客户端接受了数据，不代表模型完成理解、适配或验证。
 首次加入只建立基线，不重播先前的广播；退出期间的新广播也不会在重新加入时补发。
 
+## 自动跟踪同源协作
+
+用户授权后，对每个独立本地 clone 调用 `track_repository`；可访问的本地 remote 会递归登记。根据源仓库关联 clone，但不合并原有私有信箱。`github=true` 额外授权查询 GitHub fork 祖先、可访问的 fork、分支和开放 PR。远端分支对象只 fetch 到独立观察仓库，不更新用户的远程跟踪引用、分支、索引或工作区。
+
+每轮扫描检查已登记源组的全部本地分支及已提交、暂存、未暂存、未跟踪文件快照；本地轮询通常间隔五秒，远端/API 清单缓存一分钟。结果区分「Git 确定冲突」「可干净合并的路径重叠」「无法判定」，变化和解决状态自动生成持久消息。
+
+`join_session` 返回连接绑定的 `inboxUri`，会收到资源更新和 MCP 消息通知；随后收取并确认完整批次。`coordination_status` 查看对象清单、错误和扫描时间；`scan_repository` 立即扫描本地，但仍遵守远端缓存。`list_sessions.online` 仅代表在线传输租约，不代表模型正在执行。
+
+不会扫描整块磁盘或自动发现其他机器上的 clone。其他机器或云端开发环境需要在本机登记其 Git remote；PR 平台目前是 GitHub。详见[协作协议与边界](docs/coordination.md)。
+
 ## 工具
 
 | 用途       | 工具                                                                                                       |
 | ---------- | ---------------------------------------------------------------------------------------------------------- |
 | 状态观察   | `repository_status`、`branch_status`、`list_sessions`、`monitor_status`                                    |
+| 同源协作   | `track_repository`、`coordination_status`、`scan_repository`                                               |
 | 会话管理   | `join_session`、`leave_session`                                                                            |
 | 消息投递   | `send_message`、`receive_messages`、`acknowledge_messages`                                                 |
 | 显式同步   | `sync_branch`                                                                                              |
@@ -69,7 +80,7 @@ codex mcp add git-relay -- node /项目绝对路径/GitRelay/dist/mcp/main.js --
 通过工具的 `cwd` 参数选择其他仓库或工作树。不再提供 Web 控制台、HTTP 监听器或仓库目录工具。
 
 加入或收取后，共享监控开始观察 ref。多个 MCP 进程通过现有文件锁选出一个监控所有者，所有者退出后其他参与进程可以接管。
-后台监控只发布变化，客户端仍需轮询。
+各已绑定连接主动发送自动协作通知，不代替确认；忽略通知的客户端仍需轮询。
 
 每个服务实例最多突发接纳 60 次工具调用，每秒补充 1 次额度，同时运行上限为 8 次。
 超限会返回工具错误，不执行或排队该操作；请等待后重试。诊断文本会限制长度并清理终端控制序列，

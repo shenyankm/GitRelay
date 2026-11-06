@@ -26,7 +26,7 @@ export function validateGitHubRepository(repo: string): void {
   }
 }
 
-async function gh(cwd: string, args: string[], signal?: AbortSignal, host?: string): Promise<unknown> {
+export async function gh(cwd: string, args: string[], signal?: AbortSignal, host?: string): Promise<unknown> {
   signal?.throwIfAborted();
   try {
     const { stdout } = await exec("gh", args, {

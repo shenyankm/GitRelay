@@ -1,7 +1,7 @@
 {
   "name": "@sistine29/git-relay",
   "version": "0.2.0",
-  "description": "Local MCP server for reliable Git worktree coordination, messages and branch monitoring",
+  "description": "Source-centered Git coordination: track repositories, branches, worktrees and PRs, diagnose conflicts and notify sessions",
   "license": "MIT",
   "type": "module",
   "keywords": [

@@ -25,7 +25,13 @@ export interface Change extends Cursor {
 const names = (output: string) => output.split("\0").filter(Boolean);
 
 export async function watchRoot(cwd: string, signal?: AbortSignal): Promise<string> {
-  return gitPathLine(await git(cwd, ["rev-parse", "--show-toplevel"], signal, "paths"));
+  try {
+    return gitPathLine(await git(cwd, ["rev-parse", "--show-toplevel"], signal, "paths"));
+  } catch (error) {
+    signal?.throwIfAborted();
+    if ((await git(cwd, ["rev-parse", "--is-bare-repository"], signal)).trim() !== "true") throw error;
+    return gitPathLine(await git(cwd, ["rev-parse", "--absolute-git-dir"], signal, "paths"));
+  }
 }
 
 export async function resolveMain(root: string, ref: string, signal?: AbortSignal): Promise<string> {

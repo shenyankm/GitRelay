@@ -1,0 +1,27 @@
+{
+  "recordedAt": "2026-11-06T17:33:44.180029+00:00",
+  "command": "npm run check",
+  "passed": true,
+  "format": true,
+  "typecheck": true,
+  "releaseMetadata": true,
+  "regressions": 447,
+  "productionPackageIntegration": 1,
+  "totalTests": 448,
+  "failed": 0,
+  "skipped": 0,
+  "packDryRun": true,
+  "sourceSha256": "f96cfeeae03d1766b353a8d2dea011b90476862576b14b1be712c0cc9632fab6",
+  "sourceFiles": 27,
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "codex": "codex-cli 0.167.0",
+  "notAccepted": [
+    "hosted Linux CI",
+    "Windows",
+    "desktop GUI",
+    "idle-model wake-up",
+    "large fork-network performance",
+    "non-GitHub PR APIs"
+  ]
+}
