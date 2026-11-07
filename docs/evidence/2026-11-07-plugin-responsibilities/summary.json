@@ -1,0 +1,36 @@
+{
+  "commit": "d0d72cdc66c96aa597be29e63b85b4b10ea34d8b",
+  "workingTree": "uncommitted implementation",
+  "check": {
+    "command": "npm run check",
+    "passed": 422,
+    "failed": 0,
+    "skipped": 0
+  },
+  "focusedPluginTests": 2,
+  "nativeSkillCases": 4,
+  "sourceFingerprints": {
+    ".gitignore": "0ce2b0e8751eb1704869aeeaf0beae63223162032c2e12cce327020204d7f2ff",
+    ".prettierignore": "f544f76178c91779f68439f18919c19d6b79c57a07caa5caa06a1a848de9afde",
+    "README.md": "828f6c88eacdca5147a0e28286a07894e1469c9e72a4b77da9513a04219b1396",
+    "README.zh-CN.md": "d4db942b6231853ef830194d246c4f3c8f6c60d267b6ef854e9f90c347508d3f",
+    "docs/README.md": "b48cf74f2dfdd08d3a791e1dbb36398582f6dba59acdca2d8c76b21d6a6a18f9",
+    "docs/acceptance.md": "d4a687e6624c13e95cf6f819182119bf1c7fb2423ddffac3d161b2d70db00d08",
+    "docs/architecture.md": "ae7fed10632f1446de654baa2b5456c41f971a201586290a85bd330f2e689a1d",
+    "docs/integrations.md": "d066e6d1ce3b305f716096c0f7bef5d2538789c58a413f94732dc6da778314e3",
+    "docs/migration.md": "ac3f484b09e57a5a4173493ca41a73d4d747c287f24a8545fcde74ebd4dd70bd",
+    "docs/platform-matrix.md": "f76cff1723527e94cca0e186d6814740e291e77f7920884e2fa1ac35db7906be",
+    "docs/plugin.md": "6b7f961f80183ba4d8055e9522f374d8ef486d204e6962373d6c71cdec93145f",
+    "docs/releases.md": "2dd0195acc1546671c5dbcc78e7956a0582684afd1df02a51d91f3bddc2dc1e3",
+    "package.json": "3dcc81aded6f240f79644d25a860cd0ecb0da240ee1cb94934d831158f379e32",
+    "plugin/.codex-plugin/plugin.json": "064bf7fddf1b0c963d46f06a89896e8a351701a11851f7a37dfd898c51a81040",
+    "plugin/hooks/hooks.json": "3d9f2da187f5a7f303644710e33f78f54b30d3aec96d90984ddae0447229f4b6",
+    "plugin/hooks/remind.mjs": "80c85e3060e0d81c609df8940bfb714eae364ba22e3c2866554227822a55fac8",
+    "plugin/skills/gitbeacon-coordination/SKILL.md": "b711d46bf649db84adbf9ecd6692515bd3f1d8f4fb09bf5f392a05799af09ba6",
+    "plugin/skills/gitbeacon-setup/SKILL.md": "625efe3b57148cee337ed6b2e78983ed09e646a8ca3d1a43bf0ef0558d666479",
+    "scripts/acceptance-codex.mjs": "d7672296598fdd606747c616d02c7e9fdb0c32640261eb64f73b7668cf1b98c4",
+    "scripts/build-plugin.mjs": "e20986b81be19bf6afc550ce88c95474038b1fd37429acf5d0067e9cf8fccd14",
+    "src/mcp/server.ts": "41a5c62a4fcb59687e3e2cf7ac096e34b66ff73b62bc9078f373bfbd8d80a79e",
+    "tests/mcp/plugin.test.mjs": "af17186650a38e7278ae885583b98ef230266d3abbfe265dd63a40ba72a24818"
+  }
+}

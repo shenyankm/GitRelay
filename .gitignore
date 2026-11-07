@@ -10,3 +10,5 @@ dist/
 !/.env.template.local
 .zvec-grep/
 .taste-skill/
+
+/build/local-plugin/

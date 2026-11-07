@@ -1,0 +1,34 @@
+--- before/src/core/conflicts.ts
++++ after/src/core/conflicts.ts
+@@ -135,22 +135,25 @@
+     if (!isCommit(base)) throw new Error("No readable common ancestor.");
+     if (base === target.commit || base === incoming.commit)
+       return await collision(base === target.commit ? incoming.commit : target.commit);
+-    const own = names(
+-      await observationGit(
++    const differences = await Promise.allSettled([
++      observationGit(
+         observer,
+         ["diff", "--name-only", "--no-renames", "-z", base, target.commit, "--"],
+         signal,
+         "paths",
+       ),
+-    );
+-    const other = names(
+-      await observationGit(
++      observationGit(
+         observer,
+         ["diff", "--name-only", "--no-renames", "-z", base, incoming.commit, "--"],
+         signal,
+         "paths",
+       ),
+-    );
++    ]);
++    const [own, other] = differences.map((result) => {
++      if (result.status === "rejected") throw result.reason;
++      return names(result.value);
++    });
++
+     const ownPaths = new Set(own),
+       parents = new Set<string>();
+     for (const path of own)

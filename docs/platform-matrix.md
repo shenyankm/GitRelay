@@ -17,5 +17,7 @@ package. Configuration is not a hosted pass result.
 The official TypeScript SDK serves standard 2025 and 2026 MCP clients over stdio;
 this is protocol support, not an old client-plugin compatibility layer. Transport notifications/resources are implemented, but automatic
 context injection, idle-model wake-up and desktop GUI behavior are not established.
-No native-client lifecycle hooks, plugin installer or old-state migration remain. See [acceptance](acceptance.md) and the
+An optional source-built Codex plugin adds reminder hooks and skills. Its host
+acceptance is recorded separately in [plugin integration](plugin.md). No legacy
+client installer or old-state migration is restored. See [acceptance](acceptance.md) and the
 [dated evidence index](evidence/README.md) for measured scope and source snapshots.

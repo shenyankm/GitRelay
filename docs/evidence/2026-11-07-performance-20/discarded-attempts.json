@@ -1,0 +1,710 @@
+{
+  "reason": "Round 6 patch extraction stopped at a nested return; rounds 16/18 awaited individual reads before Promise.allSettled and did not implement their intended concurrency. Corrected and rerun; these attempts do not establish those optimizations.",
+  "rounds": [
+    {
+      "round": 6,
+      "name": "Enrich history events in settled groups of four",
+      "workloads": [
+        "status-history",
+        "status-small"
+      ],
+      "retained": false,
+      "measurements": [],
+      "decision": "reverted: experiment failed",
+      "error": "[error] src/core/repository-snapshot.ts: SyntaxError: ')' expected. (43:8)\n[error]   41 |             const receipt = await readReceipt(repo, key, event.id);\n[error]   42 |                return { ...event, delivery };\n[error] > 43 |     }));\n[error]      |        ^\n[error]   44 |     for (const result of batch) {\n[error]   45 |       if (result.status === \"rejected\") throw result.reason;\n[error]   46 |       events.push(result.value);\n"
+    },
+    {
+      "round": 16,
+      "name": "Read the two pinned revision diffs concurrently and settle failures",
+      "workloads": [
+        "compare-wide",
+        "compare-small"
+      ],
+      "retained": true,
+      "measurements": [
+        {
+          "workload": "compare-wide",
+          "medians": {
+            "before": {
+              "ms": 44.47583350000002,
+              "cpuMs": 10.724
+            },
+            "after": {
+              "ms": 42.02933350000001,
+              "cpuMs": 10.879999999999999
+            }
+          },
+          "gainPercent": 5.500740081689559,
+          "rows": [
+            {
+              "sample": 0,
+              "variant": "before",
+              "ms": 42.80520899999999,
+              "cpuMs": 10.983,
+              "maxRssKiB": 144416,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 0,
+              "variant": "after",
+              "ms": 40.87495899999999,
+              "cpuMs": 11.241,
+              "maxRssKiB": 144496,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 1,
+              "variant": "after",
+              "ms": 43.183708000000024,
+              "cpuMs": 11.576,
+              "maxRssKiB": 144624,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 1,
+              "variant": "before",
+              "ms": 42.684999999999945,
+              "cpuMs": 11.474,
+              "maxRssKiB": 144688,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 2,
+              "variant": "before",
+              "ms": 46.14645800000005,
+              "cpuMs": 13.116,
+              "maxRssKiB": 144752,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 2,
+              "variant": "after",
+              "ms": 45.62370800000008,
+              "cpuMs": 13.529,
+              "maxRssKiB": 144896,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 3,
+              "variant": "after",
+              "ms": 44.73312499999997,
+              "cpuMs": 10.519,
+              "maxRssKiB": 144976,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 3,
+              "variant": "before",
+              "ms": 46.905958000000055,
+              "cpuMs": 10.299,
+              "maxRssKiB": 145072,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 4,
+              "variant": "before",
+              "ms": 47.191666999999825,
+              "cpuMs": 10.465,
+              "maxRssKiB": 145184,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 4,
+              "variant": "after",
+              "ms": 38.61420800000019,
+              "cpuMs": 8.955,
+              "maxRssKiB": 145296,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 5,
+              "variant": "after",
+              "ms": 39.72591699999998,
+              "cpuMs": 9.216,
+              "maxRssKiB": 145408,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            },
+            {
+              "sample": 5,
+              "variant": "before",
+              "ms": 40.40149999999994,
+              "cpuMs": 9.042,
+              "maxRssKiB": 145504,
+              "outputHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            }
+          ],
+          "environment": {
+            "node": "v22.23.2",
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+        },
+        {
+          "workload": "compare-small",
+          "medians": {
+            "before": {
+              "ms": 32.56260400000002,
+              "cpuMs": 2.863
+            },
+            "after": {
+              "ms": 31.56481249999996,
+              "cpuMs": 2.8695
+            }
+          },
+          "gainPercent": 3.0642251461217906,
+          "rows": [
+            {
+              "sample": 0,
+              "variant": "before",
+              "ms": 33.61987500000009,
+              "cpuMs": 2.768,
+              "maxRssKiB": 114560,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 0,
+              "variant": "after",
+              "ms": 31.48504200000002,
+              "cpuMs": 3.207,
+              "maxRssKiB": 114896,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 1,
+              "variant": "after",
+              "ms": 35.52966700000002,
+              "cpuMs": 3.256,
+              "maxRssKiB": 115248,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 1,
+              "variant": "before",
+              "ms": 32.33466599999997,
+              "cpuMs": 2.663,
+              "maxRssKiB": 115600,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 2,
+              "variant": "before",
+              "ms": 32.79054200000007,
+              "cpuMs": 4.936,
+              "maxRssKiB": 116832,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 2,
+              "variant": "after",
+              "ms": 33.68649999999991,
+              "cpuMs": 2.839,
+              "maxRssKiB": 116848,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 3,
+              "variant": "after",
+              "ms": 30.700333,
+              "cpuMs": 2.9,
+              "maxRssKiB": 116848,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 3,
+              "variant": "before",
+              "ms": 31.509874999999965,
+              "cpuMs": 2.615,
+              "maxRssKiB": 116848,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 4,
+              "variant": "before",
+              "ms": 31.820124999999962,
+              "cpuMs": 2.958,
+              "maxRssKiB": 116848,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 4,
+              "variant": "after",
+              "ms": 31.644582999999898,
+              "cpuMs": 2.714,
+              "maxRssKiB": 116848,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 5,
+              "variant": "after",
+              "ms": 30.933125000000018,
+              "cpuMs": 2.491,
+              "maxRssKiB": 116848,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            },
+            {
+              "sample": 5,
+              "variant": "before",
+              "ms": 33.38612499999999,
+              "cpuMs": 3.591,
+              "maxRssKiB": 116928,
+              "outputHash": "33bbd538ded67ab14f317d1ea26d6bb79e39b53098b85fd6aeabdc927f696ce7"
+            }
+          ],
+          "environment": {
+            "node": "v22.23.2",
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+        }
+      ],
+      "decision": "retained",
+      "fingerprints": {
+        "src/core/activation.ts": "aa745b0e70a775a639d4fa5f9b611e379d20ddd9e905a5b9269a696c16f3944a",
+        "src/core/branch-status.ts": "5e0d3c11755d35671520d3f7c242874a9002f656724f9a9038d3b3c4dab1d409",
+        "src/core/branch-sync.ts": "18b7a4b20c6db6262979890dbc1c8e4d646739a834a690a7c3adf5a01770d32b",
+        "src/core/changes.ts": "dd1594b7f9a6bd6111debca1495607347e12226f708a562c6968fe40f67bda78",
+        "src/core/cleanup.ts": "5321a0146cb920b91c51db51a1d4b76fa80c45b9d8d930cac89866a3c109780d",
+        "src/core/cloud.ts": "4086bd0826f2f0ef530976d02838da50d18dee4e1a71c19582914eddb8103d1a",
+        "src/core/conflicts.ts": "f75f9dab6ea4d46d425613aea6bdde52ed0c9d287c0479ff55872e9372819084",
+        "src/core/connections.ts": "503278fc019c16195bdced672ca73a39d97dbb1edacc7d9f144e0c4f8738af26",
+        "src/core/consumer.ts": "58925fe109c44f553ba7b8fc090e8e30220849f34b37bf8dd5a13d5b25f33311",
+        "src/core/coordination.ts": "54e96b58416936f825f17c2374b8334d0a624411ca772d89fa8d7bb9ce361cf3",
+        "src/core/daemon-state.ts": "7427e391b206d8a1c9666699ff945a0c463cbea3036e7075eb37204743bd030c",
+        "src/core/daemon.ts": "a8048ad5f2132c72581f209bea2e10c23d657fd3f3dadf9d58ef8a5d82f7e794",
+        "src/core/diagnostics.ts": "d98293296fab1e4ece0dd419ecd64776ac4575059d33833418b86f29287aeaeb",
+        "src/core/git.ts": "5a8962ac7e5ec6ca4a116476ad4a7d372cdf509732389d9f88ddc97e4d017fbf",
+        "src/core/mailbox.ts": "b6a1603b449e34511761ba69b0f4bb2207c82489ef34659d7012ff4d20c098e2",
+        "src/core/mcp-mailbox.ts": "cd8de2c2834fe3c2ca4b6c8e2a16bf6abf6420170f9d8c581fc52509ed799987",
+        "src/core/monitor.ts": "11567bbab73185d16b0419f99b647ced73c4b347e250e04b35b0a18c7ad5cc3c",
+        "src/core/publisher.ts": "e31ced97ad28f34a597584bfabff25e881797b5817f835b5c68d935b1c9c5430",
+        "src/core/repository-snapshot.ts": "863b1459f366056e15b9871a813e612e8deaba7b074b8fbc5fac23e5cb5c4c06",
+        "src/core/repository.ts": "18ab1f5375763d03d7c48d113708c919142373dd42a95c7b2ca902677de77845",
+        "src/core/session-lifecycle.ts": "79fd0ac0c1a81e58286faaf8e75cff56f032b89dd712086e6eb82a0cdcc0e551",
+        "src/core/sessions.ts": "2ba9326965c7fa039ff38f7ff2f778e7ad57dc2ff4b68473a451066ba1e2e641",
+        "src/core/store.ts": "502cbcf830b71118993354ba01dca4d0100b27465e6f50eecaa6bbf89f79535f"
+      }
+    },
+    {
+      "round": 18,
+      "name": "Read snapshot HEAD, symbolic ref and normalization settings concurrently",
+      "workloads": [
+        "worktree-dirty",
+        "worktree-clean"
+      ],
+      "retained": false,
+      "measurements": [
+        {
+          "workload": "worktree-dirty",
+          "medians": {
+            "before": {
+              "ms": 154.60902099999998,
+              "cpuMs": 15.1035
+            },
+            "after": {
+              "ms": 158.6446040000002,
+              "cpuMs": 15.682
+            }
+          },
+          "gainPercent": -2.6101859864956944,
+          "rows": [
+            {
+              "sample": 0,
+              "variant": "before",
+              "ms": 147.85141700000008,
+              "cpuMs": 14.545,
+              "maxRssKiB": 115968,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 0,
+              "variant": "after",
+              "ms": 144.51520900000003,
+              "cpuMs": 15.175,
+              "maxRssKiB": 116704,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 1,
+              "variant": "after",
+              "ms": 140.60525000000007,
+              "cpuMs": 12.924,
+              "maxRssKiB": 116704,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 1,
+              "variant": "before",
+              "ms": 139.96962499999995,
+              "cpuMs": 12.547,
+              "maxRssKiB": 117776,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 2,
+              "variant": "before",
+              "ms": 148.39616699999988,
+              "cpuMs": 17.671,
+              "maxRssKiB": 119856,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 2,
+              "variant": "after",
+              "ms": 158.66729099999998,
+              "cpuMs": 14.856,
+              "maxRssKiB": 119856,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 3,
+              "variant": "after",
+              "ms": 165.16787499999987,
+              "cpuMs": 16.785,
+              "maxRssKiB": 119888,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 3,
+              "variant": "before",
+              "ms": 164.30829199999994,
+              "cpuMs": 18.308,
+              "maxRssKiB": 119920,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 4,
+              "variant": "before",
+              "ms": 163.4248329999998,
+              "cpuMs": 14.906,
+              "maxRssKiB": 119920,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 4,
+              "variant": "after",
+              "ms": 158.6219170000004,
+              "cpuMs": 16.844,
+              "maxRssKiB": 120640,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 5,
+              "variant": "after",
+              "ms": 167.4222920000002,
+              "cpuMs": 16.189,
+              "maxRssKiB": 120640,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            },
+            {
+              "sample": 5,
+              "variant": "before",
+              "ms": 160.8218750000001,
+              "cpuMs": 15.301,
+              "maxRssKiB": 120720,
+              "outputHash": "3e9c23f440fd0fdf6a397192b6f78fca14966f343c02d4403cdee50a3ee24401"
+            }
+          ],
+          "environment": {
+            "node": "v22.23.2",
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+        },
+        {
+          "workload": "worktree-clean",
+          "medians": {
+            "before": {
+              "ms": 38.47679199999999,
+              "cpuMs": 3.6475
+            },
+            "after": {
+              "ms": 38.11781249999996,
+              "cpuMs": 3.4855
+            }
+          },
+          "gainPercent": 0.9329766889090707,
+          "rows": [
+            {
+              "sample": 0,
+              "variant": "before",
+              "ms": 37.94612500000005,
+              "cpuMs": 3.521,
+              "maxRssKiB": 114576,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 0,
+              "variant": "after",
+              "ms": 38.83741700000007,
+              "cpuMs": 3.654,
+              "maxRssKiB": 114576,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 1,
+              "variant": "after",
+              "ms": 37.900249999999915,
+              "cpuMs": 3.499,
+              "maxRssKiB": 114944,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 1,
+              "variant": "before",
+              "ms": 38.217750000000024,
+              "cpuMs": 3.353,
+              "maxRssKiB": 115344,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 2,
+              "variant": "before",
+              "ms": 38.735833999999954,
+              "cpuMs": 3.793,
+              "maxRssKiB": 115776,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 2,
+              "variant": "after",
+              "ms": 37.862916999999925,
+              "cpuMs": 3.456,
+              "maxRssKiB": 116176,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 3,
+              "variant": "after",
+              "ms": 37.25862499999994,
+              "cpuMs": 3.569,
+              "maxRssKiB": 116576,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 3,
+              "variant": "before",
+              "ms": 37.66587500000003,
+              "cpuMs": 3.774,
+              "maxRssKiB": 117008,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 4,
+              "variant": "before",
+              "ms": 38.92050000000006,
+              "cpuMs": 4.702,
+              "maxRssKiB": 117808,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 4,
+              "variant": "after",
+              "ms": 40.21916699999997,
+              "cpuMs": 3.472,
+              "maxRssKiB": 117808,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 5,
+              "variant": "after",
+              "ms": 38.335375,
+              "cpuMs": 3.295,
+              "maxRssKiB": 117808,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            },
+            {
+              "sample": 5,
+              "variant": "before",
+              "ms": 38.86733300000003,
+              "cpuMs": 3.453,
+              "maxRssKiB": 117856,
+              "outputHash": "99b23ef10e0127f6257a30a7cdd46638225e26e0fc684b08bc205cabb2b9fed3"
+            }
+          ],
+          "environment": {
+            "node": "v22.23.2",
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+        }
+      ],
+      "decision": "reverted: latency/control/CPU gate not met",
+      "fingerprints": {
+        "src/core/activation.ts": "aa745b0e70a775a639d4fa5f9b611e379d20ddd9e905a5b9269a696c16f3944a",
+        "src/core/branch-status.ts": "5e0d3c11755d35671520d3f7c242874a9002f656724f9a9038d3b3c4dab1d409",
+        "src/core/branch-sync.ts": "18b7a4b20c6db6262979890dbc1c8e4d646739a834a690a7c3adf5a01770d32b",
+        "src/core/changes.ts": "dd1594b7f9a6bd6111debca1495607347e12226f708a562c6968fe40f67bda78",
+        "src/core/cleanup.ts": "5321a0146cb920b91c51db51a1d4b76fa80c45b9d8d930cac89866a3c109780d",
+        "src/core/cloud.ts": "4086bd0826f2f0ef530976d02838da50d18dee4e1a71c19582914eddb8103d1a",
+        "src/core/conflicts.ts": "4e226d13161c212b3e92416e703446e2de17d7f22df5467d86a9ad8fe8aa7e07",
+        "src/core/connections.ts": "503278fc019c16195bdced672ca73a39d97dbb1edacc7d9f144e0c4f8738af26",
+        "src/core/consumer.ts": "58925fe109c44f553ba7b8fc090e8e30220849f34b37bf8dd5a13d5b25f33311",
+        "src/core/coordination.ts": "54e96b58416936f825f17c2374b8334d0a624411ca772d89fa8d7bb9ce361cf3",
+        "src/core/daemon-state.ts": "7427e391b206d8a1c9666699ff945a0c463cbea3036e7075eb37204743bd030c",
+        "src/core/daemon.ts": "a8048ad5f2132c72581f209bea2e10c23d657fd3f3dadf9d58ef8a5d82f7e794",
+        "src/core/diagnostics.ts": "d98293296fab1e4ece0dd419ecd64776ac4575059d33833418b86f29287aeaeb",
+        "src/core/git.ts": "5a8962ac7e5ec6ca4a116476ad4a7d372cdf509732389d9f88ddc97e4d017fbf",
+        "src/core/mailbox.ts": "b6a1603b449e34511761ba69b0f4bb2207c82489ef34659d7012ff4d20c098e2",
+        "src/core/mcp-mailbox.ts": "cd8de2c2834fe3c2ca4b6c8e2a16bf6abf6420170f9d8c581fc52509ed799987",
+        "src/core/monitor.ts": "11567bbab73185d16b0419f99b647ced73c4b347e250e04b35b0a18c7ad5cc3c",
+        "src/core/publisher.ts": "e31ced97ad28f34a597584bfabff25e881797b5817f835b5c68d935b1c9c5430",
+        "src/core/repository-snapshot.ts": "863b1459f366056e15b9871a813e612e8deaba7b074b8fbc5fac23e5cb5c4c06",
+        "src/core/repository.ts": "18ab1f5375763d03d7c48d113708c919142373dd42a95c7b2ca902677de77845",
+        "src/core/session-lifecycle.ts": "79fd0ac0c1a81e58286faaf8e75cff56f032b89dd712086e6eb82a0cdcc0e551",
+        "src/core/sessions.ts": "2ba9326965c7fa039ff38f7ff2f778e7ad57dc2ff4b68473a451066ba1e2e641",
+        "src/core/store.ts": "502cbcf830b71118993354ba01dca4d0100b27465e6f50eecaa6bbf89f79535f"
+      }
+    },
+    {
+      "round": 16,
+      "name": "Read the two pinned revision diffs concurrently and settle failures",
+      "workloads": [
+        "compare-wide",
+        "compare-small"
+      ],
+      "retained": false,
+      "measurements": [],
+      "decision": "reverted: experiment failed",
+      "error": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'unknown'\n- undefined\n\n    at run (file:///Users/sheny/Developer/code/GitRelay/scripts/benchmark-performance.mjs:265:16)\n    at async file:///Users/sheny/Developer/code/GitRelay/scripts/benchmark-performance.mjs:304:22 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 'unknown',\n  expected: undefined,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.23.2\n"
+    },
+    {
+      "round": 18,
+      "name": "Read snapshot HEAD, symbolic ref and normalization settings concurrently",
+      "workloads": [
+        "worktree-dirty",
+        "worktree-clean"
+      ],
+      "retained": false,
+      "measurements": [],
+      "decision": "reverted: experiment failed",
+      "error": "[error] src/core/conflicts.ts: SyntaxError: Unexpected keyword or identifier. (240:11)\n[error]   238 |     signal?.throwIfAborted();\n[error]   239 |     if (error.cause?.code === 1) return \"\";\n[error] > 240 |     throw error]);\n[error]       |           ^\n[error]   241 |   const [head, branch, settings] = inspected.map((result) => {\n[error]   242 |     if (result.status === \"rejected\") throw result.reason;\n[error]   243 |     return result.value;\n"
+    }
+  ],
+  "discardedEmptyControl": {
+    "reason": "The intended empty report fixture still created 200 findings. Corrected the count and added an explicit empty/resolved assertion before repeating.",
+    "measurement": [
+      {
+        "workload": "report-empty",
+        "medians": {
+          "before": {
+            "ms": 61.17843749999997,
+            "cpuMs": 60.075500000000005
+          },
+          "after": {
+            "ms": 1.390666499999952,
+            "cpuMs": 1.3815
+          }
+        },
+        "gainPercent": 97.72686822869585,
+        "rows": [
+          {
+            "sample": 0,
+            "variant": "before",
+            "ms": 56.033874999999966,
+            "cpuMs": 55.98,
+            "maxRssKiB": 138704,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 0,
+            "variant": "after",
+            "ms": 1.339999999999975,
+            "cpuMs": 1.345,
+            "maxRssKiB": 138704,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 1,
+            "variant": "after",
+            "ms": 1.317292000000009,
+            "cpuMs": 1.322,
+            "maxRssKiB": 138704,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 1,
+            "variant": "before",
+            "ms": 57.88041600000008,
+            "cpuMs": 57.57,
+            "maxRssKiB": 139088,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 2,
+            "variant": "before",
+            "ms": 59.130042,
+            "cpuMs": 58.603,
+            "maxRssKiB": 139088,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 2,
+            "variant": "after",
+            "ms": 1.5395409999999856,
+            "cpuMs": 1.513,
+            "maxRssKiB": 139088,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 3,
+            "variant": "after",
+            "ms": 1.369374999999991,
+            "cpuMs": 1.372,
+            "maxRssKiB": 139088,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 3,
+            "variant": "before",
+            "ms": 63.32579099999998,
+            "cpuMs": 61.548,
+            "maxRssKiB": 139344,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 4,
+            "variant": "before",
+            "ms": 63.22683299999994,
+            "cpuMs": 61.593,
+            "maxRssKiB": 139456,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 4,
+            "variant": "after",
+            "ms": 2.0316250000000764,
+            "cpuMs": 2.459,
+            "maxRssKiB": 139920,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 5,
+            "variant": "after",
+            "ms": 1.4119579999999132,
+            "cpuMs": 1.391,
+            "maxRssKiB": 139920,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          },
+          {
+            "sample": 5,
+            "variant": "before",
+            "ms": 64.37066600000003,
+            "cpuMs": 62.442,
+            "maxRssKiB": 141008,
+            "outputHash": "514d8ad72b25dd8eda60e2a697c001a0486ff7386d3d33d9471e7458023c2a1c"
+          }
+        ],
+        "environment": {
+          "node": "v22.23.2",
+          "platform": "darwin",
+          "arch": "arm64"
+        },
+        "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+      }
+    ]
+  }
+}

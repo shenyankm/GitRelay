@@ -1,0 +1,11 @@
+--- before/src/core/mcp-mailbox.ts
++++ after/src/core/mcp-mailbox.ts
+@@ -90,7 +90,7 @@
+     async deliver(batch, location) {
+       if (!location) throw new Error("Delivery location is unavailable.");
+       const eventIds = batch.map((item) => item.event.id);
+-      const text = JSON.stringify(batch);
++      const text = batch.length === 1 ? JSON.stringify(batch) : "";
+       const paged = Buffer.byteLength(text) > MCP_INLINE_BYTES - 128;
+       const id = batchId(location.repository, location.sessionKey, eventIds, paged ? text : undefined);
+       const previous = await readDelivery(location.repository, location.sessionKey);

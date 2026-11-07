@@ -1,0 +1,2608 @@
+
+> gitbeacon@0.2.0 check
+> npm run format:check && npm run typecheck && npm test
+
+
+> gitbeacon@0.2.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> gitbeacon@0.2.0 typecheck
+> tsc --noEmit
+
+
+> gitbeacon@0.2.0 test
+> npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/mcp/*.test.*
+
+
+> gitbeacon@0.2.0 build
+> node scripts/build.mjs
+
+(node:25567) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# Subtest: failed pending enables preserve successful or later activation choices
+ok 1 - failed pending enables preserve successful or later activation choices
+  ---
+  duration_ms: 1787.322125
+  type: 'test'
+  ...
+# Subtest: activation defaults off without creating state and is isolated by session, worktree and ref
+ok 2 - activation defaults off without creating state and is isolated by session, worktree and ref
+  ---
+  duration_ms: 769.495625
+  type: 'test'
+  ...
+# Subtest: activation is shared within one worktree, not a nested repository
+ok 3 - activation is shared within one worktree, not a nested repository
+  ---
+  duration_ms: 814.15925
+  type: 'test'
+  ...
+# Subtest: legacy subdirectory activation never overrides a newer worktree choice
+ok 4 - legacy subdirectory activation never overrides a newer worktree choice
+  ---
+  duration_ms: 778.646958
+  type: 'test'
+  ...
+# Subtest: explicit Git worktrees outside cwd retain their activation
+ok 5 - explicit Git worktrees outside cwd retain their activation
+  ---
+  duration_ms: 906.23675
+  type: 'test'
+  ...
+# Subtest: failed worktree discovery cannot silently disable the wrong path
+ok 6 - failed worktree discovery cannot silently disable the wrong path
+  ---
+  duration_ms: 908.171
+  type: 'test'
+  ...
+# Subtest: invalid activation state and managed symlinks fail closed
+ok 7 - invalid activation state and managed symlinks fail closed
+  ---
+  duration_ms: 524.072625
+  type: 'test'
+  ...
+# Subtest: pending activation does not follow a managed repos symlink
+ok 8 - pending activation does not follow a managed repos symlink
+  ---
+  duration_ms: 655.502917
+  type: 'test'
+  ...
+# Subtest: ignored local files remain relevant without exposing their contents
+ok 9 - ignored local files remain relevant without exposing their contents
+  ---
+  duration_ms: 833.331292
+  type: 'test'
+  ...
+# Subtest: upstream and messages detect file/directory overlap: local directory=true
+ok 10 - upstream and messages detect file/directory overlap: local directory=true
+  ---
+  duration_ms: 1899.995125
+  type: 'test'
+  ...
+# Subtest: upstream and messages detect file/directory overlap: local directory=false
+ok 11 - upstream and messages detect file/directory overlap: local directory=false
+  ---
+  duration_ms: 1620.202542
+  type: 'test'
+  ...
+# Subtest: file messages respect Git case folding and do not require sender-side parent directories
+ok 12 - file messages respect Git case folding and do not require sender-side parent directories
+  ---
+  duration_ms: 1145.592333
+  type: 'test'
+  ...
+# Subtest: file message relevance resolves the live ref even when the daemon cache is fresh
+ok 13 - file message relevance resolves the live ref even when the daemon cache is fresh
+  ---
+  duration_ms: 1376.913125
+  type: 'test'
+  ...
+# Subtest: removed worktrees can explicitly leave without acknowledging unread messages
+ok 14 - removed worktrees can explicitly leave without acknowledging unread messages
+  ---
+  duration_ms: 1191.459583
+  type: 'test'
+  ...
+# Subtest: removed worktree leave requires its registered canonical path
+ok 15 - removed worktree leave requires its registered canonical path
+  ---
+  duration_ms: 1145.953375
+  type: 'test'
+  ...
+# Subtest: removed worktree leave ignores unrelated corrupt metadata
+ok 16 - removed worktree leave ignores unrelated corrupt metadata
+  ---
+  duration_ms: 762.291083
+  type: 'test'
+  ...
+# Subtest: removed worktree leave ignores unrelated corrupt sessions
+ok 17 - removed worktree leave ignores unrelated corrupt sessions
+  ---
+  duration_ms: 726.77275
+  type: 'test'
+  ...
+# Subtest: removed worktree leave ignores unrelated corrupt repository
+ok 18 - removed worktree leave ignores unrelated corrupt repository
+  ---
+  duration_ms: 684.968041
+  type: 'test'
+  ...
+# Subtest: removed worktree leave rejects corrupt metadata for its own session
+ok 19 - removed worktree leave rejects corrupt metadata for its own session
+  ---
+  duration_ms: 635.56475
+  type: 'test'
+  ...
+# Subtest: dangling lock symlinks fail immediately for ordinary operations and daemon
+ok 20 - dangling lock symlinks fail immediately for ordinary operations and daemon
+  ---
+  duration_ms: 502.240083
+  type: 'test'
+  ...
+# Subtest: lock handoff cannot diagnose the replacement using the previous PID
+ok 21 - lock handoff cannot diagnose the replacement using the previous PID
+  ---
+  duration_ms: 430.292708
+  type: 'test'
+  ...
+# Subtest: lock release leaves an externally replaced lock intact
+ok 22 - lock release leaves an externally replaced lock intact
+  ---
+  duration_ms: 442.038959
+  type: 'test'
+  ...
+# Subtest: missing repositories warn once, retain unread state and collect confirmed events
+ok 23 - missing repositories warn once, retain unread state and collect confirmed events
+  ---
+  duration_ms: 1006.825667
+  type: 'test'
+  ...
+# Subtest: sync refuses a different checked-out branch and preserves ignored data
+ok 24 - sync refuses a different checked-out branch and preserves ignored data
+  ---
+  duration_ms: 2036.528709
+  type: 'test'
+  ...
+# Subtest: sync honors cancellation before querying Git
+ok 25 - sync honors cancellation before querying Git
+  ---
+  duration_ms: 1.542708
+  type: 'test'
+  ...
+# Subtest: worktree lock and final identity checks cannot prevent a subsequent checkout
+ok 26 - worktree lock and final identity checks cannot prevent a subsequent checkout
+  ---
+  duration_ms: 1092.084125
+  type: 'test'
+  ...
+# Subtest: ambiguous Git HEAD labels distinguish branches from detached or non-branch HEAD
+ok 27 - ambiguous Git HEAD labels distinguish branches from detached or non-branch HEAD
+  ---
+  duration_ms: 2541.334625
+  type: 'test'
+  ...
+# Subtest: native Git writers are excluded at before-merge
+ok 28 - native Git writers are excluded at before-merge
+  ---
+  duration_ms: 5433.003916
+  type: 'test'
+  ...
+# Subtest: native Git writers are excluded at after-merge
+ok 29 - native Git writers are excluded at after-merge
+  ---
+  duration_ms: 4861.887
+  type: 'test'
+  ...
+# Subtest: native Git writers are excluded at before-commit
+ok 30 - native Git writers are excluded at before-commit
+  ---
+  duration_ms: 3780.431209
+  type: 'test'
+  ...
+# Subtest: a HEAD change before prepare aborts without applying files
+ok 31 - a HEAD change before prepare aborts without applying files
+  ---
+  duration_ms: 2848.056958
+  type: 'test'
+  ...
+# Subtest: a branch change before prepare aborts without applying files
+ok 32 - a branch change before prepare aborts without applying files
+  ---
+  duration_ms: 2857.104916
+  type: 'test'
+  ...
+# Subtest: a upstream change before prepare aborts without applying files
+ok 33 - a upstream change before prepare aborts without applying files
+  ---
+  duration_ms: 3608.439417
+  type: 'test'
+  ...
+# Subtest: fetch excludes checkout; a ref change during fetch is not overwritten
+ok 34 - fetch excludes checkout; a ref change during fetch is not overwritten
+  ---
+  duration_ms: 3014.987875
+  type: 'test'
+  ...
+# Subtest: an upstream symref race cannot redirect fetch into another local branch
+ok 35 - an upstream symref race cannot redirect fetch into another local branch
+  ---
+  duration_ms: 4207.947375
+  type: 'test'
+  ...
+# Subtest: an upstream update during fetch is preserved by compare-and-swap
+ok 36 - an upstream update during fetch is preserved by compare-and-swap
+  ---
+  duration_ms: 2965.794583
+  type: 'test'
+  ...
+# Subtest: cancellation at after-merge preserves recovery data without rollback or retry
+ok 37 - cancellation at after-merge preserves recovery data without rollback or retry
+  ---
+  duration_ms: 3232.962041
+  type: 'test'
+  ...
+# Subtest: cancellation at before-commit preserves recovery data without rollback or retry
+ok 38 - cancellation at before-commit preserves recovery data without rollback or retry
+  ---
+  duration_ms: 4241.439167
+  type: 'test'
+  ...
+# Subtest: cancellation at after-commit preserves recovery data without rollback or retry
+ok 39 - cancellation at after-commit preserves recovery data without rollback or retry
+  ---
+  duration_ms: 3465.200292
+  type: 'test'
+  ...
+# Subtest: index publication failure retains both indexes and leaves the branch unchanged
+ok 40 - index publication failure retains both indexes and leaves the branch unchanged
+  ---
+  duration_ms: 1672.858916
+  type: 'test'
+  ...
+# Subtest: cancelling fetch settles the Git group before releasing owned guards
+ok 41 - cancelling fetch settles the Git group before releasing owned guards
+  ---
+  duration_ms: 2295.447208
+  type: 'test'
+  ...
+# Subtest: an existing index lock is never removed or rewritten
+ok 42 - an existing index lock is never removed or rewritten
+  ---
+  duration_ms: 1059.843708
+  type: 'test'
+  ...
+# Subtest: reference-transaction policy can reject a fast-forward before working files change
+ok 43 - reference-transaction policy can reject a fast-forward before working files change
+  ---
+  duration_ms: 2309.635792
+  type: 'test'
+  ...
+# Subtest: a post-merge policy is not silently bypassed
+ok 44 - a post-merge policy is not silently bypassed
+  ---
+  duration_ms: 833.371875
+  type: 'test'
+  ...
+# Subtest: a post-index-change policy is not silently bypassed
+ok 45 - a post-index-change policy is not silently bypassed
+  ---
+  duration_ms: 786.15125
+  type: 'test'
+  ...
+# Subtest: unsupported index mode --split-index blocks before fetch
+ok 46 - unsupported index mode --split-index blocks before fetch
+  ---
+  duration_ms: 1140.603167
+  type: 'test'
+  ...
+# Subtest: unsupported index mode --assume-unchanged blocks before fetch
+ok 47 - unsupported index mode --assume-unchanged blocks before fetch
+  ---
+  duration_ms: 1036.585208
+  type: 'test'
+  ...
+# Subtest: unsupported index mode --skip-worktree blocks before fetch
+ok 48 - unsupported index mode --skip-worktree blocks before fetch
+  ---
+  duration_ms: 730.72325
+  type: 'test'
+  ...
+# Subtest: unsupported config core.sparseCheckout is rejected before fetch
+ok 49 - unsupported config core.sparseCheckout is rejected before fetch
+  ---
+  duration_ms: 400.725167
+  type: 'test'
+  ...
+# Subtest: unsupported config core.splitIndex is rejected before fetch
+ok 50 - unsupported config core.splitIndex is rejected before fetch
+  ---
+  duration_ms: 496.239541
+  type: 'test'
+  ...
+# Subtest: unsupported config extensions.worktreeConfig is rejected before fetch
+ok 51 - unsupported config extensions.worktreeConfig is rejected before fetch
+  ---
+  duration_ms: 559.432167
+  type: 'test'
+  ...
+# Subtest: unsupported config includeIf.onbranch:feature/*.path is rejected before fetch
+ok 52 - unsupported config includeIf.onbranch:feature/*.path is rejected before fetch
+  ---
+  duration_ms: 504.255583
+  type: 'test'
+  ...
+# Subtest: unsupported config branch.feature/b.mergeOptions is rejected before fetch
+ok 53 - unsupported config branch.feature/b.mergeOptions is rejected before fetch
+  ---
+  duration_ms: 584.087959
+  type: 'test'
+  ...
+# Subtest: one merged worktree informs two overlapping worktrees but not the clean source
+ok 54 - one merged worktree informs two overlapping worktrees but not the clean source
+  ---
+  duration_ms: 1499.704791
+  type: 'test'
+  ...
+# Subtest: detects staging, untracked files, deletions and both sides of renames
+ok 55 - detects staging, untracked files, deletions and both sides of renames
+  ---
+  duration_ms: 1008.113
+  type: 'test'
+  ...
+# Subtest: does not lose intermediate edits reverted before the next poll
+ok 56 - does not lose intermediate edits reverted before the next poll
+  ---
+  duration_ms: 1039.321
+  type: 'test'
+  ...
+# Subtest: history read batches preserve commit and patch order across empty and unrelated commits
+ok 57 - history read batches preserve commit and patch order across empty and unrelated commits
+  ---
+  duration_ms: 1047.110666
+  type: 'test'
+  ...
+# Subtest: batched history preserves merge files, leading newlines and hash-shaped filenames
+ok 58 - batched history preserves merge files, leading newlines and hash-shaped filenames
+  ---
+  duration_ms: 1106.21375
+  type: 'test'
+  ...
+# Subtest: combined history handles overflow and rejects incomplete or misordered output
+ok 59 - combined history handles overflow and rejects incomplete or misordered output
+  ---
+  duration_ms: 4361.360042
+  type: 'test'
+  ...
+# Subtest: oversized history batches retry smaller combined reads in order
+ok 60 - oversized history batches retry smaller combined reads in order
+  ---
+  duration_ms: 4918.187083
+  type: 'test'
+  ...
+# Subtest: unrelated updates do not trigger, ref rewind is identified, subdirectories resolve to root
+ok 61 - unrelated updates do not trigger, ref rewind is identified, subdirectories resolve to root
+  ---
+  duration_ms: 1086.872542
+  type: 'test'
+  ...
+# Subtest: fast-forward through a second parent compares snapshots without replaying old main edits
+ok 62 - fast-forward through a second parent compares snapshots without replaying old main edits
+  ---
+  duration_ms: 1071.637875
+  type: 'test'
+  ...
+# Subtest: failure to run Git is not acknowledged as a missing-history notification
+ok 63 - failure to run Git is not acknowledged as a missing-history notification
+  ---
+  duration_ms: 424.391042
+  type: 'test'
+  ...
+# Subtest: unusual paths use literal pathspecs and huge diff previews are bounded
+ok 64 - unusual paths use literal pathspecs and huge diff previews are bounded
+  ---
+  duration_ms: 837.881125
+  type: 'test'
+  ...
+# Subtest: GC protects an event received before its ref cursor is committed
+ok 65 - GC protects an event received before its ref cursor is committed
+  ---
+  duration_ms: 1775.803875
+  type: 'test'
+  ...
+# Subtest: confirmed corrupt pending upstream events cannot be skipped during recovery
+ok 66 - confirmed corrupt pending upstream events cannot be skipped during recovery
+  ---
+  duration_ms: 1449.845625
+  type: 'test'
+  ...
+# Subtest: GC preserves uncertain publication and recovers interrupted trash with receipts
+ok 67 - GC preserves uncertain publication and recovers interrupted trash with receipts
+  ---
+  duration_ms: 1468.629083
+  type: 'test'
+  ...
+# Subtest: GC distinguishes reset cycles and independent ref publication chains
+ok 68 - GC distinguishes reset cycles and independent ref publication chains
+  ---
+  duration_ms: 1131.939208
+  type: 'test'
+  ...
+# Subtest: recovery commits a pending event before notifying about a newer head
+ok 69 - recovery commits a pending event before notifying about a newer head
+  ---
+  duration_ms: 1931.9885
+  type: 'test'
+  ...
+# (node:25579) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: recovery delivers upstream events in chain order after a clock rollback
+ok 70 - recovery delivers upstream events in chain order after a clock rollback
+  ---
+  duration_ms: 1701.669084
+  type: 'test'
+  ...
+# Subtest: recovery handles a reset to the original head and rejects ambiguous pending events
+ok 71 - recovery handles a reset to the original head and rejects ambiguous pending events
+  ---
+  duration_ms: 830.122
+  type: 'test'
+  ...
+# Subtest: GC revalidates subscription metadata on every run and still checks each receipt
+ok 72 - GC revalidates subscription metadata on every run and still checks each receipt
+  ---
+  duration_ms: 1043.475
+  type: 'test'
+  ...
+# Subtest: GC previews by default, keeps any unconfirmed recipient, and only removes event/receipts
+ok 73 - GC previews by default, keeps any unconfirmed recipient, and only removes event/receipts
+  ---
+  duration_ms: 1201.586625
+  type: 'test'
+  ...
+# Subtest: retention starts after the latest confirmation, not merely an old event timestamp
+ok 74 - retention starts after the latest confirmation, not merely an old event timestamp
+  ---
+  duration_ms: 783.810708
+  type: 'test'
+  ...
+# Subtest: GC skips a busy consumer instead of deleting a cached event or deadlocking
+ok 75 - GC skips a busy consumer instead of deleting a cached event or deadlocking
+  ---
+  duration_ms: 723.168333
+  type: 'test'
+  ...
+# Subtest: GC resumes its committed trash journal after a partial deletion
+ok 76 - GC resumes its committed trash journal after a partial deletion
+  ---
+  duration_ms: 892.412583
+  type: 'test'
+  ...
+# Subtest: GC fails closed on malformed receipts and honors cancellation
+ok 77 - GC fails closed on malformed receipts and honors cancellation
+  ---
+  duration_ms: 780.499
+  type: 'test'
+  ...
+# Subtest: GitHub source/fork/branch/open-PR discovery routes a real PR conflict and refreshes closed PRs
+ok 78 - GitHub source/fork/branch/open-PR discovery routes a real PR conflict and refreshes closed PRs
+  ---
+  duration_ms: 9649.256125
+  type: 'test'
+  ...
+# Subtest: observer remote refresh sees new/deleted branches without fetching user refs; unavailable remotes are errors
+ok 79 - observer remote refresh sees new/deleted branches without fetching user refs; unavailable remotes are errors
+  ---
+  duration_ms: 943.015958
+  type: 'test'
+  ...
+# Subtest: observer merge diagnosis cannot execute a global merge driver selected by repository attributes
+ok 80 - observer merge diagnosis cannot execute a global merge driver selected by repository attributes
+  ---
+  duration_ms: 1621.666208
+  type: 'test'
+  ...
+# Subtest: observer initialization rejects symlinked storage instead of writing source Git directories
+ok 81 - observer initialization rejects symlinked storage instead of writing source Git directories
+  ---
+  duration_ms: 647.603958
+  type: 'test'
+  ...
+# Subtest: uncommitted submodule contents cannot be mistaken for a clean parent snapshot
+ok 82 - uncommitted submodule contents cannot be mistaken for a clean parent snapshot
+  ---
+  duration_ms: 1097.724792
+  type: 'test'
+  ...
+# Subtest: dirty filtered snapshots and private attributes remain unknown rather than executing observer filters
+ok 83 - dirty filtered snapshots and private attributes remain unknown rather than executing observer filters
+  ---
+  duration_ms: 1123.218166
+  type: 'test'
+  ...
+# Subtest: filesystem case folding is detected even if core.ignorecase is incorrectly disabled
+ok 84 - filesystem case folding is detected even if core.ignorecase is incorrectly disabled
+  ---
+  duration_ms: 751.447292
+  type: 'test'
+  ...
+# Subtest: dirty sparse worktrees are unknown rather than synthetic deletion conflicts
+ok 85 - dirty sparse worktrees are unknown rather than synthetic deletion conflicts
+  ---
+  duration_ms: 1904.932542
+  type: 'test'
+  ...
+# Subtest: consumer retains the session identity across asynchronous repository and registration work
+ok 86 - consumer retains the session identity across asynchronous repository and registration work
+  ---
+  duration_ms: 265.735875
+  type: 'test'
+  ...
+# Subtest: registerSession snapshots repository and identity before the first read
+ok 87 - registerSession snapshots repository and identity before the first read
+  ---
+  duration_ms: 12.712167
+  type: 'test'
+  ...
+# Subtest: consumer keeps inherited callbacks lazy, bound to the caller, and uses the captured signal
+ok 88 - consumer keeps inherited callbacks lazy, bound to the caller, and uses the captured signal
+  ---
+  duration_ms: 281.829458
+  type: 'test'
+  ...
+# Subtest: join keeps the same session identity from locking through registration
+ok 89 - join keeps the same session identity from locking through registration
+  ---
+  duration_ms: 285.955583
+  type: 'test'
+  ...
+# Subtest: leave closes the original session even if its caller changes the options
+ok 90 - leave closes the original session even if its caller changes the options
+  ---
+  duration_ms: 166.89125
+  type: 'test'
+  ...
+# Subtest: leave retains the repository ID while locating a missing worktree
+ok 91 - leave retains the repository ID while locating a missing worktree
+  ---
+  duration_ms: 149.66375
+  type: 'test'
+  ...
+# Subtest: session validation rejects adapter and repository ID before later getters
+ok 92 - session validation rejects adapter and repository ID before later getters
+  ---
+  duration_ms: 4.447584
+  type: 'test'
+  ...
+# Subtest: callback BusyError is propagated without acknowledging the event
+ok 93 - callback BusyError is propagated without acknowledging the event
+  ---
+  duration_ms: 1210.090166
+  type: 'test'
+  ...
+# Subtest: session and GC publication lock contention still skip the polling round
+ok 94 - session and GC publication lock contention still skip the polling round
+  ---
+  duration_ms: 807.307208
+  type: 'test'
+  ...
+# Subtest: ownerless session locks are reported without acknowledging unread messages
+ok 95 - ownerless session locks are reported without acknowledging unread messages
+  ---
+  duration_ms: 2971.898708
+  type: 'test'
+  ...
+# Subtest: BusyError inside an acquired publication lock is propagated
+ok 96 - BusyError inside an acquired publication lock is propagated
+  ---
+  duration_ms: 1005.708916
+  type: 'test'
+  ...
+# Subtest: BusyError while writing an acquired lock is propagated
+ok 97 - BusyError while writing an acquired lock is propagated
+  ---
+  duration_ms: 731.688208
+  type: 'test'
+  ...
+# Subtest: session lock release error is propagated after GC contention
+ok 98 - session lock release error is propagated after GC contention
+  ---
+  duration_ms: 615.021375
+  type: 'test'
+  ...
+# Subtest: persistent per-session checkpoints deduplicate, resume and retry failed delivery
+ok 99 - persistent per-session checkpoints deduplicate, resume and retry failed delivery
+  ---
+  duration_ms: 2471.514541
+  type: 'test'
+  ...
+# Subtest: abandoned locks are reported without deleting another process's state
+ok 100 - abandoned locks are reported without deleting another process's state
+  ---
+  duration_ms: 1063.945625
+  type: 'test'
+  ...
+# Subtest: concurrent checks on one session do not double-deliver
+ok 101 - concurrent checks on one session do not double-deliver
+  ---
+  duration_ms: 1217.344166
+  type: 'test'
+  ...
+# Subtest: CRLF receiver snapshots preserve source normalization and never invent shared-file conflicts
+ok 102 - CRLF receiver snapshots preserve source normalization and never invent shared-file conflicts
+  ---
+  duration_ms: 3400.573875
+  type: 'test'
+  ...
+# Subtest: case-insensitive receivers diagnose merged file and directory aliases even when Git can merge
+ok 103 - case-insensitive receivers diagnose merged file and directory aliases even when Git can merge
+  ---
+  duration_ms: 1884.013208
+  type: 'test'
+  ...
+# Subtest: case-colliding incoming trees are rejected even when the update is a fast-forward
+ok 104 - case-colliding incoming trees are rejected even when the update is a fast-forward
+  ---
+  duration_ms: 917.949292
+  type: 'test'
+  ...
+# Subtest: recursive enrollment inherits source identity but preserves existing GitHub and disabled preferences
+ok 105 - recursive enrollment inherits source identity but preserves existing GitHub and disabled preferences
+  ---
+  duration_ms: 1106.366541
+  type: 'test'
+  ...
+# Subtest: one corrupt unrelated registration is quarantined and cannot block an explicitly scoped healthy scan
+ok 106 - one corrupt unrelated registration is quarantined and cannot block an explicitly scoped healthy scan
+  ---
+  duration_ms: 3707.662292
+  type: 'test'
+  ...
+# Subtest: corrupt same-source registrations and registrations with unknown ancestry remain explicit coverage gaps
+ok 107 - corrupt same-source registrations and registrations with unknown ancestry remain explicit coverage gaps
+  ---
+  duration_ms: 3711.069625
+  type: 'test'
+  ...
+# Subtest: SHA-256 sources use a matching observer and retain the old SHA-1 observation store
+ok 108 - SHA-256 sources use a matching observer and retain the old SHA-1 observation store
+  ---
+  duration_ms: 2108.706209
+  type: 'test'
+  ...
+# Subtest: tracks all peer branches and dirty worktrees, diagnoses real conflicts without touching user state
+ok 109 - tracks all peer branches and dirty worktrees, diagnoses real conflicts without touching user state
+  ---
+  duration_ms: 4067.147459
+  type: 'test'
+  ...
+# Subtest: same-source independent clones route automatic messages but retain separate ordinary mailboxes
+ok 110 - same-source independent clones route automatic messages but retain separate ordinary mailboxes
+  ---
+  duration_ms: 2758.568916
+  type: 'test'
+  ...
+# Subtest: cleanly mergeable same-file changes are overlap, not conflicts; resolution has a distinct event
+ok 111 - cleanly mergeable same-file changes are overlap, not conflicts; resolution has a distinct event
+  ---
+  duration_ms: 2923.609042
+  type: 'test'
+  ...
+# Subtest: observation includes staged-only changes without changing the user's index
+ok 112 - observation includes staged-only changes without changing the user's index
+  ---
+  duration_ms: 2042.370792
+  type: 'test'
+  ...
+# Subtest: unknown history is not reported as clean and disabling tracking preserves state
+ok 113 - unknown history is not reported as clean and disabling tracking preserves state
+  ---
+  duration_ms: 1152.813042
+  type: 'test'
+  ...
+# Subtest: nested local clones discover their intermediate repositories and share the original source
+ok 114 - nested local clones discover their intermediate repositories and share the original source
+  ---
+  duration_ms: 3389.909625
+  type: 'test'
+  ...
+# Subtest: an unavailable related clone becomes unknown without blocking healthy members
+ok 115 - an unavailable related clone becomes unknown without blocking healthy members
+  ---
+  duration_ms: 2996.892
+  type: 'test'
+  ...
+# Subtest: file/directory conflicts are confirmed by Git, and corrupt publication cursors fail closed
+ok 116 - file/directory conflicts are confirmed by Git, and corrupt publication cursors fail closed
+  ---
+  duration_ms: 3118.016209
+  type: 'test'
+  ...
+# Subtest: normalizes SSH/HTTPS/local source identities and rejects credential-bearing URLs
+ok 117 - normalizes SSH/HTTPS/local source identities and rejects credential-bearing URLs
+  ---
+  duration_ms: 1225.55425
+  type: 'test'
+  ...
+# Subtest: legacy or foreign daemon heartbeat does not mask a newer ref
+ok 118 - legacy or foreign daemon heartbeat does not mask a newer ref
+  ---
+  duration_ms: 2123.839791
+  type: 'test'
+  ...
+# Subtest: matching fresh daemon observation does not suppress a current ref check
+ok 119 - matching fresh daemon observation does not suppress a current ref check
+  ---
+  duration_ms: 351.671166
+  type: 'test'
+  ...
+# Subtest: daemon synchronize stamps its token only after success and recovers a pending event
+ok 120 - daemon synchronize stamps its token only after success and recovers a pending event
+  ---
+  duration_ms: 260.090875
+  type: 'test'
+  ...
+# Subtest: invalid token and cancellation preserve the old ref
+ok 121 - invalid token and cancellation preserve the old ref
+  ---
+  duration_ms: 380.050959
+  type: 'test'
+  ...
+# Subtest: abort before the ref rename does not claim a daemon observation
+ok 122 - abort before the ref rename does not claim a daemon observation
+  ---
+  duration_ms: 336.54425
+  type: 'test'
+  ...
+# Subtest: failed Git ref observation preserves the prior cursor and events
+ok 123 - failed Git ref observation preserves the prior cursor and events
+  ---
+  duration_ms: 483.523708
+  type: 'test'
+  ...
+# (node:71897) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: daemon checkedAt precedes a slow scan and cannot hide a forward
+ok 124 - daemon checkedAt precedes a slow scan and cannot hide a forward
+  ---
+  duration_ms: 820.357
+  type: 'test'
+  ...
+# Subtest: daemon checkedAt precedes a slow scan and cannot hide a force reset
+ok 125 - daemon checkedAt precedes a slow scan and cannot hide a force reset
+  ---
+  duration_ms: 727.230875
+  type: 'test'
+  ...
+# Subtest: clients check refs with fresh and stale daemon observations
+ok 126 - clients check refs with fresh and stale daemon observations
+  ---
+  duration_ms: 1506.85375
+  type: 'test'
+  ...
+# Subtest: one daemon discovers multiple repositories and isolates a failing subscription
+ok 127 - one daemon discovers multiple repositories and isolates a failing subscription
+  ---
+  duration_ms: 1120.706083
+  type: 'test'
+  ...
+# Subtest: daemon preserves state when the repository ownership marker is missing
+ok 128 - daemon preserves state when the repository ownership marker is missing
+  ---
+  duration_ms: 604.947792
+  type: 'test'
+  ...
+# Subtest: daemon maintains its heartbeat during a stalled cleanup
+ok 129 - daemon maintains its heartbeat during a stalled cleanup
+  ---
+  duration_ms: 562.154208
+  type: 'test'
+  ...
+# Subtest: daemon monitors a marker identity selected by an equal external mapping
+ok 130 - daemon monitors a marker identity selected by an equal external mapping
+  ---
+  duration_ms: 676.528875
+  type: 'test'
+  ...
+# Subtest: daemon accepts the original marker and rejects a changed identity
+ok 131 - daemon accepts the original marker and rejects a changed identity
+  ---
+  duration_ms: 974.040416
+  type: 'test'
+  ...
+# Subtest: daemon cleans newly confirmed events again at the hourly maintenance interval
+ok 132 - daemon cleans newly confirmed events again at the hourly maintenance interval
+  ---
+  duration_ms: 851.666625
+  type: 'test'
+  ...
+# Subtest: daemon maintenance uses elapsed time despite a wall clock rollback
+ok 133 - daemon maintenance uses elapsed time despite a wall clock rollback
+  ---
+  duration_ms: 901.010375
+  type: 'test'
+  ...
+# Subtest: daemon retries a busy repository without delaying another or a new repository
+ok 134 - daemon retries a busy repository without delaying another or a new repository
+  ---
+  duration_ms: 1823.364125
+  type: 'test'
+  ...
+# Subtest: daemon retries cleanup when a recipient was busy
+ok 135 - daemon retries cleanup when a recipient was busy
+  ---
+  duration_ms: 904.594334
+  type: 'test'
+  ...
+# Subtest: a long busy cleanup leaves time for other operations before retrying
+ok 136 - a long busy cleanup leaves time for other operations before retrying
+  ---
+  duration_ms: 1364.276125
+  type: 'test'
+  ...
+# Subtest: a repository without metadata does not consume its first maintenance attempt
+ok 137 - a repository without metadata does not consume its first maintenance attempt
+  ---
+  duration_ms: 972.49875
+  type: 'test'
+  ...
+# Subtest: blocked daemon output releases publish.lock and remains abortable
+ok 138 - blocked daemon output releases publish.lock and remains abortable
+  ---
+  duration_ms: 990.675167
+  type: 'test'
+  ...
+# Subtest: daemon validates limits and supports cancellation before acquiring its lock
+ok 139 - daemon validates limits and supports cancellation before acquiring its lock
+  ---
+  duration_ms: 2.402375
+  type: 'test'
+  ...
+# Subtest: rejected messages do not indefinitely starve later messages
+ok 140 - rejected messages do not indefinitely starve later messages
+  ---
+  duration_ms: 1173.312416
+  type: 'test'
+  ...
+# Subtest: a rejected oversized notification does not indefinitely starve a small message
+ok 141 - a rejected oversized notification does not indefinitely starve a small message
+  ---
+  duration_ms: 811.065791
+  type: 'test'
+  ...
+# Subtest: GC keeps events while a receiver is still delivering after publication
+ok 142 - GC keeps events while a receiver is still delivering after publication
+  ---
+  duration_ms: 895.684375
+  type: 'test'
+  ...
+# Subtest: GC drains recipient locks and reports failures even when another recipient is busy
+ok 143 - GC drains recipient locks and reports failures even when another recipient is busy
+  ---
+  duration_ms: 1007.032416
+  type: 'test'
+  ...
+# Subtest: GC drains a large confirmed audience under a low file descriptor limit
+ok 144 - GC drains a large confirmed audience under a low file descriptor limit
+  ---
+  duration_ms: 1398.298917
+  type: 'test'
+  ...
+# Subtest: GC publication barrier skips arriving consumers and blocks publishers
+ok 145 - GC publication barrier skips arriving consumers and blocks publishers
+  ---
+  duration_ms: 1614.979375
+  type: 'test'
+  ...
+# Subtest: GC cancellation after the recipient barrier preserves events and receipts
+ok 146 - GC cancellation after the recipient barrier preserves events and receipts
+  ---
+  duration_ms: 969.063583
+  type: 'test'
+  ...
+# Subtest: GC recovers a committed deletion after a forced process exit
+ok 147 - GC recovers a committed deletion after a forced process exit
+  ---
+  duration_ms: 1101.897875
+  type: 'test'
+  ...
+# Subtest: equal commits avoid history processes while retaining all working changes
+ok 148 - equal commits avoid history processes while retaining all working changes
+  ---
+  duration_ms: 1630.4125
+  type: 'test'
+  ...
+# Subtest: unrepresentable worktree entry cannot remove an unrelated U+FFFD worktree
+ok 149 - unrepresentable worktree entry cannot remove an unrelated U+FFFD worktree
+  ---
+  duration_ms: 541.25075
+  type: 'test'
+  ...
+# Subtest: read-only status rejects invalid HEAD bytes without confusing a legal U+FFFD branch
+ok 150 - read-only status rejects invalid HEAD bytes without confusing a legal U+FFFD branch
+  ---
+  duration_ms: 1191.082125
+  type: 'test'
+  ...
+# Subtest: invalid HEAD ref cannot auto-sync the U+FFFD branch, but valid ref can
+ok 151 - invalid HEAD ref cannot auto-sync the U+FFFD branch, but valid ref can
+  ---
+  duration_ms: 4766.748333
+  type: 'test'
+  ...
+# Subtest: merge-base signal termination preserves underlying failure
+ok 152 - merge-base signal termination preserves underlying failure
+  ---
+  duration_ms: 822.417667
+  type: 'test'
+  ...
+# Subtest: pre-aborted merge-base preserves caller reason
+ok 153 - pre-aborted merge-base preserves caller reason
+  ---
+  duration_ms: 412.666708
+  type: 'test'
+  ...
+# Subtest: transient Git failure cannot falsely acknowledge an existing upstream event
+ok 154 - transient Git failure cannot falsely acknowledge an existing upstream event
+  ---
+  duration_ms: 1319.087292
+  type: 'test'
+  ...
+# Subtest: missing commits and shallow history fail closed
+ok 155 - missing commits and shallow history fail closed
+  ---
+  duration_ms: 633.775834
+  type: 'test'
+  ...
+# Subtest: existing unrelated commits remain unread when merge-base is absent
+ok 156 - existing unrelated commits remain unread when merge-base is absent
+  ---
+  duration_ms: 538.414708
+  type: 'test'
+  ...
+# Subtest: commit object permission error cannot be classified as missing
+ok 157 - commit object permission error cannot be classified as missing
+  ---
+  duration_ms: 556.00525
+  type: 'test'
+  ...
+# Subtest: commit object corrupt error cannot be classified as missing
+ok 158 - commit object corrupt error cannot be classified as missing
+  ---
+  duration_ms: 617.080708
+  type: 'test'
+  ...
+# Subtest: unreadable pack fails closed instead of claiming missing commits
+ok 159 - unreadable pack fails closed instead of claiming missing commits
+  ---
+  duration_ms: 708.540209
+  type: 'test'
+  ...
+# Subtest: unreadable idx fails closed instead of claiming missing commits
+ok 160 - unreadable idx fails closed instead of claiming missing commits
+  ---
+  duration_ms: 792.072208
+  type: 'test'
+  ...
+# Subtest: pruned history remains unread while independent messages can advance
+ok 161 - pruned history remains unread while independent messages can advance
+  ---
+  duration_ms: 2420.238041
+  type: 'test'
+  ...
+# Subtest: invalid top-level pathname causes consumption error and leaves message unread
+ok 162 - invalid top-level pathname causes consumption error and leaves message unread
+  ---
+  duration_ms: 1078.642333
+  type: 'test'
+  ...
+# Subtest: invalid common directory path is rejected by repository discovery
+ok 163 - invalid common directory path is rejected by repository discovery
+  ---
+  duration_ms: 901.29075
+  type: 'test'
+  ...
+# Subtest: status identifiers reject invalid bytes but preserve valid replacement characters
+ok 164 - status identifiers reject invalid bytes but preserve valid replacement characters
+  ---
+  duration_ms: 860.162708
+  type: 'test'
+  ...
+# Subtest: worktree record validates path but not free-text lock reason
+ok 165 - worktree record validates path but not free-text lock reason
+  ---
+  duration_ms: 741.678625
+  type: 'test'
+  ...
+# Subtest: Git path output requires its own line delimiter and keeps path CR on Unix
+ok 166 - Git path output requires its own line delimiter and keeps path CR on Unix
+  ---
+  duration_ms: 0.183333
+  type: 'test'
+  ...
+# Subtest: invalid upstream Git pathname is not confused with a real replacement character
+ok 167 - invalid upstream Git pathname is not confused with a real replacement character
+  ---
+  duration_ms: 1351.1275
+  type: 'test'
+  ...
+# Subtest: a real UTF-8 replacement character is a valid path and produces a diff
+ok 168 - a real UTF-8 replacement character is a valid path and produces a diff
+  ---
+  duration_ms: 965.072166
+  type: 'test'
+  ...
+# Subtest: invalid committed path leaves a file-filtered message unread
+ok 169 - invalid committed path leaves a file-filtered message unread
+  ---
+  duration_ms: 1312.427375
+  type: 'test'
+  ...
+# Subtest: invalid staged path leaves a file-filtered message unread
+ok 170 - invalid staged path leaves a file-filtered message unread
+  ---
+  duration_ms: 1307.007625
+  type: 'test'
+  ...
+# Subtest: invalid unstaged path leaves a file-filtered message unread
+ok 171 - invalid unstaged path leaves a file-filtered message unread
+  ---
+  duration_ms: 1084.4775
+  type: 'test'
+  ...
+# Subtest: invalid others path leaves a file-filtered message unread
+ok 172 - invalid others path leaves a file-filtered message unread
+  ---
+  duration_ms: 1344.133334
+  type: 'test'
+  ...
+# Subtest: non-path Git output preserves replacement decoding
+ok 173 - non-path Git output preserves replacement decoding
+  ---
+  duration_ms: 651.895083
+  type: 'test'
+  ...
+# Subtest: status preserves Unicode whitespace in upstream and remote: "origin"
+ok 174 - status preserves Unicode whitespace in upstream and remote: "origin"
+  ---
+  duration_ms: 1101.640125
+  type: 'test'
+  ...
+# Subtest: status preserves Unicode whitespace in upstream and remote: "origin "
+ok 175 - status preserves Unicode whitespace in upstream and remote: "origin "
+  ---
+  duration_ms: 1149.655042
+  type: 'test'
+  ...
+# Subtest: sync preserves trailing Unicode whitespace in upstream and remote: "origin"
+ok 176 - sync preserves trailing Unicode whitespace in upstream and remote: "origin"
+  ---
+  duration_ms: 2286.409334
+  type: 'test'
+  ...
+# Subtest: sync preserves trailing Unicode whitespace in upstream and remote: "origin "
+ok 177 - sync preserves trailing Unicode whitespace in upstream and remote: "origin "
+  ---
+  duration_ms: 2781.721792
+  type: 'test'
+  ...
+# Subtest: worktree add rejects a branch/tag ambiguity ending in Unicode whitespace
+ok 178 - worktree add rejects a branch/tag ambiguity ending in Unicode whitespace
+  ---
+  duration_ms: 601.237167
+  type: 'test'
+  ...
+# Subtest: worktree creation permits a Unicode whitespace-only pathname
+ok 179 - worktree creation permits a Unicode whitespace-only pathname
+  ---
+  duration_ms: 670.353208
+  type: 'test'
+  ...
+# Subtest: ref line parser rejects incomplete or multiple config records without trimming
+ok 180 - ref line parser rejects incomplete or multiple config records without trimming
+  ---
+  duration_ms: 2.437625
+  type: 'test'
+  ...
+# Subtest: ref parser removes Windows CRLF delimiters without trimming Unicode
+ok 181 - ref parser removes Windows CRLF delimiters without trimming Unicode
+  ---
+  duration_ms: 0.632458
+  type: 'test'
+  ...
+# Subtest: Git config reader preserves Unicode and rejects multiple remote records
+ok 182 - Git config reader preserves Unicode and rejects multiple remote records
+  ---
+  duration_ms: 709.247
+  type: 'test'
+  ...
+# Subtest: Git config reader preserves Unicode and rejects multiple merge records
+ok 183 - Git config reader preserves Unicode and rejects multiple merge records
+  ---
+  duration_ms: 761.476333
+  type: 'test'
+  ...
+# Subtest: multiple branch remote config values prevent auto-sync before fetch
+ok 184 - multiple branch remote config values prevent auto-sync before fetch
+  ---
+  duration_ms: 1549.414292
+  type: 'test'
+  ...
+# Subtest: multiple branch merge config values prevent auto-sync before fetch
+ok 185 - multiple branch merge config values prevent auto-sync before fetch
+  ---
+  duration_ms: 1505.735
+  type: 'test'
+  ...
+# Subtest: repository root preserves trailing "\\r" and old sibling state
+ok 186 - repository root preserves trailing "\\r" and old sibling state
+  ---
+  duration_ms: 1772.1675
+  type: 'test'
+  ...
+# Subtest: repository root preserves trailing "\\n" and old sibling state
+ok 187 - repository root preserves trailing "\\n" and old sibling state
+  ---
+  duration_ms: 1284.05125
+  type: 'test'
+  ...
+# Subtest: repository root preserves trailing "\\r\\n" and old sibling state
+ok 188 - repository root preserves trailing "\\r\\n" and old sibling state
+  ---
+  duration_ms: 1633.648292
+  type: 'test'
+  ...
+# Subtest: a Git common directory ending in CR stays distinct for repository discovery
+ok 189 - a Git common directory ending in CR stays distinct for repository discovery
+  ---
+  duration_ms: 964.495125
+  type: 'test'
+  ...
+# Subtest: sync policy reads settle siblings and preserve result priority: config-error
+ok 190 - sync policy reads settle siblings and preserve result priority: config-error
+  ---
+  duration_ms: 1918.077375
+  type: 'test'
+  ...
+# Subtest: sync policy reads settle siblings and preserve result priority: config-blocked
+ok 191 - sync policy reads settle siblings and preserve result priority: config-blocked
+  ---
+  duration_ms: 1788.922416
+  type: 'test'
+  ...
+# Subtest: Git operation-path reader rejects invalid UTF-8 without fetching or changing files
+ok 192 - Git operation-path reader rejects invalid UTF-8 without fetching or changing files
+  ---
+  duration_ms: 1393.787792
+  type: 'test'
+  ...
+# Subtest: unrepresentable git-path fails before fetch and waits for sibling processes
+ok 193 - unrepresentable git-path fails before fetch and waits for sibling processes
+  ---
+  duration_ms: 3075.532666
+  type: 'test'
+  ...
+# Subtest: operation marker appearing during fetch blocks merge; valid state can then fast-forward
+ok 194 - operation marker appearing during fetch blocks merge; valid state can then fast-forward
+  ---
+  duration_ms: 5176.855917
+  type: 'test'
+  ...
+# Subtest: NUL parser preserves unusual paths and worktree metadata
+ok 195 - NUL parser preserves unusual paths and worktree metadata
+  ---
+  duration_ms: 6.2015
+  type: 'test'
+  ...
+# Subtest: create new/existing branches and preserve worktrees when removal is unavailable
+ok 196 - create new/existing branches and preserve worktrees when removal is unavailable
+  ---
+  duration_ms: 337.907
+  type: 'test'
+  ...
+# Subtest: protect primary, current/subdirectory/symlink, locked and dirty worktrees
+ok 197 - protect primary, current/subdirectory/symlink, locked and dirty worktrees
+  ---
+  duration_ms: 510.751459
+  type: 'test'
+  ...
+# Subtest: reject invalid inputs and refuse branch resets or tag-only checkouts
+ok 198 - reject invalid inputs and refuse branch resets or tag-only checkouts
+  ---
+  duration_ms: 580.074875
+  type: 'test'
+  ...
+# Subtest: ambiguous tag/branch start points require a qualified ref
+ok 199 - ambiguous tag/branch start points require a qualified ref
+  ---
+  duration_ms: 613.753125
+  type: 'test'
+  ...
+# Subtest: supports explicit start points and reports non-repository errors
+ok 200 - supports explicit start points and reports non-repository errors
+  ---
+  duration_ms: 198.290458
+  type: 'test'
+  ...
+# Subtest: a branch start point wins over a direct ref with the same name
+ok 201 - a branch start point wins over a direct ref with the same name
+  ---
+  duration_ms: 387.880208
+  type: 'test'
+  ...
+# Subtest: new worktrees pin commits despite hash-shaped ref collisions
+ok 202 - new worktrees pin commits despite hash-shaped ref collisions
+  ---
+  duration_ms: 440.666458
+  type: 'test'
+  ...
+# Subtest: new worktrees pin commits when a hash-shaped ref appears before creation
+ok 203 - new worktrees pin commits when a hash-shaped ref appears before creation
+  ---
+  duration_ms: 700.578333
+  type: 'test'
+  ...
+# Subtest: a matching daemon hint cannot hide a newer ref
+ok 204 - a matching daemon hint cannot hide a newer ref
+  ---
+  duration_ms: 470.987541
+  type: 'test'
+  ...
+# Subtest: a retained hint cannot hide pending publication after ref rollback
+ok 205 - a retained hint cannot hide pending publication after ref rollback
+  ---
+  duration_ms: 1123.971125
+  type: 'test'
+  ...
+# Subtest: cursor write failure is reported and a retry recovers the event once
+ok 206 - cursor write failure is reported and a retry recovers the event once
+  ---
+  duration_ms: 631.634375
+  type: 'test'
+  ...
+# Subtest: JSON writes honor the reader's exact UTF-8 byte limit without replacing old state
+ok 207 - JSON writes honor the reader's exact UTF-8 byte limit without replacing old state
+  ---
+  duration_ms: 95.206209
+  type: 'test'
+  ...
+# Subtest: oversized broadcast fails before publication and preserves the existing inbox
+ok 208 - oversized broadcast fails before publication and preserves the existing inbox
+  ---
+  duration_ms: 15120.5255
+  type: 'test'
+  ...
+# Subtest: oversized upstream recipient retry preserves event and ref cursor
+ok 209 - oversized upstream recipient retry preserves event and ref cursor
+  ---
+  duration_ms: 789.935666
+  type: 'test'
+  ...
+# Subtest: removed worktree lookup accepts equivalent Git root spelling
+ok 210 - removed worktree lookup accepts equivalent Git root spelling
+  ---
+  duration_ms: 439.206625
+  type: 'test'
+  ...
+# Subtest: equivalent root spellings must not select between two subscriptions
+ok 211 - equivalent root spellings must not select between two subscriptions
+  ---
+  duration_ms: 56.569
+  type: 'test'
+  ...
+# Subtest: explicit state repository resolves ambiguous removed-worktree session without closing another
+ok 212 - explicit state repository resolves ambiguous removed-worktree session without closing another
+  ---
+  duration_ms: 67.896208
+  type: 'test'
+  ...
+# Subtest: explicit repository preflight rejects existing paths and binds a removed-worktree leave
+ok 213 - explicit repository preflight rejects existing paths and binds a removed-worktree leave
+  ---
+  duration_ms: 59.845666
+  type: 'test'
+  ...
+# Subtest: explicit state repository avoids scanning another invalid entry
+ok 214 - explicit state repository avoids scanning another invalid entry
+  ---
+  duration_ms: 96.386208
+  type: 'test'
+  ...
+# Subtest: explicit repository selection rejects invalid IDs, missing state, and existing worktrees
+ok 215 - explicit repository selection rejects invalid IDs, missing state, and existing worktrees
+  ---
+  duration_ms: 8.327583
+  type: 'test'
+  ...
+# Subtest: explicit selection validates the selected state and subscription
+ok 216 - explicit selection validates the selected state and subscription
+  ---
+  duration_ms: 12.53675
+  type: 'test'
+  ...
+# Subtest: MCP repository selection cannot be used on another tool
+ok 217 - MCP repository selection cannot be used on another tool
+  ---
+  duration_ms: 505.874125
+  type: 'test'
+  ...
+# Subtest: MCP leave accepts a selected state repository for a removed worktree
+ok 218 - MCP leave accepts a selected state repository for a removed worktree
+  ---
+  duration_ms: 863.815875
+  type: 'test'
+  ...
+# Subtest: leaving a dangling worktree link preserves the link and subscription
+ok 219 - leaving a dangling worktree link preserves the link and subscription
+  ---
+  duration_ms: 99.439083
+  type: 'test'
+  ...
+# Subtest: missing path lstat errors are propagated for explicit and default leave
+ok 220 - missing path lstat errors are propagated for explicit and default leave
+  ---
+  duration_ms: 309.981792
+  type: 'test'
+  ...
+# Subtest: leaving a missing path under a dangling ancestor preserves state
+ok 221 - leaving a missing path under a dangling ancestor preserves state
+  ---
+  duration_ms: 46.726708
+  type: 'test'
+  ...
+# Subtest: leaving a missing path through a valid ancestor link remains supported
+ok 222 - leaving a missing path through a valid ancestor link remains supported
+  ---
+  duration_ms: 24.846
+  type: 'test'
+  ...
+# Subtest: missing-ancestor inspection stops at the filesystem root
+ok 223 - missing-ancestor inspection stops at the filesystem root
+  ---
+  duration_ms: 432.070042
+  type: 'test'
+  ...
+# Subtest: leave cannot treat an existing normalized path as missing through a dangling dot-dot path
+ok 224 - leave cannot treat an existing normalized path as missing through a dangling dot-dot path
+  ---
+  duration_ms: 43.51775
+  type: 'test'
+  ...
+# Subtest: leave rejects an existing raw symlink-dot-dot path even if the normalized path is missing
+ok 225 - leave rejects an existing raw symlink-dot-dot path even if the normalized path is missing
+  ---
+  duration_ms: 66.222333
+  type: 'test'
+  ...
+# Subtest: opt-in recovery replaces only a verified dead owner; live/ownerless locks remain protected
+ok 226 - opt-in recovery replaces only a verified dead owner; live/ownerless locks remain protected
+  ---
+  duration_ms: 659.511625
+  type: 'test'
+  ...
+# Subtest: SIGKILL during recovery cannot leave an unrecoverable recovery mutex
+ok 227 - SIGKILL during recovery cannot leave an unrecoverable recovery mutex
+  ---
+  duration_ms: 710.454458
+  type: 'test'
+  ...
+# Subtest: live choosing tickets and corrupt recovery records cannot authorize reclamation
+ok 228 - live choosing tickets and corrupt recovery records cannot authorize reclamation
+  ---
+  duration_ms: 608.652667
+  type: 'test'
+  ...
+# Subtest: eight real processes contend for one stale lock without overlapping or exposing partial ownership
+ok 229 - eight real processes contend for one stale lock without overlapping or exposing partial ownership
+  ---
+  duration_ms: 1433.013833
+  type: 'test'
+  ...
+# Subtest: a lock replaced during dead-owner verification is not unlinked by its recoverer
+ok 230 - a lock replaced during dead-owner verification is not unlinked by its recoverer
+  ---
+  duration_ms: 586.682792
+  type: 'test'
+  ...
+# Subtest: invalid UTF-8 in an event or receipt cannot silently acknowledge a message
+ok 231 - invalid UTF-8 in an event or receipt cannot silently acknowledge a message
+  ---
+  duration_ms: 1536.64525
+  type: 'test'
+  ...
+# Subtest: Codex publishes one message; native and CLI receivers receive independent copies
+ok 232 - Codex publishes one message; native and CLI receivers receive independent copies
+  ---
+  duration_ms: 1533.791583
+  type: 'test'
+  ...
+# Subtest: a shared main event is published once; one agent's failed delivery does not consume another's message
+ok 233 - a shared main event is published once; one agent's failed delivery does not consume another's message
+  ---
+  duration_ms: 2407.865
+  type: 'test'
+  ...
+# Subtest: file-scoped messages only reach overlapping worktrees, and new sessions do not replay older broadcasts
+ok 234 - file-scoped messages only reach overlapping worktrees, and new sessions do not replay older broadcasts
+  ---
+  duration_ms: 1317.304583
+  type: 'test'
+  ...
+# Subtest: file aliases normalize before deduplication and delivery, including retained events
+ok 235 - file aliases normalize before deduplication and delivery, including retained events
+  ---
+  duration_ms: 844.81525
+  type: 'test'
+  ...
+# Subtest: Unix backslashes in filenames remain literal
+ok 236 - Unix backslashes in filenames remain literal
+  ---
+  duration_ms: 798.190208
+  type: 'test'
+  ...
+# Subtest: bounded batches leave remaining messages for the next check
+ok 237 - bounded batches leave remaining messages for the next check
+  ---
+  duration_ms: 4267.041209
+  type: 'test'
+  ...
+# Subtest: confirmed payloads are skipped in session scans, but publication recovery and GC validate them
+ok 238 - confirmed payloads are skipped in session scans, but publication recovery and GC validate them
+  ---
+  duration_ms: 1528.726667
+  type: 'test'
+  ...
+# Subtest: receipt filtering validates contents and notices deletion without a process restart
+ok 239 - receipt filtering validates contents and notices deletion without a process restart
+  ---
+  duration_ms: 1028.965958
+  type: 'test'
+  ...
+# Subtest: repo identity is shared across worktrees but not across separate clones
+ok 240 - repo identity is shared across worktrees but not across separate clones
+  ---
+  duration_ms: 660.534583
+  type: 'test'
+  ...
+# Subtest: rewind followed by the same forward update creates a new event rather than reusing an old receipt
+ok 241 - rewind followed by the same forward update creates a new event rather than reusing an old receipt
+  ---
+  duration_ms: 1417.90325
+  type: 'test'
+  ...
+# Subtest: message validation and cancellation do not advance receipts
+ok 242 - message validation and cancellation do not advance receipts
+  ---
+  duration_ms: 637.39225
+  type: 'test'
+  ...
+# Subtest: cancellation during receipt preparation does not commit any receipt
+ok 243 - cancellation during receipt preparation does not commit any receipt
+  ---
+  duration_ms: 1211.732166
+  type: 'test'
+  ...
+# Subtest: MCP receive survives retry without receipts; explicit acknowledgement is idempotent even after GC
+ok 244 - MCP receive survives retry without receipts; explicit acknowledgement is idempotent even after GC
+  ---
+  duration_ms: 2287.717875
+  type: 'test'
+  ...
+# Subtest: a newer bounded delivery supersedes an older acknowledgement without losing unread events
+ok 245 - a newer bounded delivery supersedes an older acknowledgement without losing unread events
+  ---
+  duration_ms: 2294.891917
+  type: 'test'
+  ...
+# Subtest: corrupt pending deliveries are rejected and preserved by both receive and acknowledgement
+ok 246 - corrupt pending deliveries are rejected and preserved by both receive and acknowledgement
+  ---
+  duration_ms: 1208.038667
+  type: 'test'
+  ...
+# Subtest: partial acknowledgement can retry without double delivery or discarding pending state
+ok 247 - partial acknowledgement can retry without double delivery or discarding pending state
+  ---
+  duration_ms: 1264.928083
+  type: 'test'
+  ...
+# Subtest: public IDs and another private handle cannot consume or acknowledge an existing subscription
+ok 248 - public IDs and another private handle cannot consume or acknowledge an existing subscription
+  ---
+  duration_ms: 1036.036208
+  type: 'test'
+  ...
+# Subtest: large Unicode batches page exactly, block early ACK, survive retry and reject skipped/stale/private reads
+ok 249 - large Unicode batches page exactly, block early ACK, survive retry and reject skipped/stale/private reads
+  ---
+  duration_ms: 2660.958292
+  type: 'test'
+  ...
+# Subtest: MCP batches respect the aggregate inline byte budget without dropping messages
+ok 250 - MCP batches respect the aggregate inline byte budget without dropping messages
+  ---
+  duration_ms: 2869.551917
+  type: 'test'
+  ...
+# Subtest: gitbeacon uses its own namespace without importing or deleting old plugin state
+ok 251 - gitbeacon uses its own namespace without importing or deleting old plugin state
+  ---
+  duration_ms: 678.980041
+  type: 'test'
+  ...
+# Subtest: message paths distinguish parent segments from literal line endings (posix=false)
+ok 252 - message paths distinguish parent segments from literal line endings (posix=false)
+  ---
+  duration_ms: 2.932334
+  type: 'test'
+  ...
+# Subtest: message paths distinguish parent segments from literal line endings (posix=true)
+ok 253 - message paths distinguish parent segments from literal line endings (posix=true)
+  ---
+  duration_ms: 0.569208
+  type: 'test'
+  ...
+# Subtest: path matching respects directory boundaries and normalized case
+ok 254 - path matching respects directory boundaries and normalized case
+  ---
+  duration_ms: 697.543916
+  type: 'test'
+  ...
+# Subtest: untracked nested repositories remain relevant to upstream and messages
+ok 255 - untracked nested repositories remain relevant to upstream and messages
+  ---
+  duration_ms: 1894.778833
+  type: 'test'
+  ...
+# Subtest: cancel stops a patch's descendants retaining its output pipes
+ok 256 - cancel stops a patch's descendants retaining its output pipes
+  ---
+  duration_ms: 1262.48075
+  type: 'test'
+  ...
+# (node:18319) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: timeout stops a patch's descendants retaining its output pipes
+ok 257 - timeout stops a patch's descendants retaining its output pipes
+  ---
+  duration_ms: 1108.184
+  type: 'test'
+  ...
+# Subtest: comparison does not fetch a missing promisor blob
+ok 258 - comparison does not fetch a missing promisor blob
+  ---
+  duration_ms: 1047.404125
+  type: 'test'
+  ...
+# Subtest: comparison does not fetch a missing promisor blob without no-lazy-fetch support
+ok 259 - comparison does not fetch a missing promisor blob without no-lazy-fetch support
+  ---
+  duration_ms: 1123.532834
+  type: 'test'
+  ...
+# Subtest: a signalled patch is not classified as unavailable history
+ok 260 - a signalled patch is not classified as unavailable history
+  ---
+  duration_ms: 914.881583
+  type: 'test'
+  ...
+# Subtest: online presence reads are bounded, deduplicate shared sessions and refresh closures on the next observation
+ok 261 - online presence reads are bounded, deduplicate shared sessions and refresh closures on the next observation
+  ---
+  duration_ms: 1133.379125
+  type: 'test'
+  ...
+# Subtest: failed presence observations drain in-flight reads before rejecting
+ok 262 - failed presence observations drain in-flight reads before rejecting
+  ---
+  duration_ms: 623.36775
+  type: 'test'
+  ...
+# Subtest: scan-local commit reuse preserves receiver roots and refreshes after worktree changes
+ok 263 - scan-local commit reuse preserves receiver roots and refreshes after worktree changes
+  ---
+  duration_ms: 3020.645292
+  type: 'test'
+  ...
+# Subtest: capability checks include separate instances and refs of the sender
+ok 264 - capability checks include separate instances and refs of the sender
+  ---
+  duration_ms: 1176.013
+  type: 'test'
+  ...
+# Subtest: a Windows join clears an earlier POSIX receiver capability
+ok 265 - a Windows join clears an earlier POSIX receiver capability
+  ---
+  duration_ms: 793.292875
+  type: 'test'
+  ...
+# Subtest: join alone does not claim receiver capability
+ok 266 - join alone does not claim receiver capability
+  ---
+  duration_ms: 850.631375
+  type: 'test'
+  ...
+# Subtest: POSIX filenames survive delivery, downgrade, and garbage collection
+ok 267 - POSIX filenames survive delivery, downgrade, and garbage collection
+  ---
+  duration_ms: 976.372417
+  type: 'test'
+  ...
+# Subtest: non-capable recipients reject POSIX messages before publication
+ok 268 - non-capable recipients reject POSIX messages before publication
+  ---
+  duration_ms: 573.871291
+  type: 'test'
+  ...
+# Subtest: duplicate event IDs are rejected before a receipt can hide a format
+ok 269 - duplicate event IDs are rejected before a receipt can hide a format
+  ---
+  duration_ms: 798.777958
+  type: 'test'
+  ...
+# Subtest: POSIX event parsing keeps literal backslashes and rejects traversal
+ok 270 - POSIX event parsing keeps literal backslashes and rejects traversal
+  ---
+  duration_ms: 0.419792
+  type: 'test'
+  ...
+# Subtest: upstream publication cannot create another format for an existing ID
+ok 271 - upstream publication cannot create another format for an existing ID
+  ---
+  duration_ms: 519.794167
+  type: 'test'
+  ...
+# Subtest: a Windows receiver preserves an addressed POSIX event without acknowledging it
+ok 272 - a Windows receiver preserves an addressed POSIX event without acknowledging it
+  ---
+  duration_ms: 1407.47425
+  type: 'test'
+  ...
+# Subtest: a GC rename between directory scans is not mistaken for a duplicate
+ok 273 - a GC rename between directory scans is not mistaken for a duplicate
+  ---
+  duration_ms: 1015.040542
+  type: 'test'
+  ...
+# Subtest: prior-state discovery drains bounded probes and preserves the first error before unlock
+ok 274 - prior-state discovery drains bounded probes and preserves the first error before unlock
+  ---
+  duration_ms: 62.54475
+  type: 'test'
+  ...
+# Subtest: resumes after pending-cursor is renamed into place
+ok 275 - resumes after pending-cursor is renamed into place
+  ---
+  duration_ms: 1510.364292
+  type: 'test'
+  ...
+# Subtest: resumes after next-event is renamed into place
+ok 276 - resumes after next-event is renamed into place
+  ---
+  duration_ms: 1432.452708
+  type: 'test'
+  ...
+# Subtest: resumes after next-cursor is renamed into place
+ok 277 - resumes after next-cursor is renamed into place
+  ---
+  duration_ms: 1677.327292
+  type: 'test'
+  ...
+# Subtest: a killed publisher preserves its event and requires explicit stale-lock recovery
+ok 278 - a killed publisher preserves its event and requires explicit stale-lock recovery
+  ---
+  duration_ms: 2780.5105
+  type: 'test'
+  ...
+# Subtest: a failed ref lookup waits for an in-flight scan before releasing its lock
+ok 279 - a failed ref lookup waits for an in-flight scan before releasing its lock
+  ---
+  duration_ms: 617.801041
+  type: 'test'
+  ...
+# Subtest: cancellation waits for an in-flight scan without advancing the ref
+ok 280 - cancellation waits for an in-flight scan without advancing the ref
+  ---
+  duration_ms: 596.286791
+  type: 'test'
+  ...
+# Subtest: publication format conflict in events drains peer reads and keeps error priority
+ok 281 - publication format conflict in events drains peer reads and keeps error priority
+  ---
+  duration_ms: 506.305167
+  type: 'test'
+  ...
+# Subtest: publication format conflict in trash drains peer reads and keeps error priority
+ok 282 - publication format conflict in trash drains peer reads and keeps error priority
+  ---
+  duration_ms: 539.454666
+  type: 'test'
+  ...
+# Subtest: GC drains receipt deletion peers before releasing its lock and can resume the trash journal
+ok 283 - GC drains receipt deletion peers before releasing its lock and can resume the trash journal
+  ---
+  duration_ms: 38.190083
+  type: 'test'
+  ...
+# Subtest: trash recovery drains receipt peers and preserves a missing-first decision over corrupt later data
+ok 284 - trash recovery drains receipt peers and preserves a missing-first decision over corrupt later data
+  ---
+  duration_ms: 14.959417
+  type: 'test'
+  ...
+# Subtest: GC drains recipient peers and preserves the first missing decision
+ok 285 - GC drains recipient peers and preserves the first missing decision
+  ---
+  duration_ms: 22.599458
+  type: 'test'
+  ...
+# Subtest: GC drains recipient peers and preserves the first subscription decision
+ok 286 - GC drains recipient peers and preserves the first subscription decision
+  ---
+  duration_ms: 22.672875
+  type: 'test'
+  ...
+# Subtest: GC drains recipient peers and preserves the first corrupt decision
+ok 287 - GC drains recipient peers and preserves the first corrupt decision
+  ---
+  duration_ms: 23.376
+  type: 'test'
+  ...
+# Subtest: GC caches subscription checks only within a call and still validates every receipt
+ok 288 - GC caches subscription checks only within a call and still validates every receipt
+  ---
+  duration_ms: 55.927292
+  type: 'test'
+  ...
+# Subtest: daemon status skips the heartbeat without a readable lock
+ok 289 - daemon status skips the heartbeat without a readable lock
+  ---
+  duration_ms: 10.263
+  type: 'test'
+  ...
+# Subtest: ref cursor accepts valid legacy timestamps and rejects non-string values without modifying state
+ok 290 - ref cursor accepts valid legacy timestamps and rejects non-string values without modifying state
+  ---
+  duration_ms: 16.979833
+  type: 'test'
+  ...
+# Subtest: daemon heartbeat non-string and malformed values fall back without trusting the PID
+ok 291 - daemon heartbeat non-string and malformed values fall back without trusting the PID
+  ---
+  duration_ms: 28.723167
+  type: 'test'
+  ...
+# Subtest: invalid array heartbeat does not mask an advanced ref
+ok 292 - invalid array heartbeat does not mask an advanced ref
+  ---
+  duration_ms: 454.255625
+  type: 'test'
+  ...
+# Subtest: legacy directory-style message paths remain readable without becoming broadcasts
+ok 293 - legacy directory-style message paths remain readable without becoming broadcasts
+  ---
+  duration_ms: 2459.844292
+  type: 'test'
+  ...
+# Subtest: send rejects existing directories even without a trailing slash, but permits deleted file paths
+ok 294 - send rejects existing directories even without a trailing slash, but permits deleted file paths
+  ---
+  duration_ms: 1372.228791
+  type: 'test'
+  ...
+# Subtest: corrupt daemon liveness hints never prevent local fallback
+ok 295 - corrupt daemon liveness hints never prevent local fallback
+  ---
+  duration_ms: 2330.364125
+  type: 'test'
+  ...
+# Subtest: send-first legacy sessions retain the pre-publication migration baseline
+ok 296 - send-first legacy sessions retain the pre-publication migration baseline
+  ---
+  duration_ms: 1598.121292
+  type: 'test'
+  ...
+# Subtest: retry after event publication includes new subscribers without replaying existing receipts
+ok 297 - retry after event publication includes new subscribers without replaying existing receipts
+  ---
+  duration_ms: 989.466417
+  type: 'test'
+  ...
+# Subtest: retry refuses corrupted upstream events without advancing the ref or acknowledging them
+ok 298 - retry refuses corrupted upstream events without advancing the ref or acknowledging them
+  ---
+  duration_ms: 1655.673125
+  type: 'test'
+  ...
+# Subtest: unborn and unrelated worktree histories give actionable errors and preserve pending events
+ok 299 - unborn and unrelated worktree histories give actionable errors and preserve pending events
+  ---
+  duration_ms: 1656.52625
+  type: 'test'
+  ...
+# Subtest: concurrent consumers all receive every broadcast rather than losing the publish-lock race
+ok 300 - concurrent consumers all receive every broadcast rather than losing the publish-lock race
+  ---
+  duration_ms: 2964.513583
+  type: 'test'
+  ...
+# Subtest: send-only identities do not subscribe or prevent consumers from collecting each other's broadcasts
+ok 301 - send-only identities do not subscribe or prevent consumers from collecting each other's broadcasts
+  ---
+  duration_ms: 847.930667
+  type: 'test'
+  ...
+# Subtest: pruned Git objects become an acknowledged history-gap notification, not an inbox barrier
+ok 302 - pruned Git objects become an acknowledged history-gap notification, not an inbox barrier
+  ---
+  duration_ms: 1602.46425
+  type: 'test'
+  ...
+# Subtest: recreating an unrelated repository at the same path keeps old messages isolated
+ok 303 - recreating an unrelated repository at the same path keeps old messages isolated
+  ---
+  duration_ms: 1074.790334
+  type: 'test'
+  ...
+# Subtest: a prunable worktree registration is retained while automatic removal is unavailable
+ok 304 - a prunable worktree registration is retained while automatic removal is unavailable
+  ---
+  duration_ms: 401.446167
+  type: 'test'
+  ...
+# Subtest: concurrent processes publish one identity shared across worktrees
+ok 305 - concurrent processes publish one identity shared across worktrees
+  ---
+  duration_ms: 1094.641083
+  type: 'test'
+  ...
+# Subtest: initialization publishes its owner on the repository state filesystem
+ok 306 - initialization publishes its owner on the repository state filesystem
+  ---
+  duration_ms: 754.533708
+  type: 'test'
+  ...
+# Subtest: failure writing the initial owner leaves no unowned state directory
+ok 307 - failure writing the initial owner leaves no unowned state directory
+  ---
+  duration_ms: 758.063667
+  type: 'test'
+  ...
+# Subtest: interruption after publishing the owner can be recovered without deleting it
+ok 308 - interruption after publishing the owner can be recovered without deleting it
+  ---
+  duration_ms: 1430.526917
+  type: 'test'
+  ...
+# Subtest: a failed ready write is archived intact before initialization is retried
+ok 309 - a failed ready write is archived intact before initialization is retried
+  ---
+  duration_ms: 1005.219
+  type: 'test'
+  ...
+# Subtest: recovery rejects malformed ready temporaries and symlinks
+ok 310 - recovery rejects malformed ready temporaries and symlinks
+  ---
+  duration_ms: 636.887084
+  type: 'test'
+  ...
+# Subtest: unsupported owner hard link reports EPERM and preserves unowned state
+ok 311 - unsupported owner hard link reports EPERM and preserves unowned state
+  ---
+  duration_ms: 654.575625
+  type: 'test'
+  ...
+# Subtest: unsupported owner hard link reports EACCES and preserves unowned state
+ok 312 - unsupported owner hard link reports EACCES and preserves unowned state
+  ---
+  duration_ms: 692.308167
+  type: 'test'
+  ...
+# Subtest: unsupported owner hard link reports EOPNOTSUPP and preserves unowned state
+ok 313 - unsupported owner hard link reports EOPNOTSUPP and preserves unowned state
+  ---
+  duration_ms: 819.2705
+  type: 'test'
+  ...
+# Subtest: unsupported owner hard link reports ENOTSUP and preserves unowned state
+ok 314 - unsupported owner hard link reports ENOTSUP and preserves unowned state
+  ---
+  duration_ms: 674.76875
+  type: 'test'
+  ...
+# Subtest: unsupported owner hard link reports EXDEV and preserves unowned state
+ok 315 - unsupported owner hard link reports EXDEV and preserves unowned state
+  ---
+  duration_ms: 754.954041
+  type: 'test'
+  ...
+# Subtest: an existing identity remains usable with a read-only common directory
+ok 316 - an existing identity remains usable with a read-only common directory
+  ---
+  duration_ms: 575.683375
+  type: 'test'
+  ...
+# Subtest: a read-only repository without a marker fails with a recovery hint
+ok 317 - a read-only repository without a marker fails with a recovery hint
+  ---
+  duration_ms: 571.875667
+  type: 'test'
+  ...
+# Subtest: a read-only repository uses an explicitly assigned identity in every worktree
+ok 318 - a read-only repository uses an explicitly assigned identity in every worktree
+  ---
+  duration_ms: 561.130625
+  type: 'test'
+  ...
+# Subtest: an invalid existing identity marker is rejected and preserved
+ok 319 - an invalid existing identity marker is rejected and preserved
+  ---
+  duration_ms: 572.215166
+  type: 'test'
+  ...
+# Subtest: a symlink identity marker is rejected without changing the link or target
+ok 320 - a symlink identity marker is rejected without changing the link or target
+  ---
+  duration_ms: 612.413625
+  type: 'test'
+  ...
+# Subtest: unrelated corrupt state cannot block a new repository or erase same-path history
+ok 321 - unrelated corrupt state cannot block a new repository or erase same-path history
+  ---
+  duration_ms: 1158.894667
+  type: 'test'
+  ...
+# Subtest: owned empty incomplete initialization can be archived and retried
+ok 322 - owned empty incomplete initialization can be archived and retried
+  ---
+  duration_ms: 732.348041
+  type: 'test'
+  ...
+# Subtest: an empty unowned initialization remains in place for manual inspection
+ok 323 - an empty unowned initialization remains in place for manual inspection
+  ---
+  duration_ms: 657.41925
+  type: 'test'
+  ...
+# Subtest: unowned incomplete initialization is never moved
+ok 324 - unowned incomplete initialization is never moved
+  ---
+  duration_ms: 425.319833
+  type: 'test'
+  ...
+# Subtest: nonempty incomplete initialization is never moved
+ok 325 - nonempty incomplete initialization is never moved
+  ---
+  duration_ms: 421.80575
+  type: 'test'
+  ...
+# Subtest: leave for a removed worktree handles ready state safely
+ok 326 - leave for a removed worktree handles ready state safely
+  ---
+  duration_ms: 408.738583
+  type: 'test'
+  ...
+# Subtest: leave for a removed worktree handles missing-ready state safely
+ok 327 - leave for a removed worktree handles missing-ready state safely
+  ---
+  duration_ms: 578.450709
+  type: 'test'
+  ...
+# Subtest: recovery without an identity or state does not create either
+ok 328 - recovery without an identity or state does not create either
+  ---
+  duration_ms: 433.6225
+  type: 'test'
+  ...
+# Subtest: prior identity state does not recommend legacy migration
+ok 329 - prior identity state does not recommend legacy migration
+  ---
+  duration_ms: 539.016083
+  type: 'test'
+  ...
+# Subtest: recovery with an existing identity and missing state leaves locks untouched
+ok 330 - recovery with an existing identity and missing state leaves locks untouched
+  ---
+  duration_ms: 455.670209
+  type: 'test'
+  ...
+# Subtest: repository inspection preserves missing identity and state without creating locks
+ok 331 - repository inspection preserves missing identity and state without creating locks
+  ---
+  duration_ms: 649.688584
+  type: 'test'
+  ...
+# Subtest: repository inspection reads initialized state without recreating identity locks
+ok 332 - repository inspection reads initialized state without recreating identity locks
+  ---
+  duration_ms: 620.079084
+  type: 'test'
+  ...
+# Subtest: repository inspection rejects damaged ownership without rewriting state
+ok 333 - repository inspection rejects damaged ownership without rewriting state
+  ---
+  duration_ms: 553.795875
+  type: 'test'
+  ...
+# Subtest: stable repository metadata is not replaced by poll, join or send; missing and corrupt records recover
+ok 334 - stable repository metadata is not replaced by poll, join or send; missing and corrupt records recover
+  ---
+  duration_ms: 2113.097417
+  type: 'test'
+  ...
+# Subtest: repository snapshot observes new, dirty and detached repositories without initializing state
+ok 335 - repository snapshot observes new, dirty and detached repositories without initializing state
+  ---
+  duration_ms: 877.162458
+  type: 'test'
+  ...
+# Subtest: repository snapshot preserves unread messages and reports real delivered and irrelevant receipts
+ok 336 - repository snapshot preserves unread messages and reports real delivered and irrelevant receipts
+  ---
+  duration_ms: 1425.407375
+  type: 'test'
+  ...
+# Subtest: send settles bounded file inspections before returning error
+ok 337 - send settles bounded file inspections before returning error
+  ---
+  duration_ms: 671.434041
+  type: 'test'
+  ...
+# Subtest: send settles bounded file inspections before returning abort
+ok 338 - send settles bounded file inspections before returning abort
+  ---
+  duration_ms: 488.512417
+  type: 'test'
+  ...
+# Subtest: sparse file inputs fail before repository state is created
+ok 339 - sparse file inputs fail before repository state is created
+  ---
+  duration_ms: 79.292333
+  type: 'test'
+  ...
+# Subtest: sendMessage snapshots mutable inputs before awaiting (signal=false)
+ok 340 - sendMessage snapshots mutable inputs before awaiting (signal=false)
+  ---
+  duration_ms: 174.8245
+  type: 'test'
+  ...
+# Subtest: sendMessage snapshots mutable inputs before awaiting (signal=true)
+ok 341 - sendMessage snapshots mutable inputs before awaiting (signal=true)
+  ---
+  duration_ms: 89.796583
+  type: 'test'
+  ...
+# Subtest: aborting the captured signal still cancels the pending send
+ok 342 - aborting the captured signal still cancels the pending send
+  ---
+  duration_ms: 24.019958
+  type: 'test'
+  ...
+# Subtest: send snapshots the closed sender key before options change
+ok 343 - send snapshots the closed sender key before options change
+  ---
+  duration_ms: 339.7055
+  type: 'test'
+  ...
+# Subtest: session timestamps require strings and retain parseable historical strings
+ok 344 - session timestamps require strings and retain parseable historical strings
+  ---
+  duration_ms: 1.995166
+  type: 'test'
+  ...
+# Subtest: malformed closedAt cannot make a closed subscription a broadcast recipient
+ok 345 - malformed closedAt cannot make a closed subscription a broadcast recipient
+  ---
+  duration_ms: 157.363875
+  type: 'test'
+  ...
+# Subtest: session scans preserve all batches, reject invalid records and refresh after removal
+ok 346 - session scans preserve all batches, reject invalid records and refresh after removal
+  ---
+  duration_ms: 654.188125
+  type: 'test'
+  ...
+# Subtest: explicit leave excludes future messages but keeps the old inbox for an explicit rejoin
+ok 347 - explicit leave excludes future messages but keeps the old inbox for an explicit rejoin
+  ---
+  duration_ms: 1043.834958
+  type: 'test'
+  ...
+# Subtest: a preflight-bound opt-out returns the closed session
+ok 348 - a preflight-bound opt-out returns the closed session
+  ---
+  duration_ms: 643.487458
+  type: 'test'
+  ...
+# Subtest: session identity fields must match the stored key before leave or send
+ok 349 - session identity fields must match the stored key before leave or send
+  ---
+  duration_ms: 1007.804958
+  type: 'test'
+  ...
+# Subtest: lastSeen alone does not retire an offline session, and unknown leave does not register a ghost
+ok 350 - lastSeen alone does not retire an offline session, and unknown leave does not register a ghost
+  ---
+  duration_ms: 667.344917
+  type: 'test'
+  ...
+# Subtest: leave cannot race an in-flight receive and never overwrites its session lock
+ok 351 - leave cannot race an in-flight receive and never overwrites its session lock
+  ---
+  duration_ms: 831.949458
+  type: 'test'
+  ...
+# Subtest: managed repository directories reject static symlinks without writing their targets
+ok 352 - managed repository directories reject static symlinks without writing their targets
+  ---
+  duration_ms: 433.306083
+  type: 'test'
+  ...
+# Subtest: managed state children reject links while the selected state root can be a link
+ok 353 - managed state children reject links while the selected state root can be a link
+  ---
+  duration_ms: 199.877875
+  type: 'test'
+  ...
+# Subtest: nested receipt directories reject symlinks before consumption
+ok 354 - nested receipt directories reject symlinks before consumption
+  ---
+  duration_ms: 76.6725
+  type: 'test'
+  ...
+# Subtest: receipt files reject symlinks without changing ordinary readJson compatibility
+ok 355 - receipt files reject symlinks without changing ordinary readJson compatibility
+  ---
+  duration_ms: 37.002333
+  type: 'test'
+  ...
+# Subtest: leaving a missing worktree skips unrelated incomplete repository state
+ok 356 - leaving a missing worktree skips unrelated incomplete repository state
+  ---
+  duration_ms: 99.235042
+  type: 'test'
+  ...
+# Subtest: unborn status drains both configuration children and keeps the remote error first
+ok 357 - unborn status drains both configuration children and keeps the remote error first
+  ---
+  duration_ms: 755.78025
+  type: 'test'
+  ...
+# Subtest: GC busy marker only skips a fresh live matching lock
+ok 358 - GC busy marker only skips a fresh live matching lock
+  ---
+  duration_ms: 177.559459
+  type: 'test'
+  ...
+# Subtest: ownerless lock inspection retries when initialization completes
+ok 359 - ownerless lock inspection retries when initialization completes
+  ---
+  duration_ms: 57.250083
+  type: 'test'
+  ...
+# Subtest: ownerless lock inspection remains abortable and preserves the lock
+ok 360 - ownerless lock inspection remains abortable and preserves the lock
+  ---
+  duration_ms: 13.886333
+  type: 'test'
+  ...
+# Subtest: GC busy marker is ignored when the lock path was replaced during inspection
+ok 361 - GC busy marker is ignored when the lock path was replaced during inspection
+  ---
+  duration_ms: 38.348416
+  type: 'test'
+  ...
+# Subtest: cancellation during GC lock inspection is not mistaken for a busy skip
+ok 362 - cancellation during GC lock inspection is not mistaken for a busy skip
+  ---
+  duration_ms: 3.990084
+  type: 'test'
+  ...
+# Subtest: cancellation after GC owner liveness check is not mistaken for a busy skip
+ok 363 - cancellation after GC owner liveness check is not mistaken for a busy skip
+  ---
+  duration_ms: 2.5695
+  type: 'test'
+  ...
+# Subtest: JSON replacement preserves values and cleans temporary files on write or rename failure
+ok 364 - JSON replacement preserves values and cleans temporary files on write or rename failure
+  ---
+  duration_ms: 10.360542
+  type: 'test'
+  ...
+# Subtest: JSON writes preserve colliding, unverified, partial and replaced temporary files
+ok 365 - JSON writes preserve colliding, unverified, partial and replaced temporary files
+  ---
+  duration_ms: 17.509958
+  type: 'test'
+  ...
+# Subtest: JSON reads preserve UTF-8, size boundaries, missing files and parse errors
+ok 366 - JSON reads preserve UTF-8, size boundaries, missing files and parse errors
+  ---
+  duration_ms: 25.927083
+  type: 'test'
+  ...
+# Subtest: JSON reads reuse the small-file buffer when probing EOF
+ok 367 - JSON reads reuse the small-file buffer when probing EOF
+  ---
+  duration_ms: 3.761417
+  type: 'test'
+  ...
+# Subtest: JSON reads preserve bytes through short reads
+ok 368 - JSON reads preserve bytes through short reads
+  ---
+  duration_ms: 44.653166
+  type: 'test'
+  ...
+# Subtest: JSON reads preserve bytes through grow reads
+ok 369 - JSON reads preserve bytes through grow reads
+  ---
+  duration_ms: 45.321333
+  type: 'test'
+  ...
+# Subtest: JSON reads preserve bytes through shrink reads
+ok 370 - JSON reads preserve bytes through shrink reads
+  ---
+  duration_ms: 3.257416
+  type: 'test'
+  ...
+# Subtest: JSON reads retry a path published after open reported ENOENT
+ok 371 - JSON reads retry a path published after open reported ENOENT
+  ---
+  duration_ms: 15.109541
+  type: 'test'
+  ...
+# Subtest: JSON read retry stays bounded and returns missing if the path disappears
+ok 372 - JSON read retry stays bounded and returns missing if the path disappears
+  ---
+  duration_ms: 4.555
+  type: 'test'
+  ...
+# Subtest: JSON reads enforce the limit after file growth (oversized=false)
+ok 373 - JSON reads enforce the limit after file growth (oversized=false)
+  ---
+  duration_ms: 11.206792
+  type: 'test'
+  ...
+# Subtest: JSON reads enforce the limit after file growth (oversized=true)
+ok 374 - JSON reads enforce the limit after file growth (oversized=true)
+  ---
+  duration_ms: 8.506542
+  type: 'test'
+  ...
+# Subtest: dangling state links are not mistaken for missing data
+ok 375 - dangling state links are not mistaken for missing data
+  ---
+  duration_ms: 2.861542
+  type: 'test'
+  ...
+# Subtest: FIFO state is rejected without hanging check or GC and preserves unread events
+ok 376 - FIFO state is rejected without hanging check or GC and preserves unread events
+  ---
+  duration_ms: 926.935916
+  type: 'test'
+  ...
+# Subtest: publish contention waits for send and GC instead of dropping an operation
+ok 377 - publish contention waits for send and GC instead of dropping an operation
+  ---
+  duration_ms: 647.25275
+  type: 'test'
+  ...
+# Subtest: lock waits are cancellable and time out visibly without stealing the owner lock
+ok 378 - lock waits are cancellable and time out visibly without stealing the owner lock
+  ---
+  duration_ms: 448.937209
+  type: 'test'
+  ...
+# Subtest: lock age never implies a live owner is stale
+ok 379 - lock age never implies a live owner is stale
+  ---
+  duration_ms: 566.418583
+  type: 'test'
+  ...
+# Subtest: gitlink index reader handles chunk boundaries, invalid data and cancellation
+ok 380 - gitlink index reader handles chunk boundaries, invalid data and cancellation
+  ---
+  duration_ms: 1650.273166
+  type: 'test'
+  ...
+# Subtest: index reader reports pipe errors and waits for the direct child to close
+ok 381 - index reader reports pipe errors and waits for the direct child to close
+  ---
+  duration_ms: 477.932666
+  type: 'test'
+  ...
+# Subtest: submodule updates remain potentially relevant with tracked local state
+ok 382 - submodule updates remain potentially relevant with tracked local state
+  ---
+  duration_ms: 2035.283583
+  type: 'test'
+  ...
+# Subtest: submodule updates remain potentially relevant with ignored local state
+ok 383 - submodule updates remain potentially relevant with ignored local state
+  ---
+  duration_ms: 2425.811458
+  type: 'test'
+  ...
+# Subtest: submodule updates remain potentially relevant with uninitialized local state
+ok 384 - submodule updates remain potentially relevant with uninitialized local state
+  ---
+  duration_ms: 2720.262167
+  type: 'test'
+  ...
+# Subtest: submodule updates remain potentially relevant with clean local state
+ok 385 - submodule updates remain potentially relevant with clean local state
+  ---
+  duration_ms: 1921.97125
+  type: 'test'
+  ...
+# Subtest: submodule updates remain potentially relevant with staged-delete local state
+ok 386 - submodule updates remain potentially relevant with staged-delete local state
+  ---
+  duration_ms: 1964.868209
+  type: 'test'
+  ...
+# Subtest: identity preserves an exclusive temporary file on collision
+ok 387 - identity preserves an exclusive temporary file on collision
+  ---
+  duration_ms: 466.304042
+  type: 'test'
+  ...
+# Subtest: identity preserves an exclusive temporary file on partial
+ok 388 - identity preserves an exclusive temporary file on partial
+  ---
+  duration_ms: 438.507958
+  type: 'test'
+  ...
+# Subtest: identity preserves an exclusive temporary file on access
+ok 389 - identity preserves an exclusive temporary file on access
+  ---
+  duration_ms: 373.1995
+  type: 'test'
+  ...
+# Subtest: choice preserves an exclusive temporary file on collision
+ok 390 - choice preserves an exclusive temporary file on collision
+  ---
+  duration_ms: 448.888125
+  type: 'test'
+  ...
+# Subtest: choice preserves an exclusive temporary file on partial
+ok 391 - choice preserves an exclusive temporary file on partial
+  ---
+  duration_ms: 475.302917
+  type: 'test'
+  ...
+# Subtest: choice preserves an exclusive temporary file on access
+ok 392 - choice preserves an exclusive temporary file on access
+  ---
+  duration_ms: 472.991833
+  type: 'test'
+  ...
+# Subtest: owner preserves an exclusive temporary file on collision
+ok 393 - owner preserves an exclusive temporary file on collision
+  ---
+  duration_ms: 588.243541
+  type: 'test'
+  ...
+# Subtest: owner preserves an exclusive temporary file on partial
+ok 394 - owner preserves an exclusive temporary file on partial
+  ---
+  duration_ms: 569.033292
+  type: 'test'
+  ...
+# Subtest: owner preserves an exclusive temporary file on access
+ok 395 - owner preserves an exclusive temporary file on access
+  ---
+  duration_ms: 505.503667
+  type: 'test'
+  ...
+# Subtest: trash scans limit in-flight reads and settle each batch before starting the next
+ok 396 - trash scans limit in-flight reads and settle each batch before starting the next
+  ---
+  duration_ms: 307.974667
+  type: 'test'
+  ...
+# Subtest: trash scan cancellation waits for the whole batch while holding the publication lock
+ok 397 - trash scan cancellation waits for the whole batch while holding the publication lock
+  ---
+  duration_ms: 309.642792
+  type: 'test'
+  ...
+# Subtest: trash scan preserves first error in directory order and ignores missing or unrelated files
+ok 398 - trash scan preserves first error in directory order and ignores missing or unrelated files
+  ---
+  duration_ms: 236.571166
+  type: 'test'
+  ...
+# Subtest: trash directory cancellation cannot bypass non-event entries
+ok 399 - trash directory cancellation cannot bypass non-event entries
+  ---
+  duration_ms: 212.152
+  type: 'test'
+  ...
+# Subtest: GC settles its four trash reads before failing and releasing the publication lock
+ok 400 - GC settles its four trash reads before failing and releasing the publication lock
+  ---
+  duration_ms: 355.189625
+  type: 'test'
+  ...
+# Subtest: GC settles ref cursor reads before a malformed cursor releases its publication lock
+ok 401 - GC settles ref cursor reads before a malformed cursor releases its publication lock
+  ---
+  duration_ms: 326.784333
+  type: 'test'
+  ...
+# Subtest: invalid upstream input never publishes or changes an existing event
+ok 402 - invalid upstream input never publishes or changes an existing event
+  ---
+  duration_ms: 128.763291
+  type: 'test'
+  ...
+# Subtest: repeated transitions preserve causal order with bounded hashing, messages and receipt filtering
+ok 403 - repeated transitions preserve causal order with bounded hashing, messages and receipt filtering
+  ---
+  duration_ms: 842.536042
+  type: 'test'
+  ...
+# Subtest: upstream events cannot acknowledge a recipient subscribed to another ref
+ok 404 - upstream events cannot acknowledge a recipient subscribed to another ref
+  ---
+  duration_ms: 1632.11025
+  type: 'test'
+  ...
+# Subtest: real stdio processes automatically detect peer conflicts, push the bound inbox, and preserve unread data on disconnect
+ok 405 - real stdio processes automatically detect peer conflicts, push the bound inbox, and preserve unread data on disconnect
+  ---
+  duration_ms: 8010.591584
+  type: 'test'
+  ...
+# Subtest: tracking is explicit and unknown/disabled states remain observable
+ok 406 - tracking is explicit and unknown/disabled states remain observable
+  ---
+  duration_ms: 824.919375
+  type: 'test'
+  ...
+# Subtest: a legacy initialize-based MCP client discovers tools and EOF exits without writing state
+ok 407 - a legacy initialize-based MCP client discovers tools and EOF exits without writing state
+  ---
+  duration_ms: 623.139041
+  type: 'test'
+  ...
+# Subtest: a modern client retries an unsupported version on the same stdio connection
+ok 408 - a modern client retries an unsupported version on the same stdio connection
+  ---
+  duration_ms: 810.990166
+  type: 'test'
+  ...
+# Subtest: a fatal stdio close stops monitoring even while the client keeps stdin open
+ok 409 - a fatal stdio close stops monitoring even while the client keeps stdin open
+  ---
+  duration_ms: 1717.84275
+  type: 'test'
+  ...
+# Subtest: monitor ownership transfers between MCP processes and closes with the last participant
+ok 410 - monitor ownership transfers between MCP processes and closes with the last participant
+  ---
+  duration_ms: 2837.192833
+  type: 'test'
+  ...
+# Subtest: SIGKILL of a monitor owner is followed by automatic takeover and a real pushed conflict
+ok 411 - SIGKILL of a monitor owner is followed by automatic takeover and a real pushed conflict
+  ---
+  duration_ms: 4788.855333
+  type: 'test'
+  ...
+# Subtest: a stalled SSH source does not block first or subsequent healthy-source scans
+ok 412 - a stalled SSH source does not block first or subsequent healthy-source scans
+  ---
+  duration_ms: 6892.850916
+  type: 'test'
+  ...
+# Subtest: source-linked plugin survives a cache copy and observes an explicit different worktree
+ok 413 - source-linked plugin survives a cache copy and observes an explicit different worktree
+  ---
+  duration_ms: 1872.6365
+  type: 'test'
+  ...
+# Subtest: reminders accept only supported events, never echo input, and fail open
+ok 414 - reminders accept only supported events, never echo input, and fail open
+  ---
+  duration_ms: 393.153792
+  type: 'test'
+  ...
+# Subtest: MCP discovers typed tools and reads new/dirty repositories without state writes
+ok 415 - MCP discovers typed tools and reads new/dirty repositories without state writes
+  ---
+  duration_ms: 1422.514916
+  type: 'test'
+  ...
+# Subtest: independent MCP clients keep unread messages across disconnect and explicitly acknowledge them
+ok 416 - independent MCP clients keep unread messages across disconnect and explicitly acknowledge them
+  ---
+  duration_ms: 2934.014583
+  type: 'test'
+  ...
+# Subtest: one MCP connection selects independent repositories with cwd without a catalog
+ok 417 - one MCP connection selects independent repositories with cwd without a catalog
+  ---
+  duration_ms: 2217.900375
+  type: 'test'
+  ...
+# Subtest: MCP pins Unicode branch identities and keeps synchronization explicit
+ok 418 - MCP pins Unicode branch identities and keeps synchronization explicit
+  ---
+  duration_ms: 720.436208
+  type: 'test'
+  ...
+# Subtest: MCP delivers relevant upstream changes without changing dirty work or HEAD
+ok 419 - MCP delivers relevant upstream changes without changing dirty work or HEAD
+  ---
+  duration_ms: 947.671458
+  type: 'test'
+  ...
+# Subtest: large inbox previews stay bounded and details resume across real stdio reconnect before ACK
+ok 420 - large inbox previews stay bounded and details resume across real stdio reconnect before ACK
+  ---
+  duration_ms: 1739.586833
+  type: 'test'
+  ...
+# Subtest: 2025 MCP resource subscriptions are explicit, connection-bound and never acknowledge messages
+ok 421 - 2025 MCP resource subscriptions are explicit, connection-bound and never acknowledge messages
+  ---
+  duration_ms: 7331.261625
+  type: 'test'
+  ...
+# Subtest: diagnostics remove terminal sequences and controls, preserve Unicode and bound output
+ok 422 - diagnostics remove terminal sequences and controls, preserve Unicode and bound output
+  ---
+  duration_ms: 0.72875
+  type: 'test'
+  ...
+# Subtest: MCP shares a bounded call budget across tools and refills it using monotonic time
+ok 423 - MCP shares a bounded call budget across tools and refills it using monotonic time
+  ---
+  duration_ms: 508.174125
+  type: 'test'
+  ...
+# Subtest: MCP caps concurrent work without queuing rejected calls and releases slots after completion
+ok 424 - MCP caps concurrent work without queuing rejected calls and releases slots after completion
+  ---
+  duration_ms: 465.927333
+  type: 'test'
+  ...
+# Subtest: MCP cleans diagnostic text before returning tool errors and releases failed calls
+ok 425 - MCP cleans diagnostic text before returning tool errors and releases failed calls
+  ---
+  duration_ms: 705.922709
+  type: 'test'
+  ...
+# Subtest: docs contain no credential-like values
+ok 426 - docs contain no credential-like values
+  ---
+  duration_ms: 220.579667
+  type: 'test'
+  ...
+# Subtest: the source project stays private without npm distribution entry points or lifecycle builds
+ok 427 - the source project stays private without npm distribution entry points or lifecycle builds
+  ---
+  duration_ms: 4.852708
+  type: 'test'
+  ...
+# Subtest: the built source entry serves stdio from a worktree with spaces without a package shim or declarations
+ok 428 - the built source entry serves stdio from a worktree with spaces without a package shim or declarations
+  ---
+  duration_ms: 1022.445417
+  type: 'test'
+  ...
+1..428
+# tests 428
+# suites 0
+# pass 428
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59543.696875

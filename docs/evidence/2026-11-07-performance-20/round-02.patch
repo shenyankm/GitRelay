@@ -1,0 +1,20 @@
+--- before/src/core/mcp-mailbox.ts
++++ after/src/core/mcp-mailbox.ts
+@@ -42,14 +42,15 @@
+   const value = (await readJson(path, true)) as Delivery | undefined;
+   if (value === undefined) return;
+   const details = value?.details;
++  const detailBytes = typeof details?.text === "string" ? Buffer.byteLength(details.text) : 0;
+   const invalidDetails =
+     details !== undefined &&
+     (!details ||
+       typeof details.text !== "string" ||
+       !Number.isSafeInteger(details.readOffset) ||
+       details.readOffset < 0 ||
+-      details.readOffset > Buffer.byteLength(details.text) ||
+-      (value?.phase !== "pending" && details.readOffset !== Buffer.byteLength(details.text)));
++      details.readOffset > detailBytes ||
++      (value?.phase !== "pending" && details.readOffset !== detailBytes));
+   if (
+     !value ||
+     invalidDetails ||

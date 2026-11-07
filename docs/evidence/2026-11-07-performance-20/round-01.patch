@@ -1,0 +1,20 @@
+--- before/src/core/mcp-mailbox.ts
++++ after/src/core/mcp-mailbox.ts
+@@ -96,11 +96,12 @@
+       const previous = await readDelivery(location.repository, location.sessionKey);
+       const record: Delivery = { version: 1, key: location.sessionKey, id, eventIds, phase: "pending" };
+       if (paged) record.details = { text, readOffset: previous?.id === id ? (previous.details?.readOffset ?? 0) : 0 };
+-      await writeJson(
+-        join(location.repository.directory, "receipts", location.sessionKey, "mcp-delivery.json"),
+-        record,
+-        () => options.signal?.throwIfAborted(),
+-      );
++      if (previous?.id !== id || previous?.phase !== "pending")
++        await writeJson(
++          join(location.repository.directory, "receipts", location.sessionKey, "mcp-delivery.json"),
++          record,
++          () => options.signal?.throwIfAborted(),
++        );
+       deliveryId = id;
+       if (paged) details = { totalBytes: Buffer.byteLength(text), notificationCount: batch.length };
+       else notifications.push(...batch);

@@ -1,0 +1,20 @@
+--- before/src/core/branch-status.ts
++++ after/src/core/branch-status.ts
+@@ -183,7 +183,7 @@
+   const rows = gitRefLines(
+     await git(cwd, ["for-each-ref", "--format=%(refname)%00%(objectname)%00%(upstream)", "--", ref], signal, "paths"),
+   );
+-  const row = rows.map((line) => line.split("\0")).find(([name]) => name === ref);
++  const row = rows.find((line) => line.startsWith(`${ref}\0`))?.split("\0");
+   const commit = row?.[1] ?? null;
+   const upstream = row ? row[2] || null : await missingUpstream(cwd, branch, signal);
+   let tracking: { ref: string; commit: string | null; ahead: number | null; behind: number | null } | null = null;
+@@ -196,7 +196,7 @@
+         "paths",
+       ),
+     );
+-    const upstreamRow = upstreamRows.map((line) => line.split("\0")).find(([name]) => name === upstream);
++    const upstreamRow = upstreamRows.find((line) => line.startsWith(`${upstream}\0`))?.split("\0");
+     let upstreamCommit = upstreamRow?.[2] === "commit" ? upstreamRow[1] : null;
+     if (upstreamRow?.[2] === "tag") {
+       const peeledType = await git(cwd, ["cat-file", "-t", `${upstreamRow[1]}^{}`], signal);

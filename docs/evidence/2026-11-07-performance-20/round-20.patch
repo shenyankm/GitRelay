@@ -1,0 +1,27 @@
+--- before/src/core/coordination.ts
++++ after/src/core/coordination.ts
+@@ -421,6 +421,7 @@
+         revisions.push(...cloud.revisions);
+         errors.push(...cloud.errors);
+       }
++      const comparisons = new Map<string, Conflict | undefined>();
+       const reports = [];
+       for (const { repo, session, targets } of sessions) {
+         const issues: Conflict[] = [];
+@@ -431,7 +432,15 @@
+             const key = hash([target.commit, incoming.commit, incoming.kind === "pr" ? incoming.id : ""]);
+             if (seen.has(key)) continue;
+             seen.add(key);
+-            const issue = await compareRevisions(observer, target, incoming, signal);
++            const comparison = JSON.stringify([target.commit, incoming.commit, !!target.caseInsensitive]);
++            let issue: Conflict | undefined;
++            if (comparisons.has(comparison)) {
++              const cached = comparisons.get(comparison);
++              issue = cached ? { ...cached, target, incoming } : undefined;
++            } else {
++              issue = await compareRevisions(observer, target, incoming, signal);
++              if (issue?.level !== "unknown") comparisons.set(comparison, issue);
++            }
+             if (issue) issues.push(issue);
+             if (
+               incoming.kind === "pr" &&

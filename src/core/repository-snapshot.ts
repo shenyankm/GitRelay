@@ -7,7 +7,7 @@ import { eventsIn, readReceipt, sessionsIn } from "./mailbox.ts";
 import { inspectRepository } from "./repository.ts";
 
 /** Observe existing state without initializing identities, polling, or acknowledging delivery. */
-export async function repositorySnapshot(cwd: string, signal?: AbortSignal) {
+export async function repositorySnapshot(cwd: string, signal?: AbortSignal, includeEvents = false) {
   const { root, common, id, repository: repo } = await inspectRepository(cwd, signal);
   const [worktrees, status, daemon] = await Promise.all([
     listWorktrees(root),
@@ -18,6 +18,7 @@ export async function repositorySnapshot(cwd: string, signal?: AbortSignal) {
     daemonStatus(),
   ]);
   const base = {
+    eventsIncluded: includeEvents,
     capturedAt: new Date().toISOString(),
     repository: { name: basename(root), root, common, id },
     worktrees,
@@ -28,7 +29,7 @@ export async function repositorySnapshot(cwd: string, signal?: AbortSignal) {
   const [sessions, retained] = await Promise.all([sessionsIn(repo), eventsIn(repo, undefined, signal)]);
   const events = [];
   // shortcut: enumerate retained history; introduce a read index if large histories make refresh expensive.
-  for (const event of retained.slice(-100).reverse()) {
+  for (const event of includeEvents ? retained.slice(-100).reverse() : []) {
     signal?.throwIfAborted();
     const delivery = [];
     for (let offset = 0; offset < event.recipients.length; offset += 16) {

@@ -60,7 +60,11 @@ test("repository snapshot preserves unread messages and reports real delivered a
   });
   const repo = await repository(f.b);
   const before = await fingerprint(repo.directory);
-  const first = await repositorySnapshot(f.b);
+  const summary = await repositorySnapshot(f.b);
+  assert.equal(summary.eventsIncluded, false);
+  assert.equal(summary.retainedEvents, 1);
+  assert.deepEqual(summary.events, []);
+  const first = await repositorySnapshot(f.b, undefined, true);
   assert.equal(first.events[0].id, sent.id);
   assert.equal(first.events[0].delivery[0].status, "pending");
   assert.ok(first.events[0].kind === "message");
@@ -75,7 +79,7 @@ test("repository snapshot preserves unread messages and reports real delivered a
     },
   });
   assert.equal(delivered, 1);
-  const second = await repositorySnapshot(f.b);
+  const second = await repositorySnapshot(f.b, undefined, true);
   assert.equal(second.events[0].delivery[0].status, "delivered");
   assert.ok(second.events[0].delivery[0].at);
   await consumeMailbox({
@@ -97,10 +101,10 @@ test("repository snapshot preserves unread messages and reports real delivered a
       assert.fail("irrelevant message");
     },
   });
-  const third = await repositorySnapshot(f.b);
+  const third = await repositorySnapshot(f.b, undefined, true);
   assert.equal(third.events.find((event) => event.id === unrelated.id)?.delivery[0].status, "irrelevant");
   const receipt = join(repo.directory, "receipts", third.sessions[0].key, `${unrelated.id}.json`);
   await writeFile(receipt, '{"eventId":"corrupt"}');
-  await assert.rejects(repositorySnapshot(f.b), /Invalid receipt/);
+  await assert.rejects(repositorySnapshot(f.b, undefined, true), /Invalid receipt/);
   assert.equal(await readFile(receipt, "utf8"), '{"eventId":"corrupt"}');
 });

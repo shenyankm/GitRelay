@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume|compact|clear|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "@NODE@ \"${PLUGIN_ROOT}/hooks/remind.mjs\"",
+            "timeout": 3,
+            "additionalContextLimit": 500
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "@NODE@ \"${PLUGIN_ROOT}/hooks/remind.mjs\"",
+            "timeout": 3,
+            "additionalContextLimit": 500
+          }
+        ]
+      }
+    ]
+  }
+}

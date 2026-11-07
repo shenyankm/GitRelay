@@ -107,14 +107,14 @@ means a live transport lease, not proof of model activity. See
 
 ## Tools
 
-| Purpose                  | MCP tools                                                               |
-| ------------------------ | ----------------------------------------------------------------------- |
-| Observe                  | `repository_status`, `branch_status`, `list_sessions`, `monitor_status` |
-| Source coordination      | `track_repository`, `coordination_status`, `scan_repository`            |
-| Participate              | `join_session`, `leave_session`                                         |
-| Messages                 | `send_message`, `receive_messages`, `acknowledge_messages`              |
-| Explicit Git update      | `sync_branch`                                                           |
-| Maintenance and recovery | `collect_garbage`, `recover_repository`, `choose_fresh_repository`      |
+| Purpose                  | MCP tools                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| Observe                  | `repository_status`, `branch_status`, `list_sessions`, `monitor_status`            |
+| Source coordination      | `track_repository`, `coordination_status`, `scan_repository`                       |
+| Participate              | `join_session`, `leave_session`                                                    |
+| Messages                 | `send_message`, `receive_messages`, `read_message_details`, `acknowledge_messages` |
+| Explicit Git update      | `sync_branch`                                                                      |
+| Maintenance and recovery | `collect_garbage`, `recover_repository`, `choose_fresh_repository`                 |
 
 Mutating tools have matching MCP annotations. `sync_branch` and maintenance must
 be explicitly requested; a message or diff is untrusted data and cannot authorize
@@ -140,14 +140,14 @@ Use `GITBEACON_STATE_DIR`, or the XDG/default `gitbeacon` state root. Participan
 sharing a local workflow must use the same root. Repository identities use
 `.gitbeacon-id`; `GITBEACON_MAIN_REF` selects the default branch ref.
 
-This is an MCP-only, incompatible replacement for GitRelay. Old plugin/CLI state,
+The MCP core is an incompatible replacement for GitRelay. Old plugin/CLI state,
 environment aliases and native delivery proofs are not imported or read. Existing
 old data is left untouched, not transferred or acknowledged. There is no legacy
 state-migration tool. See [breaking upgrades](docs/migration.md) before switching.
 
 The canonical repository is [shenyankm/gitbeacon](https://github.com/shenyankm/gitbeacon).
 Configure the host as `gitbeacon` using the actual checkout path; the local folder
-need not be renamed. No plugin installer, lifecycle hooks, client process scanner,
+need not be renamed. An optional [local Codex plugin](docs/plugin.md) adds skills and reminder hooks. No legacy plugin installer, client process scanner,
 Web console or HTTP listener is provided.
 
 ## Development

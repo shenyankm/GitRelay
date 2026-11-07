@@ -33,3 +33,12 @@ uninstalled. See [breaking upgrades](migration.md) for the new MCP-only state
 namespace; no plugin uninstall or state-import implementation is included. Historical
 package/tarball evidence remains in the repository without being reinterpreted as
 current distribution support.
+
+## Optional Codex plugin updates
+
+See [plugin installation and upgrades](plugin.md). Build with `npm run build:plugin`,
+then remove and re-add the local plugin and restart Codex. Review changed hooks
+through `/hooks`. Node/source paths and selected environment are captured at build
+time, so regenerate after moving the checkout or changing those values. Plugin
+removal never removes shared collaboration state. This is source-linked local
+distribution, not an npm release or a self-contained runtime package.

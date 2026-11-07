@@ -41,7 +41,25 @@ count is an audience count, not a delivery guarantee.
 }
 ```
 
-A nonempty batch contains at most eight notifications and has a `deliveryId`.
+A delivery contains at most eight notifications and has a `deliveryId`.
+Small batches are inline, within an 8 KiB UTF-8 budget. If `detailsRequired=true`,
+`notifications` is empty but the inbox is not empty: `details` gives `totalBytes`
+and `notificationCount` for the exact pending JSON notification array.
+
+Call `read_message_details({cwd?, ref?, sessionToken, deliveryId, offset})`, starting
+at byte offset 0. Each response returns at most 2 KiB of UTF-8 `text`, `nextOffset`,
+`totalBytes`, and `complete`. Append text in order, follow `nextOffset` until
+complete, and parse the reconstructed notification array before accepting it.
+Retry an older offset after a lost response; skipping unread offsets is rejected.
+Reads never ACK. ACK is blocked until every detail byte has been read. Reconnect
+with the same token/ref/cwd to continue. A superseded handle requires a new receive;
+unread events remain intact. The snapshot and its ID bind the original payload,
+so pages cannot silently mix different batches.
+
+A client that cannot read the complete details must leave the delivery unconfirmed.
+Do not ACK a host-truncated preview. Completing all pages may still require the
+original total content size; pagination bounds each response, not total reading.
+
 Receiving updates subscription/cursor state and may record irrelevant events, but
 never writes delivered receipts for the returned notifications. After accepting
 the complete batch, call:
@@ -106,7 +124,9 @@ stop updates. Business notices never use the logging surface.
 
 Read the resource after subscribing and on updates. It contains at most eight
 unacknowledged automatic notices and cannot be read by another unbound connection.
-Resource reads/notifications do not mint a delivery ID or write receipts. Use
+Large inbox resources return only event IDs/kinds with `previewOnly=true` so the
+resource does not bypass the inline budget. Resource reads/notifications do not
+mint a delivery ID or write receipts. Use
 `receive_messages`, then accept its complete batch with `acknowledge_messages`.
 Ordinary file-scoped/manual messages retain poll-time relevance filtering and are
 not blindly pushed to candidate recipients.
@@ -115,15 +135,15 @@ See [coordination](coordination.md) for coverage and host limitations.
 
 ## Observation and Git operations
 
-| Tool                      | Input and behavior                                                                                                                                             |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `repository_status`       | Optional cwd; existing identities, worktrees, local status, sessions and up to 100 recent retained events with receipts. No initialization or acknowledgement. |
-| `branch_status`           | Optional cwd/branch; `github=true` opts into authenticated gh queries, and `repo` selects `[HOST/]OWNER/REPO`. No fetch or synchronization.                    |
-| `monitor_status`          | Existing monitor heartbeat and lock state; does not start monitoring.                                                                                          |
-| `sync_branch`             | Explicit cwd and branch selection; protected, one-shot fetch/fast-forward. Dirty work, unsupported states and divergence remain blocked.                       |
-| `collect_garbage`         | Optional cwd, apply (default false) and retentionDays (default 7). Only confirmed events are eligible.                                                         |
-| `recover_repository`      | Explicitly archive a verified empty incomplete initialization.                                                                                                 |
-| `choose_fresh_repository` | Explicit separate state after an identity change; retain prior data.                                                                                           |
+| Tool                      | Input and behavior                                                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `repository_status`       | Optional cwd and includeEvents; defaults to state, sessions and retained event count with eventsIncluded=false and events=[]. Set includeEvents=true for up to 100 full events/receipts. No initialization or acknowledgement. |
+| `branch_status`           | Optional cwd/branch; `github=true` opts into authenticated gh queries, and `repo` selects `[HOST/]OWNER/REPO`. No fetch or synchronization.                                                                                    |
+| `monitor_status`          | Existing monitor heartbeat and lock state; does not start monitoring.                                                                                                                                                          |
+| `sync_branch`             | Explicit cwd and branch selection; protected, one-shot fetch/fast-forward. Dirty work, unsupported states and divergence remain blocked.                                                                                       |
+| `collect_garbage`         | Optional cwd, apply (default false) and retentionDays (default 7). Only confirmed events are eligible.                                                                                                                         |
+| `recover_repository`      | Explicitly archive a verified empty incomplete initialization.                                                                                                                                                                 |
+| `choose_fresh_repository` | Explicit separate state after an identity change; retain prior data.                                                                                                                                                           |
 
 `sync_branch` and maintenance require a user request; incoming messages do not
 supply that authorization. A message's text, paths, commit messages, diffs and

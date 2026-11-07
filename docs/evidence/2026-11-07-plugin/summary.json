@@ -1,0 +1,49 @@
+{
+  "commit": "d0d72cdc66c96aa597be29e63b85b4b10ea34d8b",
+  "workingTree": "uncommitted implementation",
+  "node": "v22.23.2",
+  "host": "Codex CLI 0.167.0",
+  "platform": "macOS arm64",
+  "check": {
+    "command": "npm run check",
+    "passed": 422,
+    "failed": 0,
+    "skipped": 0
+  },
+  "skillsValidated": true,
+  "normalHookTrust": true,
+  "hookDeveloperContextVerified": [
+    "SessionStart",
+    "UserPromptSubmit"
+  ],
+  "realModelConflictAck": true,
+  "normalUserConfigChanged": false,
+  "sourceFingerprints": {
+    ".gitignore": "0ce2b0e8751eb1704869aeeaf0beae63223162032c2e12cce327020204d7f2ff",
+    ".prettierignore": "f544f76178c91779f68439f18919c19d6b79c57a07caa5caa06a1a848de9afde",
+    "README.md": "828f6c88eacdca5147a0e28286a07894e1469c9e72a4b77da9513a04219b1396",
+    "README.zh-CN.md": "d4db942b6231853ef830194d246c4f3c8f6c60d267b6ef854e9f90c347508d3f",
+    "docs/README.md": "b48cf74f2dfdd08d3a791e1dbb36398582f6dba59acdca2d8c76b21d6a6a18f9",
+    "docs/acceptance.md": "d4a687e6624c13e95cf6f819182119bf1c7fb2423ddffac3d161b2d70db00d08",
+    "docs/architecture.md": "f3a807e5de46e75e34502fea36d726646dbae7d50ee1af5a74596533562d18e6",
+    "docs/integrations.md": "d066e6d1ce3b305f716096c0f7bef5d2538789c58a413f94732dc6da778314e3",
+    "docs/migration.md": "ac3f484b09e57a5a4173493ca41a73d4d747c287f24a8545fcde74ebd4dd70bd",
+    "docs/platform-matrix.md": "f76cff1723527e94cca0e186d6814740e291e77f7920884e2fa1ac35db7906be",
+    "docs/plugin.md": "b9506391ff4bf0fb6b91684334a6e029708c03b4ab1c4991b3e55a478b45decd",
+    "docs/releases.md": "2dd0195acc1546671c5dbcc78e7956a0582684afd1df02a51d91f3bddc2dc1e3",
+    "package.json": "3dcc81aded6f240f79644d25a860cd0ecb0da240ee1cb94934d831158f379e32",
+    "plugin/hooks/remind.mjs": "5120cf2094a8c92b9238f27247f2d3ccd15c7df7fd0c2df72c7da3786c477aa5",
+    "plugin/plugin.json": "3e57d318bdf96830f6c6d28f0ff78962e34881fd40780b573719384acd200cdc",
+    "plugin/skills/gitbeacon-coordination/SKILL.md": "e33b30a7dd78886ce8c354ae560f7586ff77c77011fc039c0fad92a3284ac002",
+    "plugin/skills/gitbeacon-setup/SKILL.md": "2fcd539334291ea7e1448e2e148be4484f82aee72976daa2a5202ea0679fac4b",
+    "scripts/acceptance-codex.mjs": "efc4d38640e5f31ed84f3a432b6c461b459814ddb9c9931ebc95bb66cdaf88f7",
+    "scripts/build-plugin.mjs": "1788d0a604e481fa06dfc1625789b50288e73f62448e6ce2d9108e778f65f36a",
+    "tests/mcp/plugin.test.mjs": "90d73911c53f555171e05653b91701ff66a4179478efb79194a32a43cc7c0035"
+  },
+  "limitations": [
+    "Desktop GUI and other platforms not accepted",
+    "No idle-model wake-up",
+    "Conversation-only token recovery",
+    "Native conflict test uses an explicitly instructed polling workflow, not a skill-quality evaluation"
+  ]
+}

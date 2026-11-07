@@ -1,0 +1,10 @@
+--- before/src/core/connections.ts
++++ after/src/core/connections.ts
+@@ -46,6 +46,7 @@
+         }
+         const present: string[] = [];
+         for (const key of record.keys) {
++          if (keys.has(key)) continue;
+           const session = await readSession(repo, key);
+           if (session && !session.closedAt) present.push(key);
+         }

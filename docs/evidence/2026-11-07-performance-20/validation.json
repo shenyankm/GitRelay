@@ -1,0 +1,75 @@
+{
+  "fullCheck": {
+    "command": "npm run check",
+    "passed": 428,
+    "failed": 0,
+    "skipped": 0,
+    "log": "checks.log"
+  },
+  "focusedRegressions": {
+    "passed": 3,
+    "failed": 0
+  },
+  "finalFormatCheck": true,
+  "finalTypecheck": true,
+  "diffCheck": true,
+  "scriptSyntaxCheck": true,
+  "rebuiltPlugin": true,
+  "reverseCombinedPatchDryRun": true,
+  "rounds": 20,
+  "retained": 7,
+  "reverted": 13,
+  "sourceFingerprints": {
+    "src/core/daemon.ts": "a8048ad5f2132c72581f209bea2e10c23d657fd3f3dadf9d58ef8a5d82f7e794",
+    "src/core/coordination.ts": "c4cdbde6f2845c3033f961b0dff968f68086d562e4742d9a9e2a070d1880b302",
+    "src/core/session-lifecycle.ts": "79fd0ac0c1a81e58286faaf8e75cff56f032b89dd712086e6eb82a0cdcc0e551",
+    "src/core/repository.ts": "18ab1f5375763d03d7c48d113708c919142373dd42a95c7b2ca902677de77845",
+    "src/core/publisher.ts": "e31ced97ad28f34a597584bfabff25e881797b5817f835b5c68d935b1c9c5430",
+    "src/core/conflicts.ts": "af94f1dc55698ceb4c22e389b132b5b8f925ed5c07ec51d609356e17081ac6e7",
+    "src/core/mcp-mailbox.ts": "0d91477d09258d801346e54f6fdee56f7f39e0aec3d4bb8909d6431e9359916b",
+    "src/core/mailbox.ts": "b6a1603b449e34511761ba69b0f4bb2207c82489ef34659d7012ff4d20c098e2",
+    "src/core/consumer.ts": "58925fe109c44f553ba7b8fc090e8e30220849f34b37bf8dd5a13d5b25f33311",
+    "src/core/activation.ts": "aa745b0e70a775a639d4fa5f9b611e379d20ddd9e905a5b9269a696c16f3944a",
+    "src/core/repository-snapshot.ts": "863b1459f366056e15b9871a813e612e8deaba7b074b8fbc5fac23e5cb5c4c06",
+    "src/core/cleanup.ts": "5321a0146cb920b91c51db51a1d4b76fa80c45b9d8d930cac89866a3c109780d",
+    "src/core/connections.ts": "503278fc019c16195bdced672ca73a39d97dbb1edacc7d9f144e0c4f8738af26",
+    "src/core/diagnostics.ts": "d98293296fab1e4ece0dd419ecd64776ac4575059d33833418b86f29287aeaeb",
+    "src/core/cloud.ts": "4086bd0826f2f0ef530976d02838da50d18dee4e1a71c19582914eddb8103d1a",
+    "src/core/monitor.ts": "11567bbab73185d16b0419f99b647ced73c4b347e250e04b35b0a18c7ad5cc3c",
+    "src/core/branch-status.ts": "5e0d3c11755d35671520d3f7c242874a9002f656724f9a9038d3b3c4dab1d409",
+    "src/core/branch-sync.ts": "18b7a4b20c6db6262979890dbc1c8e4d646739a834a690a7c3adf5a01770d32b",
+    "src/core/git.ts": "5a8962ac7e5ec6ca4a116476ad4a7d372cdf509732389d9f88ddc97e4d017fbf",
+    "src/core/changes.ts": "dd1594b7f9a6bd6111debca1495607347e12226f708a562c6968fe40f67bda78",
+    "src/core/sessions.ts": "2ba9326965c7fa039ff38f7ff2f778e7ad57dc2ff4b68473a451066ba1e2e641",
+    "src/core/daemon-state.ts": "7427e391b206d8a1c9666699ff945a0c463cbea3036e7075eb37204743bd030c",
+    "src/core/store.ts": "502cbcf830b71118993354ba01dca4d0100b27465e6f50eecaa6bbf89f79535f",
+    "src/mcp/main.ts": "25182584f64c40a78ca4c7c50d34626a8c976bec74cd1fcea79a93cf3726fbb9",
+    "src/mcp/server.ts": "26b1e0f7d900d97467ed995aeee14aecf771b31412f53e692368cbc62eb2cfdd",
+    "scripts/benchmark-performance.mjs": "e15d57614b863d1c1618b82168dde89e936726adc0fbeee0181ebac89a15a65c",
+    "scripts/performance-twenty.mjs": "45201fd3c660a70e7fdfa6f49ef9ec075292356e1c81360b26655a098e848ab8",
+    "tests/core/performance-regressions.test.ts": "79ce2d7b885337d24fe77f0b22b34c8ff3f63cb3fed38d46bc7a800cf2014e09"
+  },
+  "controlModulesIdentical": [
+    "mcp-mailbox.ts",
+    "mailbox.ts",
+    "repository.ts",
+    "store.ts",
+    "git.ts",
+    "changes.ts"
+  ],
+  "nativeModelRerun": false,
+  "remoteWrites": false,
+  "newDependencies": false,
+  "limitations": [
+    "Local synthetic warm-cache fixtures; uncontrolled external load",
+    "Shared Node process per A/B comparison; CPU excludes Git children and RSS is not per-variant",
+    "No native model/provider latency, cold-cache, network filesystem, Windows, Desktop GUI or hosted CI acceptance"
+  ],
+  "experimentRunnerSelfCheck": {
+    "disposableBaselineCopy": true,
+    "round": 19,
+    "screeningAndConfirmationMatchedOutputs": true,
+    "retained": true
+  },
+  "temporarySourceSnapshotsRemoved": true
+}

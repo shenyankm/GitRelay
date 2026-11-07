@@ -1,3 +1,5 @@
+Current MCP measurements: [2026-11-07 twenty-round optimization](performance-20-rounds-2026-11-07.md) records the retained changes, rejected experiments, matched controls and acceptance limits.
+
 > Historical pre-MCP measurements. CLI/hook commands below require the recorded old revision and do not measure the 0.2 MCP service. For current transport measurements, use `node scripts/benchmark-delivery.mjs`.
 
 # GitRelay performance benchmarks

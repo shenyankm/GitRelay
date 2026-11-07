@@ -1,0 +1,15 @@
+--- before/src/core/mailbox.ts
++++ after/src/core/mailbox.ts
+@@ -286,10 +286,10 @@
+     }
+   }
+   const events: SharedEvent[] = [];
+-  for (let offset = 0; offset < names.length; offset += 32) {
++  for (let offset = 0; offset < names.length; offset += 16) {
+     signal?.throwIfAborted();
+     const batch = await Promise.allSettled(
+-      names.slice(offset, offset + 32).map(async (name) => {
++      names.slice(offset, offset + 16).map(async (name) => {
+         const { id, posixPaths } = parseEventFilename(name)!;
+         // A filename alone is not an acknowledgement: validate the receipt before skipping its event.
+         if (key !== undefined && receipts.has(`${id}.json`) && (await readReceipt(repo, key, id))) return;

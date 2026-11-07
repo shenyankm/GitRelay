@@ -1,0 +1,22 @@
+--- before/src/core/conflicts.ts
++++ after/src/core/conflicts.ts
+@@ -153,9 +153,16 @@
+       if (result.status === "rejected") throw result.reason;
+       return names(result.value);
+     });
+-    const overlap = other.filter((file) =>
+-      own.some((path) => path === file || path.startsWith(`${file}/`) || file.startsWith(`${path}/`)),
+-    );
++    const ownPaths = new Set(own),
++      parents = new Set<string>();
++    for (const path of own)
++      for (let end = path.indexOf("/"); end !== -1; end = path.indexOf("/", end + 1)) parents.add(path.slice(0, end));
++    const overlap = other.filter((file) => {
++      if (ownPaths.has(file) || parents.has(file)) return true;
++      for (let end = file.indexOf("/"); end !== -1; end = file.indexOf("/", end + 1))
++        if (ownPaths.has(file.slice(0, end))) return true;
++      return false;
++    });
+     try {
+       const merged = await observationGit(
+         observer,

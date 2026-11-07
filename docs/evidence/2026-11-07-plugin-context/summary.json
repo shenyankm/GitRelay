@@ -1,0 +1,379 @@
+{
+  "host": "codex-cli 0.167.0",
+  "model": "gpt-6.1-sol",
+  "tokenizer_estimate": "o200k_base; static counts exclude host framing and are not a declared model tokenizer contract",
+  "workingTree": "current uncommitted plugin on main",
+  "initialRequest": {
+    "off": {
+      "inputTokens": [
+        18120,
+        18120
+      ],
+      "incrementFromOff": 0,
+      "samples": [
+        {
+          "name": "off",
+          "repeat": 0,
+          "usage": {
+            "input_tokens": 18120,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 6861
+        },
+        {
+          "name": "off",
+          "repeat": 1,
+          "usage": {
+            "input_tokens": 18120,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 6117
+        }
+      ]
+    },
+    "mcp": {
+      "inputTokens": [
+        18158,
+        18158
+      ],
+      "incrementFromOff": 38,
+      "samples": [
+        {
+          "name": "mcp",
+          "repeat": 0,
+          "usage": {
+            "input_tokens": 18158,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 6508
+        },
+        {
+          "name": "mcp",
+          "repeat": 1,
+          "usage": {
+            "input_tokens": 18158,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 7958
+        }
+      ]
+    },
+    "skills_mcp": {
+      "inputTokens": [
+        18352,
+        18352
+      ],
+      "incrementFromOff": 232,
+      "samples": [
+        {
+          "name": "skills_mcp",
+          "repeat": 0,
+          "usage": {
+            "input_tokens": 18352,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 6994
+        },
+        {
+          "name": "skills_mcp",
+          "repeat": 1,
+          "usage": {
+            "input_tokens": 18352,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 7038
+        }
+      ]
+    },
+    "full": {
+      "inputTokens": [
+        18422,
+        18422
+      ],
+      "incrementFromOff": 302,
+      "samples": [
+        {
+          "name": "full",
+          "repeat": 0,
+          "usage": {
+            "input_tokens": 18422,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 6069
+        },
+        {
+          "name": "full",
+          "repeat": 1,
+          "usage": {
+            "input_tokens": 18422,
+            "cached_input_tokens": 12288,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_output_tokens": 0
+          },
+          "elapsedMs": 8706
+        }
+      ]
+    }
+  },
+  "components": {
+    "serverInstructions": 372,
+    "all16ToolSchemas": 2280,
+    "skills": {
+      "gitbeacon-setup": 475,
+      "gitbeacon-coordination": 749
+    },
+    "hooks": {
+      "SessionStart": 31,
+      "UserPromptSubmit": 31
+    }
+  },
+  "dynamicPayloads": {
+    "empty_poll": {
+      "rawStructuredTokens": 9,
+      "utf8Bytes": 38,
+      "notifications": 0,
+      "events": 0
+    },
+    "repository_status_0": {
+      "rawStructuredTokens": 775,
+      "utf8Bytes": 1779,
+      "notifications": 0,
+      "events": 0,
+      "withoutEventsProjectionTokens": 772
+    },
+    "receive_messages_0": {
+      "rawStructuredTokens": 9,
+      "utf8Bytes": 38,
+      "notifications": 0,
+      "events": 0
+    },
+    "repository_status_8": {
+      "rawStructuredTokens": 2633,
+      "utf8Bytes": 6458,
+      "notifications": 0,
+      "events": 8,
+      "withoutEventsProjectionTokens": 772
+    },
+    "receive_messages_8": {
+      "rawStructuredTokens": 1540,
+      "utf8Bytes": 4059,
+      "notifications": 8,
+      "events": 0
+    },
+    "repository_status_100": {
+      "rawStructuredTokens": 23956,
+      "utf8Bytes": 60372,
+      "notifications": 0,
+      "events": 100,
+      "withoutEventsProjectionTokens": 772
+    },
+    "receive_messages_100": {
+      "rawStructuredTokens": 1523,
+      "utf8Bytes": 4066,
+      "notifications": 8,
+      "events": 0
+    },
+    "receive_messages_large": {
+      "rawStructuredTokens": 15531,
+      "utf8Bytes": 61323,
+      "notifications": 1,
+      "events": 0
+    },
+    "repository_status_large": {
+      "rawStructuredTokens": 39519,
+      "utf8Bytes": 121631,
+      "notifications": 0,
+      "events": 100,
+      "withoutEventsProjectionTokens": 977
+    }
+  },
+  "nativeStatusRequests": [
+    {
+      "sessionId": "2026-11-07T16-29-25-01a1b520-75ef-7591-bd9d-4e6d338732e3",
+      "lastRequestInputTokens": 19560,
+      "firstRequestInputTokens": 17800,
+      "toolTextTokensEstimate": 1642,
+      "capturedAtOccurrences": 2,
+      "truncated": false,
+      "forwardedStructuredContent": false
+    },
+    {
+      "sessionId": "2026-11-07T16-29-41-01a1b520-b374-7f43-91e6-b831186c42fc",
+      "lastRequestInputTokens": 33621,
+      "firstRequestInputTokens": 17800,
+      "toolTextTokensEstimate": 15685,
+      "capturedAtOccurrences": 1,
+      "truncated": true,
+      "forwardedStructuredContent": false
+    }
+  ],
+  "nativeEnvelopeComparison": [
+    {
+      "sessionId": "2026-11-07T16-31-35-01a1b522-6eb1-7cf3-805d-e96e52b00428",
+      "lastRequestInputTokens": 23338,
+      "firstRequestInputTokens": 17807,
+      "toolTextTokensEstimate": 5396,
+      "capturedAtOccurrences": 2,
+      "truncated": false,
+      "forwardedStructuredContent": false
+    },
+    {
+      "sessionId": "2026-11-07T16-31-47-01a1b522-9df6-7810-a8bb-86dee28b4681",
+      "lastRequestInputTokens": 20591,
+      "firstRequestInputTokens": 17818,
+      "toolTextTokensEstimate": 2654,
+      "capturedAtOccurrences": 1,
+      "truncated": false,
+      "forwardedStructuredContent": true
+    }
+  ],
+  "limitations": [
+    "Isolated configuration with the host common base still present, not a blank model baseline",
+    "Two initial request samples per configuration, identical user prompt and no tool calls",
+    "SDK payload cases are synthetic fixtures, not a production message distribution",
+    "debug prompt-input does not execute hooks; hook contribution comes from actual model input-token differences",
+    "Native code-mode output is subject to host truncation; raw SDK payload size is not resident context size",
+    "No production plugin changes or optimization implementation"
+  ],
+  "localProjections": {
+    "descriptionOnlyRewriteTokenSaving": 38,
+    "note": "Text-only projections, not deployed or behavior-validated"
+  },
+  "discardedExperiment": {
+    "samples": [
+      {
+        "name": "off",
+        "repeat": 0,
+        "usage": {
+          "input_tokens": 18422,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 6785
+      },
+      {
+        "name": "mcp",
+        "repeat": 0,
+        "usage": {
+          "input_tokens": 18422,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 7111
+      },
+      {
+        "name": "skills_mcp",
+        "repeat": 0,
+        "usage": {
+          "input_tokens": 18352,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 7279
+      },
+      {
+        "name": "full",
+        "repeat": 0,
+        "usage": {
+          "input_tokens": 18422,
+          "cached_input_tokens": 18304,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 6676
+      },
+      {
+        "name": "full",
+        "repeat": 1,
+        "usage": {
+          "input_tokens": 18422,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 6898
+      },
+      {
+        "name": "skills_mcp",
+        "repeat": 1,
+        "usage": {
+          "input_tokens": 18352,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 6335
+      },
+      {
+        "name": "mcp",
+        "repeat": 1,
+        "usage": {
+          "input_tokens": 18422,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 6685
+      },
+      {
+        "name": "off",
+        "repeat": 1,
+        "usage": {
+          "input_tokens": 18422,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5,
+          "reasoning_output_tokens": 0
+        },
+        "elapsedMs": 6787
+      }
+    ],
+    "reason": "CLI plugin enablement override failed to remove catalog/inventory; the off arm was contaminated. Replaced with physical isolated config switching and debug isolation asserts."
+  },
+  "sourceFingerprints": {
+    "src/mcp/server.ts": "41a5c62a4fcb59687e3e2cf7ac096e34b66ff73b62bc9078f373bfbd8d80a79e",
+    "src/core/repository-snapshot.ts": "cb5b2d05840eefef99d263e1e974882bbd8717e6420d90b7c5836ef60df95760",
+    "src/core/consumer.ts": "ce54a7d3facc7ac1ee40f6bcae0706092f5c64d6192e7438b620a695b95c8d1e",
+    "plugin/.codex-plugin/plugin.json": "064bf7fddf1b0c963d46f06a89896e8a351701a11851f7a37dfd898c51a81040",
+    "plugin/hooks/hooks.json": "3d9f2da187f5a7f303644710e33f78f54b30d3aec96d90984ddae0447229f4b6",
+    "plugin/hooks/remind.mjs": "80c85e3060e0d81c609df8940bfb714eae364ba22e3c2866554227822a55fac8",
+    "plugin/skills/gitbeacon-setup/SKILL.md": "625efe3b57148cee337ed6b2e78983ed09e646a8ca3d1a43bf0ef0558d666479",
+    "plugin/skills/gitbeacon-coordination/SKILL.md": "b711d46bf649db84adbf9ecd6692515bd3f1d8f4fb09bf5f392a05799af09ba6",
+    "scripts/build-plugin.mjs": "e20986b81be19bf6afc550ce88c95474038b1fd37429acf5d0067e9cf8fccd14"
+  },
+  "commit": "d0d72cdc66c96aa597be29e63b85b4b10ea34d8b",
+  "acceptedNativeTurns": 12,
+  "acceptedProviderRequests": 16
+}

@@ -1,6 +1,8 @@
 # MCP acceptance
 
-gitbeacon 0.2 replaces the hook/CLI integration with a local stdio MCP server.
+gitbeacon 0.2 replaces the legacy hook/CLI integration with a local stdio MCP server.
+The optional new [Codex plugin](plugin.md) supplies skills and fixed checkpoint
+reminders; it does not restore native delivery or implicit acknowledgement.
 
 ## Required checks
 
@@ -26,6 +28,26 @@ Namespace checks preserve old data without importing its identities or inbox.
 Safety regressions cover bounded/refilling tool-call budgets, concurrent-call
 limits, diagnostic sanitization and same-connection protocol-version retry.
 Existing Git/GC/storage race and corruption regressions remain required.
+
+Context-budget regressions cover summary-only status with explicit history opt-in,
+UTF-8 byte limits, deferred large batches, sequential/retryable detail reads,
+disconnect/resume, corrupted snapshots and rejection of ACK before complete reads.
+Large inbox resources expose a preview without acceptance authority.
+
+After building the plugin, the authenticated, normally hook-trusted temporary
+Codex home described in [plugin acceptance](plugin.md) can run:
+
+```sh
+GITBEACON_TEST_CODEX_HOME="/OS-temp/gitbeacon-plugin-codex-example" \
+  node --experimental-strip-types scripts/acceptance-context.mjs
+```
+
+This separate native test checks structured forwarding and a message over 60 KB:
+the model must expose detail pages incrementally without host truncation, report
+markers at the beginning/middle/end, explicitly ACK and leave. It also verifies
+that early ACK fails. Its cumulative provider input usage includes repeated model
+requests; it is not a measurement of resident context or token savings.
+See [context-trim evidence](evidence/2026-11-07-context-trim/README.md).
 
 Historical MCP refactor evidence is recorded under
 [evidence/2026-11-05-mcp/summary.json](evidence/2026-11-05-mcp/summary.json).

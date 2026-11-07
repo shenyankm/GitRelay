@@ -1,7 +1,8 @@
 # Breaking upgrade to gitbeacon MCP
 
-`gitbeacon` is a local Model Context Protocol (MCP) server, not a lifecycle plugin
-or a shell-command integration. This is a deliberately incompatible source
+`gitbeacon` is a local Model Context Protocol (MCP) server. The optional new
+[Codex plugin](plugin.md) wraps that server with skills and reminder hooks; it does
+not restore the legacy lifecycle integration. This is a deliberately incompatible source
 refactor; old plugin, CLI and native-host state migration is not provided.
 
 ## Configure the MCP server
@@ -57,3 +58,12 @@ requirements. See [shared messages](shared-messages.md) and
 
 Historical evidence and changelog entries keep their original names and source
 fingerprints. They are not compatibility claims for this checkout.
+
+## Context-budget extension
+
+Status is summary-first (`includeEvents=true` requests retained history). Large
+receives now carry `detailsRequired` and require sequential `read_message_details`
+reads before ACK. Small delivery IDs and receipts retain their format; large
+pending snapshots additionally bind their full JSON content. Update clients and
+plugin skills together; an older client must not treat an empty notifications
+array with a deliveryId as an empty inbox. No unread message is auto-confirmed.

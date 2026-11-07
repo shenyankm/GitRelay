@@ -1,0 +1,35 @@
+--- before/src/core/mcp-mailbox.ts
++++ after/src/core/mcp-mailbox.ts
+@@ -125,13 +125,15 @@
+       if (!delivery || delivery.id !== options.deliveryId)
+         throw new Error("Delivery superseded or missing; receive_messages again.");
+       if (!delivery.details) throw new Error("This batch is inline; no details are required.");
+-      const bytes = Buffer.from(delivery.details.text);
++      const detailText = delivery.details.text;
++      const bytes = Buffer.byteLength(detailText) === detailText.length ? undefined : Buffer.from(detailText);
++      const length = bytes?.length ?? detailText.length;
+       const offset = options.offset;
+-      if (offset > delivery.details.readOffset || (bytes[offset] & 0xc0) === 0x80)
++      if (offset > delivery.details.readOffset || (bytes && (bytes[offset] & 0xc0) === 0x80))
+         throw new Error("Read details sequentially using nextOffset; unread bytes cannot be skipped.");
+-      let nextOffset = Math.min(offset + DETAIL_CHUNK_BYTES, bytes.length);
+-      while (nextOffset < bytes.length && (bytes[nextOffset] & 0xc0) === 0x80) nextOffset--;
+-      const text = bytes.subarray(offset, nextOffset).toString("utf8");
++      let nextOffset = Math.min(offset + DETAIL_CHUNK_BYTES, length);
++      while (bytes && nextOffset < length && (bytes[nextOffset] & 0xc0) === 0x80) nextOffset--;
++      const text = bytes ? bytes.subarray(offset, nextOffset).toString("utf8") : detailText.slice(offset, nextOffset);
+       if (nextOffset > delivery.details.readOffset) {
+         delivery.details.readOffset = nextOffset;
+         await writeJson(join(repo.directory, "receipts", key, "mcp-delivery.json"), delivery, () =>
+@@ -142,9 +144,9 @@
+         deliveryId: delivery.id,
+         offset,
+         nextOffset,
+-        totalBytes: bytes.length,
++        totalBytes: length,
+         text,
+-        complete: nextOffset === bytes.length,
++        complete: nextOffset === length,
+       };
+     },
+     { signal: options.signal, waitMs: 5000, recoverDeadOwner: true },

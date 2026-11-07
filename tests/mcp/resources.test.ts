@@ -44,6 +44,16 @@ test(
       assert.notEqual(result.isError, true, JSON.stringify(result.content));
       return result.structuredContent as Record<string, any>;
     };
+    const scanWhenIdle = async () => {
+      for (let attempt = 0; attempt < 30; attempt++) {
+        const result = await client.callTool({ name: "scan_repository", arguments: {} });
+        if (!result.isError) return;
+        // The shared monitor can own a scan; busy means this explicit scan never started.
+        assert.match(JSON.stringify(result.content), /gitbeacon is busy:.*coordination\.lock/);
+        await delay(100);
+      }
+      assert.fail("Monitor never yielded the coordination scan lock");
+    };
     const joined = await call("join_session");
     const uri = joined.inboxUri;
     assert.deepEqual(
@@ -54,7 +64,7 @@ test(
     await call("track_repository");
     await writeFile(join(f.b, "shared.txt"), "unfinished receiver change\n");
     await f.commit(f.a, "shared.txt", "peer conflict\n");
-    await call("scan_repository");
+    await scanWhenIdle();
     await delay(1200);
     assert.deepEqual(updates, [], "Unsubscribed connections must not receive resource updates");
     await client.subscribeResource({ uri });
@@ -72,7 +82,7 @@ test(
     await delay(1100);
     const count = updates.length;
     await f.commit(f.a, "shared.txt", "a different peer conflict\n");
-    await call("scan_repository");
+    await scanWhenIdle();
     await delay(1200);
     assert.equal(updates.length, count, "Unsubscribed connections must stop receiving updates");
     assert.deepEqual(logs, [], "Business notices must not use the logging surface");

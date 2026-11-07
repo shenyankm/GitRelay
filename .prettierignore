@@ -2,3 +2,5 @@ assets/
 package-lock.json
 docs/acceptance-results.json
 docs/evidence/
+
+/build/local-plugin/

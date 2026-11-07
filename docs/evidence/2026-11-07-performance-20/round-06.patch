@@ -1,0 +1,47 @@
+--- before/src/core/repository-snapshot.ts
++++ after/src/core/repository-snapshot.ts
+@@ -29,21 +29,31 @@
+   const [sessions, retained] = await Promise.all([sessionsIn(repo), eventsIn(repo, undefined, signal)]);
+   const events = [];
+   // shortcut: enumerate retained history; introduce a read index if large histories make refresh expensive.
+-  for (const event of includeEvents ? retained.slice(-100).reverse() : []) {
+-    signal?.throwIfAborted();
+-    const delivery = [];
+-    for (let offset = 0; offset < event.recipients.length; offset += 16) {
+-      delivery.push(
+-        ...(await Promise.all(
+-          event.recipients.slice(offset, offset + 16).map(async (key) => {
+-            const receipt = await readReceipt(repo, key, event.id);
+-            return { key, status: receipt?.status ?? "pending", at: receipt?.at ?? null };
+-          }),
+-        )),
+-      );
++  const selected = includeEvents ? retained.slice(-100).reverse() : [];
++  for (let offset = 0; offset < selected.length; offset += 4) {
++    const batch = await Promise.allSettled(
++      selected.slice(offset, offset + 4).map(async (event) => {
++        signal?.throwIfAborted();
++        const delivery = [];
++        for (let offset = 0; offset < event.recipients.length; offset += 16) {
++          delivery.push(
++            ...(await Promise.all(
++              event.recipients.slice(offset, offset + 16).map(async (key) => {
++                const receipt = await readReceipt(repo, key, event.id);
++                return { key, status: receipt?.status ?? "pending", at: receipt?.at ?? null };
++              }),
++            )),
++          );
++        }
++        return { ...event, delivery };
++      }),
++    );
++    for (const result of batch) {
++      if (result.status === "rejected") throw result.reason;
++      events.push(result.value);
+     }
+-    events.push({ ...event, delivery });
+   }
++
+   return {
+     ...base,
+     initialized: true,

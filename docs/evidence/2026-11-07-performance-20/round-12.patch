@@ -1,0 +1,15 @@
+--- before/src/core/mailbox.ts
++++ after/src/core/mailbox.ts
+@@ -99,10 +99,10 @@
+ export async function sessionsIn(repo: Repository): Promise<Session[]> {
+   const sessions: Session[] = [];
+   const names = (await readdir(join(repo.directory, "sessions"))).filter((name) => /^[a-f0-9]{64}\.json$/.test(name));
+-  for (let offset = 0; offset < names.length; offset += 32) {
++  for (let offset = 0; offset < names.length; offset += 16) {
+     // Settle all reads before returning an error to a caller holding publish.lock.
+     const batch = await Promise.allSettled(
+-      names.slice(offset, offset + 32).map((name) => readSession(repo, name.slice(0, -5))),
++      names.slice(offset, offset + 16).map((name) => readSession(repo, name.slice(0, -5))),
+     );
+     for (const result of batch) {
+       if (result.status === "rejected") throw result.reason;

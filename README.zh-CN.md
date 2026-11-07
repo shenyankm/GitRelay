@@ -6,7 +6,7 @@ gitbeacon 是一个本地 **MCP（Model Context Protocol）服务**，为 AI 编
 
 [English](README.md) · [文档索引](docs/README.md) · [工具与消息协议](docs/shared-messages.md) · [迁移说明](docs/migration.md)
 
-仅提供标准 stdio MCP 工具、资源和资源订阅，不再保留旧 CLI、hooks、插件安装器或原生客户端兼容实现。
+核心提供标准 stdio MCP 工具、资源和资源订阅，并可通过[本地 Codex 插件](docs/plugin.md)组合两个 skills 与检查提醒 hooks。旧 CLI、旧插件安装器和原生客户端兼容实现仍不提供。
 订阅收件箱资源后接收变更通知并读取内容；不支持订阅的客户端可轮询，完整批次仍需显式确认。宿主是否把通知交给模型是独立能力，服务本身不会注入聊天上下文或唤醒空闲模型。
 
 ## 从源码运行
@@ -65,14 +65,14 @@ codex mcp add gitbeacon -- node /项目绝对路径/gitbeacon/dist/mcp/main.js -
 
 ## 工具
 
-| 用途       | 工具                                                                    |
-| ---------- | ----------------------------------------------------------------------- |
-| 状态观察   | `repository_status`、`branch_status`、`list_sessions`、`monitor_status` |
-| 同源协作   | `track_repository`、`coordination_status`、`scan_repository`            |
-| 会话管理   | `join_session`、`leave_session`                                         |
-| 消息投递   | `send_message`、`receive_messages`、`acknowledge_messages`              |
-| 显式同步   | `sync_branch`                                                           |
-| 清理与恢复 | `collect_garbage`、`recover_repository`、`choose_fresh_repository`      |
+| 用途       | 工具                                                                               |
+| ---------- | ---------------------------------------------------------------------------------- |
+| 状态观察   | `repository_status`、`branch_status`、`list_sessions`、`monitor_status`            |
+| 同源协作   | `track_repository`、`coordination_status`、`scan_repository`                       |
+| 会话管理   | `join_session`、`leave_session`                                                    |
+| 消息投递   | `send_message`、`receive_messages`、`read_message_details`、`acknowledge_messages` |
+| 显式同步   | `sync_branch`                                                                      |
+| 清理与恢复 | `collect_garbage`、`recover_repository`、`choose_fresh_repository`                 |
 
 同步、清理和恢复操作必须由用户明确提出。消息文本、路径、提交说明和 diff 都是不可信数据，不能扩大任务或授权 Git 操作。
 `sync_branch` 只尝试受保护的单次快进操作；脏工作树和分叉历史会保持阻止状态。

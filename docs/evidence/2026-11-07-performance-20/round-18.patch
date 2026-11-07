@@ -1,0 +1,60 @@
+--- before/src/core/conflicts.ts
++++ after/src/core/conflicts.ts
+@@ -221,30 +221,36 @@
+   repository: string,
+   signal?: AbortSignal,
+ ): Promise<Revision[]> {
+-  const head = (await git(root, ["rev-parse", "--verify", "HEAD^{commit}"], signal)).trim();
+-  const branch = await git(root, ["symbolic-ref", "-q", "HEAD"], signal, "paths")
+-    .then(gitPathLine)
+-    .catch((error) => {
++  const inspected = await Promise.allSettled([
++    git(root, ["rev-parse", "--verify", "HEAD^{commit}"], signal).then((value) => value.trim()),
++    git(root, ["symbolic-ref", "-q", "HEAD"], signal, "paths")
++      .then(gitPathLine)
++      .catch((error) => {
++        signal?.throwIfAborted();
++        if (error.cause?.code === 1) return "HEAD";
++        throw error;
++      }),
++    git(
++      root,
++      [
++        "config",
++        "--null",
++        "--get-regexp",
++        "^core\\.(autocrlf|eol|safecrlf|filemode|ignorecase|symlinks|attributesfile|precomposeunicode)$",
++      ],
++      signal,
++      "paths",
++    ).catch((error) => {
+       signal?.throwIfAborted();
+-      if (error.cause?.code === 1) return "HEAD";
++      if (error.cause?.code === 1) return "";
+       throw error;
+-    });
+-  // Only non-executable normalization settings cross into the private observer.
+-  const settings = await git(
+-    root,
+-    [
+-      "config",
+-      "--null",
+-      "--get-regexp",
+-      "^core\\.(autocrlf|eol|safecrlf|filemode|ignorecase|symlinks|attributesfile|precomposeunicode)$",
+-    ],
+-    signal,
+-    "paths",
+-  ).catch((error) => {
+-    signal?.throwIfAborted();
+-    if (error.cause?.code === 1) return "";
+-    throw error;
++    }),
++  ]);
++  const [head, branch, settings] = inspected.map((result) => {
++    if (result.status === "rejected") throw result.reason;
++    return result.value;
+   });
++
+   const config: string[] = [];
+   let caseInsensitive = false;
+   for (const setting of names(settings)) {

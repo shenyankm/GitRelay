@@ -1,0 +1,19 @@
+--- before/src/core/git.ts
++++ after/src/core/git.ts
+@@ -5,6 +5,7 @@
+ import { promisify } from "node:util";
+ 
+ const exec = promisify(execFile);
++const pathDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+ 
+ export class GitPathOutputError extends Error {}
+ 
+@@ -115,7 +116,7 @@
+         ).stdout;
+     if (!paths) return stdout.toString("utf8");
+     try {
+-      const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
++      const decoder = pathDecoder;
+       if (paths === "paths") return decoder.decode(stdout);
+       const prefixes = [Buffer.from("worktree "), Buffer.from("branch ")];
+       for (let start = 0; start < stdout.length;) {

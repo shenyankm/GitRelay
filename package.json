@@ -15,7 +15,8 @@
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "benchmark": "npm run build && node scripts/benchmark.mjs",
-    "test": "npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/mcp/*.test.*"
+    "test": "npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/mcp/*.test.*",
+    "build:plugin": "npm run build && node scripts/build-plugin.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.4.0",

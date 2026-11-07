@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { repository } from "../../src/core/repository.ts";
 import { mcpIdentity } from "../../src/core/mcp-mailbox.ts";
-import { readReceipt, sessionKey } from "../../src/core/mailbox.ts";
+import { readReceipt, sessionKey, sendMessage } from "../../src/core/mailbox.ts";
 import { fixture, git } from "../helpers.ts";
 import { connectMcp } from "./helpers.ts";
 
@@ -12,7 +12,7 @@ test("MCP discovers typed tools and reads new/dirty repositories without state w
   const f = await fixture(t);
   const { client, call, stderr } = await connectMcp(t, f.b);
   const tools = (await client.listTools()).tools;
-  assert.equal(tools.length, 16);
+  assert.equal(tools.length, 17);
   assert.equal(client.getServerCapabilities()?.logging, undefined);
   assert.equal(client.getServerCapabilities()?.resources?.subscribe, true);
   const removed = [
@@ -98,7 +98,11 @@ test("one MCP connection selects independent repositories with cwd without a cat
     (await call("receive_messages", { cwd: clone, sessionToken: receiver.sessionToken })).notifications,
     [],
   );
-  const local = await call("repository_status");
+  const summary = await call("repository_status");
+  assert.equal(summary.eventsIncluded, false);
+  assert.equal(summary.retainedEvents, 1);
+  assert.deepEqual(summary.events, []);
+  const local = await call("repository_status", { includeEvents: true });
   const remote = await call("repository_status", { cwd: clone });
   assert.equal(local.repository.root, f.b);
   assert.equal(remote.repository.root, clone);
@@ -137,4 +141,38 @@ test("MCP delivers relevant upstream changes without changing dirty work or HEAD
   assert.equal(git(f.b, "rev-parse", "HEAD").trim(), f.initial);
   await call("acknowledge_messages", { sessionToken, deliveryId: batch.deliveryId });
   assert.deepEqual((await call("receive_messages", { sessionToken })).notifications, []);
+});
+
+test("large inbox previews stay bounded and details resume across real stdio reconnect before ACK", async (t) => {
+  const f = await fixture(t);
+  const receiver = await connectMcp(t, f.b);
+  const joined = await receiver.call("join_session");
+  const text = "😀中文".repeat(2500);
+  const event = await sendMessage({ cwd: f.a, adapter: "gitbeacon", session: "fixture", text });
+  const resource = await receiver.client.readResource({ uri: joined.inboxUri });
+  const content = resource.contents[0];
+  assert.ok("text" in content);
+  assert.ok(Buffer.byteLength(content.text) < 8192);
+  const preview = JSON.parse(content.text);
+  assert.equal(preview.previewOnly, true);
+  assert.deepEqual(preview.events, [{ id: event.id, kind: "message" }]);
+  const batch = await receiver.call("receive_messages", { sessionToken: joined.sessionToken });
+  assert.equal(batch.detailsRequired, true);
+  const scope = { sessionToken: joined.sessionToken, ref: joined.session.ref, deliveryId: batch.deliveryId };
+  await assert.rejects(receiver.call("acknowledge_messages", scope), /Read all/);
+  const first = await receiver.call("read_message_details", { ...scope, offset: 0 });
+  await receiver.client.close();
+  const resumed = await connectMcp(t, f.b);
+  await resumed.call("join_session", { sessionToken: joined.sessionToken });
+  let offset = first.nextOffset,
+    body = first.text;
+  for (;;) {
+    const part = await resumed.call("read_message_details", { ...scope, offset });
+    assert.ok(Buffer.byteLength(JSON.stringify(part)) < 8192);
+    body += part.text;
+    offset = part.nextOffset;
+    if (part.complete) break;
+  }
+  assert.equal(JSON.parse(body)[0].event.text, text);
+  assert.deepEqual((await resumed.call("acknowledge_messages", scope)).acknowledged, [event.id]);
 });

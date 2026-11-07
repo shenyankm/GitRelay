@@ -35,10 +35,16 @@ export interface MailboxOptions extends Identity {
   deliver(notifications: Notification[], location?: DeliveryLocation): Promise<void | boolean>;
   /** Explicitly accept a notification that history could not be compared, rather than a diff. */
   acknowledgeUnavailableHistory?: boolean;
+  maxBatchBytes?: number;
 }
 
 /** Register, publish shared ref updates, then consume this session's independent inbox. */
 export async function consumeMailbox(options: MailboxOptions): Promise<Notification[]> {
+  if (
+    options.maxBatchBytes !== undefined &&
+    (!Number.isSafeInteger(options.maxBatchBytes) || options.maxBatchBytes <= 0)
+  )
+    throw new TypeError("maxBatchBytes must be a positive integer.");
   const adapter = options.adapter;
   validateIdentity({ adapter, session: "snapshot" });
   const session = options.session;
@@ -189,8 +195,12 @@ export async function consumeMailbox(options: MailboxOptions): Promise<Notificat
             await writeReceipt(receipt, event.id, "irrelevant");
             continue;
           }
-          const length = JSON.stringify(notification).length;
-          if (notifications.length && (notifications.length >= 8 || size + length > 64 * 1024)) break;
+          const length = Buffer.byteLength(JSON.stringify(notification));
+          if (
+            notifications.length &&
+            (notifications.length >= 8 || size + length > (options.maxBatchBytes ?? 64 * 1024))
+          )
+            break;
           notifications.push(notification);
           size += length;
         }

@@ -1,0 +1,25 @@
+--- before/src/core/mcp-mailbox.ts
++++ after/src/core/mcp-mailbox.ts
+@@ -181,9 +181,12 @@
+           const session = await readSession(repo, key);
+           if (!session) throw new Error("The delivery subscription is missing; preserve its state for inspection.");
+           const events = new Map((await eventsIn(repo, key, options.signal)).map((event) => [event.id, event]));
++          const receipts = new Map<string, Awaited<ReturnType<typeof readReceipt>>>();
+           for (const id of delivery.eventIds) {
+             const event = events.get(id);
+-            if (await readReceipt(repo, key, id)) continue;
++            const receipt = await readReceipt(repo, key, id);
++            receipts.set(id, receipt);
++            if (receipt) continue;
+             // A committed acceptance may already have produced a receipt that GC collected before retry.
+             if (!event && delivery.phase === "accepting") continue;
+             if (!event || !event.recipients.includes(key) || (event.kind === "upstream" && event.ref !== options.ref))
+@@ -195,7 +198,7 @@
+             await writeJson(path, { ...delivery, phase: "accepting" }, () => options.signal?.throwIfAborted());
+           for (const id of delivery.eventIds) {
+             options.signal?.throwIfAborted();
+-            const receipt = await readReceipt(repo, key, id);
++            const receipt = receipts.get(id);
+             if (receipt) continue;
+             const event = events.get(id);
+             if (!event) continue;

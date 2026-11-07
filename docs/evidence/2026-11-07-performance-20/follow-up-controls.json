@@ -1,0 +1,356 @@
+[
+  {
+    "workload": "pages-large",
+    "medians": {
+      "before": {
+        "ms": 496.55052049999995,
+        "cpuMs": 124.678
+      },
+      "after": {
+        "ms": 493.75916700000016,
+        "cpuMs": 124.14150000000001
+      }
+    },
+    "gainPercent": 0.5621489425062021,
+    "rows": [
+      {
+        "sample": 0,
+        "variant": "before",
+        "ms": 498.11920800000007,
+        "cpuMs": 128.734,
+        "maxRssKiB": 124912,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 0,
+        "variant": "after",
+        "ms": 498.006666,
+        "cpuMs": 124.639,
+        "maxRssKiB": 132528,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 1,
+        "variant": "after",
+        "ms": 497.26587500000005,
+        "cpuMs": 125.868,
+        "maxRssKiB": 138848,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 1,
+        "variant": "before",
+        "ms": 485.6611670000002,
+        "cpuMs": 120.738,
+        "maxRssKiB": 140160,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 2,
+        "variant": "before",
+        "ms": 524.3204169999999,
+        "cpuMs": 133.748,
+        "maxRssKiB": 140688,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 2,
+        "variant": "after",
+        "ms": 490.2524590000003,
+        "cpuMs": 123.644,
+        "maxRssKiB": 142192,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 3,
+        "variant": "after",
+        "ms": 481.92583399999967,
+        "cpuMs": 115.869,
+        "maxRssKiB": 142656,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 3,
+        "variant": "before",
+        "ms": 482.1321250000001,
+        "cpuMs": 121.066,
+        "maxRssKiB": 144032,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 4,
+        "variant": "before",
+        "ms": 494.9818329999998,
+        "cpuMs": 123.595,
+        "maxRssKiB": 144544,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 4,
+        "variant": "after",
+        "ms": 554.6585830000004,
+        "cpuMs": 142.746,
+        "maxRssKiB": 145616,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 5,
+        "variant": "after",
+        "ms": 487.8049579999997,
+        "cpuMs": 115.981,
+        "maxRssKiB": 146112,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      },
+      {
+        "sample": 5,
+        "variant": "before",
+        "ms": 525.7807910000001,
+        "cpuMs": 125.761,
+        "maxRssKiB": 147184,
+        "outputHash": "f6362cfc2de5347b798737b80743563a2a8a6a35ee316f1fef55462c5e935e7e"
+      }
+    ],
+    "environment": {
+      "node": "v22.23.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+  },
+  {
+    "workload": "report-unicode",
+    "medians": {
+      "before": {
+        "ms": 77.55966699999999,
+        "cpuMs": 76.00450000000001
+      },
+      "after": {
+        "ms": 1.8092494999999644,
+        "cpuMs": 1.8275000000000001
+      }
+    },
+    "gainPercent": 97.66728046937081,
+    "rows": [
+      {
+        "sample": 0,
+        "variant": "before",
+        "ms": 75.48395799999997,
+        "cpuMs": 74.078,
+        "maxRssKiB": 128208,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 0,
+        "variant": "after",
+        "ms": 1.7783750000000964,
+        "cpuMs": 1.78,
+        "maxRssKiB": 128208,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 1,
+        "variant": "after",
+        "ms": 1.854208999999969,
+        "cpuMs": 1.871,
+        "maxRssKiB": 128208,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 1,
+        "variant": "before",
+        "ms": 78.00933299999997,
+        "cpuMs": 76.483,
+        "maxRssKiB": 128208,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 2,
+        "variant": "before",
+        "ms": 79.04341699999998,
+        "cpuMs": 77.153,
+        "maxRssKiB": 128208,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 2,
+        "variant": "after",
+        "ms": 1.8349170000000186,
+        "cpuMs": 1.833,
+        "maxRssKiB": 128208,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 3,
+        "variant": "after",
+        "ms": 1.8267079999999396,
+        "cpuMs": 1.822,
+        "maxRssKiB": 128208,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 3,
+        "variant": "before",
+        "ms": 77.62933399999997,
+        "cpuMs": 76.117,
+        "maxRssKiB": 129680,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 4,
+        "variant": "before",
+        "ms": 77.49000000000001,
+        "cpuMs": 75.892,
+        "maxRssKiB": 129680,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 4,
+        "variant": "after",
+        "ms": 1.7917909999999893,
+        "cpuMs": 2.232,
+        "maxRssKiB": 129680,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 5,
+        "variant": "after",
+        "ms": 1.7670420000000604,
+        "cpuMs": 1.773,
+        "maxRssKiB": 129680,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      },
+      {
+        "sample": 5,
+        "variant": "before",
+        "ms": 75.42833299999995,
+        "cpuMs": 74.19,
+        "maxRssKiB": 132128,
+        "outputHash": "d269c6607ab5665745c385e41789c0ac676e308651cd2501092ae92d94d5bffa"
+      }
+    ],
+    "environment": {
+      "node": "v22.23.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+  },
+  {
+    "workload": "report-empty",
+    "medians": {
+      "before": {
+        "ms": 0.00358300000002032,
+        "cpuMs": 0.005
+      },
+      "after": {
+        "ms": 0.0037705000000016753,
+        "cpuMs": 0.0045000000000000005
+      }
+    },
+    "gainPercent": -5.233044933862452,
+    "rows": [
+      {
+        "sample": 0,
+        "variant": "before",
+        "ms": 0.00583300000005238,
+        "cpuMs": 0.01,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 0,
+        "variant": "after",
+        "ms": 0.004750000000001364,
+        "cpuMs": 0.007,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 1,
+        "variant": "after",
+        "ms": 0.0043750000000386535,
+        "cpuMs": 0.045,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 1,
+        "variant": "before",
+        "ms": 0.003791000000035183,
+        "cpuMs": 0.006,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 2,
+        "variant": "before",
+        "ms": 0.003290999999990163,
+        "cpuMs": 0.004,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 2,
+        "variant": "after",
+        "ms": 0.003958000000011452,
+        "cpuMs": 0.005,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 3,
+        "variant": "after",
+        "ms": 0.0035829999999918982,
+        "cpuMs": 0.004,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 3,
+        "variant": "before",
+        "ms": 0.005625000000009095,
+        "cpuMs": 0.006,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 4,
+        "variant": "before",
+        "ms": 0.003375000000005457,
+        "cpuMs": 0.004,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 4,
+        "variant": "after",
+        "ms": 0.0030830000000037217,
+        "cpuMs": 0.004,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 5,
+        "variant": "after",
+        "ms": 0.002333000000021457,
+        "cpuMs": 0.002,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      },
+      {
+        "sample": 5,
+        "variant": "before",
+        "ms": 0.0025420000000053733,
+        "cpuMs": 0.003,
+        "maxRssKiB": 112416,
+        "outputHash": "7a08d46f0199ac3f9b36e2e7d1ab7be7babb8f790ae44f1059a473f692163846"
+      }
+    ],
+    "environment": {
+      "node": "v22.23.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "limits": "Warm-cache local synthetic fixture; independently loaded module trees in one process; alternating order; Node CPU excludes Git children; process peak RSS is shared, not a per-variant memory measurement. No network/provider/GUI latency claim."
+  }
+]

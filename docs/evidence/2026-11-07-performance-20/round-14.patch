@@ -1,0 +1,11 @@
+--- before/src/core/store.ts
++++ after/src/core/store.ts
+@@ -92,7 +92,7 @@
+       throw new Error(`State path is not a regular file or changed during inspection: ${path}`);
+     if (info.size > MAX_STATE_BYTES) throw new Error(`State file exceeds 2 MiB: ${path}`);
+     // Leave room to probe EOF in the same buffer; grow only if the file changes.
+-    let buffer = Buffer.allocUnsafe(Math.max(256, info.size + 1));
++    let buffer = Buffer.allocUnsafe(Math.max(64, info.size + 1));
+     let size = 0;
+     for (;;) {
+       const { bytesRead } = await file.read(buffer, size, buffer.length - size, null);

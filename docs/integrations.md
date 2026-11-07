@@ -1,8 +1,9 @@
 # MCP integration
 
-gitbeacon 0.2 is a stdio MCP server. It has no client-specific hook installation or
-plugin marketplace step. Configure the same server command in a compatible MCP
-host, then use the tool workflow in [shared messages](shared-messages.md).
+gitbeacon 0.2 is a stdio MCP server with an optional [local Codex plugin](plugin.md)
+combining skills and reminder hooks. Configure the server directly in any compatible
+MCP host, or install the plugin in Codex; avoid activating both entries together.
+Then use the tool workflow in [shared messages](shared-messages.md).
 
 ## Local source checkout
 
@@ -90,3 +91,22 @@ gitbeacon currently uses local filesystem access and should be configured as a
 local stdio service. A remote transport alone would not grant access to a user's
 local worktrees. This refactor does not deploy a remote multi-user service or
 publish to a plugin directory.
+
+## Bounded status and large deliveries
+
+`repository_status` omits retained event bodies by default; request
+`includeEvents=true` explicitly when full history is needed. `eventsIncluded`
+and `retainedEvents` distinguish omission from an empty repository.
+
+An inline receive stays within 8 KiB. `detailsRequired=true` defers its notification
+array to `read_message_details`: read successive UTF-8 byte offsets through
+`complete`, parse/accept the reconstructed batch, then ACK. The server refuses
+ACK before all detail pages have been read. Inbox resource previews can also
+contain only event IDs/kinds; obtain the accepted delivery through receive.
+See [message protocol](shared-messages.md). Old clients must add this detail flow
+before accepting large batches. Rebuild/restart the MCP server and reinstall
+updated plugin skills together.
+
+In Codex code mode, forward `result.structuredContent ?? result` once rather than
+printing the entire MCP envelope; this retains error output without duplicating
+successful JSON. The server keeps both standard representations for other hosts.

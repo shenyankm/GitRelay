@@ -21,8 +21,10 @@ factory is also used directly by source-level integration tests.
 a separate `npm run typecheck` task. The private source project has no npm package
 export wrapper, executable shim, declaration build or publication pipeline.
 
-There are no Codex hook adapters, client process scanners, plugin manifests,
-installers, shell-command dispatchers or generated TOML vendor bundles.
+The optional source-built [Codex plugin](plugin.md) packages workflow skills and
+fixed reminder hooks around this service. It uses Codex compatibility manifests
+for the tested local host. No client process scanner, legacy installer,
+shell-command dispatcher or generated TOML vendor bundle is restored.
 
 ## Sessions and acknowledgement
 
@@ -117,3 +119,24 @@ message acknowledgement, disconnect/reconnect and the built source entry running
 from an unrelated worktree with spaces.
 The absence of a delivery receipt remains observable before explicit acceptance.
 A successful local test does not establish hosted CI or an actual model workflow.
+
+## Plugin responsibility boundaries
+
+The Codex-format manifest and hook event configuration live in `plugin/`.
+The plugin builder copies them and binds the version, Node/source paths and
+selected environment; it does not translate another manifest format.
+Setup diagnoses connectivity. The coordination skill owns opt-in participation,
+recovery, checkpoints and interpretation. Hooks only route an already-enabled
+conversation to that skill. MCP owns effective ref defaults and protocol
+contracts; core owns transactional session state, locks and delivery receipts.
+Security constraints remain in MCP so standalone clients retain them.
+
+## Context boundaries
+
+Repository snapshots omit event bodies unless explicitly requested. MCP inline
+batches have an 8 KiB UTF-8 budget. Oversized single notifications are persisted
+as a pending snapshot bound into its delivery ID; 2 KiB UTF-8 detail pages track
+contiguous progress under the same session lock. Neither pages nor bounded
+resource previews create delivery receipts. ACK checks complete detail progress
+before entering the existing journaled acceptance transaction. Code-mode skills
+forward the structured result once; standard MCP text content remains available.

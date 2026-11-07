@@ -135,25 +135,35 @@ export async function compareRevisions(
     if (!isCommit(base)) throw new Error("No readable common ancestor.");
     if (base === target.commit || base === incoming.commit)
       return await collision(base === target.commit ? incoming.commit : target.commit);
-    const own = names(
-      await observationGit(
+    const differences = await Promise.allSettled([
+      observationGit(
         observer,
         ["diff", "--name-only", "--no-renames", "-z", base, target.commit, "--"],
         signal,
         "paths",
       ),
-    );
-    const other = names(
-      await observationGit(
+      observationGit(
         observer,
         ["diff", "--name-only", "--no-renames", "-z", base, incoming.commit, "--"],
         signal,
         "paths",
       ),
-    );
-    const overlap = other.filter((file) =>
-      own.some((path) => path === file || path.startsWith(`${file}/`) || file.startsWith(`${path}/`)),
-    );
+    ]);
+    const [own, other] = differences.map((result) => {
+      if (result.status === "rejected") throw result.reason;
+      return names(result.value);
+    });
+
+    const ownPaths = new Set(own),
+      parents = new Set<string>();
+    for (const path of own)
+      for (let end = path.indexOf("/"); end !== -1; end = path.indexOf("/", end + 1)) parents.add(path.slice(0, end));
+    const overlap = other.filter((file) => {
+      if (ownPaths.has(file) || parents.has(file)) return true;
+      for (let end = file.indexOf("/"); end !== -1; end = file.indexOf("/", end + 1))
+        if (ownPaths.has(file.slice(0, end))) return true;
+      return false;
+    });
     try {
       const merged = await observationGit(
         observer,
@@ -211,30 +221,37 @@ export async function worktreeRevisions(
   repository: string,
   signal?: AbortSignal,
 ): Promise<Revision[]> {
-  const head = (await git(root, ["rev-parse", "--verify", "HEAD^{commit}"], signal)).trim();
-  const branch = await git(root, ["symbolic-ref", "-q", "HEAD"], signal, "paths")
-    .then(gitPathLine)
-    .catch((error) => {
+  const inspected = await Promise.allSettled([
+    git(root, ["rev-parse", "--verify", "HEAD^{commit}"], signal).then((value) => value.trim()),
+    git(root, ["symbolic-ref", "-q", "HEAD"], signal, "paths")
+      .then(gitPathLine)
+      .catch((error) => {
+        signal?.throwIfAborted();
+        if (error.cause?.code === 1) return "HEAD";
+        throw error;
+      }),
+    // Only non-executable normalization settings cross into the private observer.
+    git(
+      root,
+      [
+        "config",
+        "--null",
+        "--get-regexp",
+        "^core\\.(autocrlf|eol|safecrlf|filemode|ignorecase|symlinks|attributesfile|precomposeunicode)$",
+      ],
+      signal,
+      "paths",
+    ).catch((error) => {
       signal?.throwIfAborted();
-      if (error.cause?.code === 1) return "HEAD";
+      if (error.cause?.code === 1) return "";
       throw error;
-    });
-  // Only non-executable normalization settings cross into the private observer.
-  const settings = await git(
-    root,
-    [
-      "config",
-      "--null",
-      "--get-regexp",
-      "^core\\.(autocrlf|eol|safecrlf|filemode|ignorecase|symlinks|attributesfile|precomposeunicode)$",
-    ],
-    signal,
-    "paths",
-  ).catch((error) => {
-    signal?.throwIfAborted();
-    if (error.cause?.code === 1) return "";
-    throw error;
+    }),
+  ]);
+  const [head, branch, settings] = inspected.map((result) => {
+    if (result.status === "rejected") throw result.reason;
+    return result.value;
   });
+
   const config: string[] = [];
   let caseInsensitive = false;
   for (const setting of names(settings)) {

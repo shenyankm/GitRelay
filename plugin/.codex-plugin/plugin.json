@@ -1,0 +1,12 @@
+{
+  "name": "gitbeacon",
+  "description": "Local Git coordination with MCP tools, guided workflows and checkpoint reminders",
+  "author": {
+    "name": "shenyankm"
+  },
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json",
+  "onboardingSkill": "./skills/gitbeacon-setup/SKILL.md"
+}

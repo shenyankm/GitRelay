@@ -1,0 +1,198 @@
+{
+  "commit": "d0d72cdc66c96aa597be29e63b85b4b10ea34d8b",
+  "workingTree": "uncommitted context changes plus earlier plugin work",
+  "host": "codex-cli 0.167.0",
+  "model": "gpt-6.1-sol",
+  "node": "v22.23.2",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "status": {
+    "compact": {
+      "bytes": 1786,
+      "tokens": 757
+    },
+    "detailed": {
+      "bytes": 60374,
+      "tokens": 23496
+    },
+    "tokenReductionPercent": 96.78
+  },
+  "tokenizer": "o200k_base; compact structured JSON; estimate excluding host framing",
+  "checks": {
+    "full": {
+      "passed": 425,
+      "failed": 0
+    },
+    "finalPluginTests": {
+      "passed": 2,
+      "failed": 0
+    },
+    "skillsValidated": 2,
+    "typecheck": true,
+    "finalFormatCheck": true,
+    "diffCheck": true
+  },
+  "nativeInitialSmall": {
+    "startedAt": "2026-11-07T09:04:37.407Z",
+    "passed": true,
+    "remoteWrites": false,
+    "setupStructuredForwarding": true,
+    "setupUsage": {
+      "input_tokens": 61476,
+      "cached_input_tokens": 43136,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 583,
+      "reasoning_output_tokens": 0
+    },
+    "largeDelivery": {
+      "bytes": 16724,
+      "descriptorBytes": 176,
+      "allDetailsRead": true,
+      "earlyAckBlocked": true,
+      "explicitlyAcknowledged": true,
+      "response": "I’m using the gitbeacon coordination skill to read and accept the pending note, then leave the collaboration without changing files or synchronizing Git.\nThe full note’s `FINAL_MARKER` value is `complete-context-7f9c`. I’ll accept the note and leave the collaboration now.\nFINAL_MARKER: `complete-context-7f9c`\n\nRead the complete note, accepted it, and ended the collaboration. No files changed or Git synchronized.",
+      "usage": {
+        "input_tokens": 260323,
+        "cached_input_tokens": 218112,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 756,
+        "reasoning_output_tokens": 0
+      }
+    },
+    "finishedAt": "2026-11-07T09:05:59.125Z"
+  },
+  "nativeConflict": {
+    "startedAt": "2026-11-07T09:06:32.866Z",
+    "passed": true,
+    "remoteWrites": false,
+    "serverDefaultRefUsed": true,
+    "pluginMode": true,
+    "skillGoalPrompt": true,
+    "nativeHost": "codex exec (real authenticated model turn)",
+    "automaticConflictPublished": true,
+    "explicitlyAcknowledged": true,
+    "subscriptionClosed": true,
+    "idleModelWakeUpTested": false,
+    "finishedAt": "2026-11-07T09:08:14.181Z",
+    "optInCases": {
+      "ordinaryTask": {
+        "passed": true,
+        "initializedCoordination": false
+      },
+      "setupOnly": {
+        "passed": true,
+        "initializedCoordination": false
+      },
+      "lostToken": {
+        "passed": true,
+        "initializedCoordination": false
+      }
+    }
+  },
+  "discardedLargeFixture": {
+    "passed": false,
+    "reason": "640 observations exceeded the existing 64 KiB send limit; replaced with 600 and a size assertion."
+  },
+  "sourceFingerprints": {
+    "src/core/repository-snapshot.ts": "863b1459f366056e15b9871a813e612e8deaba7b074b8fbc5fac23e5cb5c4c06",
+    "src/core/consumer.ts": "58925fe109c44f553ba7b8fc090e8e30220849f34b37bf8dd5a13d5b25f33311",
+    "src/core/connections.ts": "4207629852d7bff2e0d896fa7729e96fe4f5d568978f5057ef1ac3cbd52d8746",
+    "src/core/mcp-mailbox.ts": "0d91477d09258d801346e54f6fdee56f7f39e0aec3d4bb8909d6431e9359916b",
+    "src/mcp/server.ts": "26b1e0f7d900d97467ed995aeee14aecf771b31412f53e692368cbc62eb2cfdd",
+    "plugin/skills/gitbeacon-setup/SKILL.md": "9ed4d3a2a3fa4374bf662a87436bfefd39d5f2c027c9a96e47c9b21b318725e5",
+    "plugin/skills/gitbeacon-coordination/SKILL.md": "c96e7c8dacf5faac297915bfd3003b809571645087a149ca1c9adcdc285e1e1f",
+    "plugin/hooks/hooks.json": "3d9f2da187f5a7f303644710e33f78f54b30d3aec96d90984ddae0447229f4b6",
+    "plugin/hooks/remind.mjs": "80c85e3060e0d81c609df8940bfb714eae364ba22e3c2866554227822a55fac8",
+    "scripts/acceptance-context.mjs": "ebbe3e38639c858fac8b2fbb82f36c56d0ab6a91ab7de13e493f3ad54e0abb8a"
+  },
+  "limitations": [
+    "Synthetic status and message fixtures; not a production distribution",
+    "No new matched provider before/after startup or forwarding benchmark",
+    "Large-message paging bounds replies, not full-message reading cost",
+    "No Desktop GUI, other platforms/hosts, hosted CI or idle-model wake-up check"
+  ],
+  "deliverySmoke": {
+    "node": "v22.23.2",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "platform": "darwin",
+    "arch": "arm64",
+    "startupMs": 205.64,
+    "samples": [
+      {
+        "sendMs": 34.08,
+        "receiveMs": 111.64,
+        "acknowledgeMs": 55.53,
+        "endToEndMs": 201.25
+      },
+      {
+        "sendMs": 54.34,
+        "receiveMs": 105.11,
+        "acknowledgeMs": 39.62,
+        "endToEndMs": 199.08
+      },
+      {
+        "sendMs": 38.97,
+        "receiveMs": 101.85,
+        "acknowledgeMs": 54.35,
+        "endToEndMs": 195.18
+      },
+      {
+        "sendMs": 83.43,
+        "receiveMs": 127.58,
+        "acknowledgeMs": 42.46,
+        "endToEndMs": 253.46
+      },
+      {
+        "sendMs": 51.45,
+        "receiveMs": 88.37,
+        "acknowledgeMs": 34.98,
+        "endToEndMs": 174.81
+      },
+      {
+        "sendMs": 31.49,
+        "receiveMs": 90.3,
+        "acknowledgeMs": 34.73,
+        "endToEndMs": 156.51
+      }
+    ],
+    "medianEndToEndMs": 195.18,
+    "workload": "two persistent stdio MCP clients; linked worktrees; explicit receive and acknowledgement; shared monitor; first sample excluded from median"
+  },
+  "currentSkillBodyTokensEstimate": {
+    "gitbeacon-coordination": 920,
+    "gitbeacon-setup": 502
+  },
+  "nativeFinalLarge": {
+    "startedAt": "2026-11-07T09:09:45.330Z",
+    "passed": true,
+    "remoteWrites": false,
+    "setupStructuredForwarding": true,
+    "setupUsage": {
+      "input_tokens": 61331,
+      "cached_input_tokens": 43136,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 529,
+      "reasoning_output_tokens": 0
+    },
+    "largeDelivery": {
+      "bytes": 63004,
+      "descriptorBytes": 176,
+      "allDetailsRead": true,
+      "subscriptionClosed": true,
+      "detailOutputGroups": 11,
+      "detailOutputsNotTruncated": true,
+      "earlyAckBlocked": true,
+      "explicitlyAcknowledged": true,
+      "response": "I’ll use the gitbeacon coordination skill to resume the participant, read the full pending note, report every `ACCEPTANCE_MARKER`, accept the batch, and leave the collaboration.\nThe note is a 64 KB deferred batch. I’m reading every page before accepting it; so far it contains repeated overlap observations and markers at the beginning and middle.\nI inspected the complete note. All `ACCEPTANCE_MARKER` values are `begin-context-7f9c`, `middle-context-2ba1`, and `complete-context-93d0`. I accept the full batch and will now acknowledge it and leave the collaboration.\nInspected the full note. All `ACCEPTANCE_MARKER` values:\n\n- `begin-context-7f9c`\n- `middle-context-2ba1`\n- `complete-context-93d0`\n\nAccepted and acknowledged the batch, then ended collaboration. No files changed or Git synchronized.",
+      "usage": {
+        "input_tokens": 654039,
+        "cached_input_tokens": 619008,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2107,
+        "reasoning_output_tokens": 11
+      },
+      "maxDetailOutputBytesWithHostFraming": 7055
+    },
+    "finishedAt": "2026-11-07T09:11:25.981Z"
+  },
+  "isolatedTestHomeAndCredentialsRemoved": true
+}

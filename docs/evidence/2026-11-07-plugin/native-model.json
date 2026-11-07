@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-11-07T05:19:29.362Z",
+  "passed": true,
+  "remoteWrites": false,
+  "pluginMode": true,
+  "nativeHost": "codex exec (real authenticated model turn)",
+  "automaticConflictPublished": true,
+  "explicitlyAcknowledged": true,
+  "subscriptionClosed": true,
+  "idleModelWakeUpTested": false,
+  "lastEvents": [
+    {
+      "type": "item.completed",
+      "item": {
+        "id": "item_9",
+        "type": "agent_message",
+        "text": "Received the automatic conflict report on poll 2: `shared.txt` conflicts between `feature/a` and `feature/b`.\n\nAcknowledged the complete batch using its deliveryId and left the session successfully. This confirms tool/model consumption and acknowledgement through polling."
+      }
+    },
+    {
+      "type": "turn.completed",
+      "usage": {
+        "input_tokens": 165626,
+        "cached_input_tokens": 144640,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 560,
+        "reasoning_output_tokens": 0
+      }
+    }
+  ],
+  "finishedAt": "2026-11-07T05:19:56.481Z"
+}
