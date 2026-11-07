@@ -138,8 +138,8 @@ export async function acknowledgeMessages(options: McpMailboxOptions & { deliver
           await writeJson(path, { ...delivery, phase: "acknowledged" }, () => options.signal?.throwIfAborted());
           return { acknowledged: delivery.eventIds, alreadyAcknowledged: false };
         },
-        { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN },
+        { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN, recoverDeadOwner: true },
       ),
-    { signal: options.signal, waitMs: 5000 },
+    { signal: options.signal, waitMs: 5000, recoverDeadOwner: true },
   );
 }

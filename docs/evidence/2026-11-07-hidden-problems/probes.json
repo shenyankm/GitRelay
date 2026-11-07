@@ -1,0 +1,96 @@
+{
+  "startedAt": "2026-11-06T19:17:42.026Z",
+  "finishedAt": "2026-11-06T19:18:12.694Z",
+  "commit": "b5cda33b2ae12fb2ca1cb4938c7f569a799e0ff1",
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "remoteWrites": false,
+  "implementationModified": false,
+  "results": [
+    {
+      "name": "crlf-false-conflict",
+      "reproduced": true,
+      "severity": "P1",
+      "realDirtyFiles": [
+        "other.txt"
+      ],
+      "scannerConflictFiles": [
+        "shared.txt"
+      ],
+      "actualGitMergeSucceeded": true,
+      "localUnfinishedWorkPreserved": true,
+      "elapsedMs": 1231
+    },
+    {
+      "name": "case-insensitive-filesystem-collision",
+      "reproduced": true,
+      "severity": "P1",
+      "caseInsensitive": true,
+      "sourceIgnoreCase": "true",
+      "scannerFindings": 0,
+      "scannerErrors": [],
+      "actualGitMergeSucceeded": true,
+      "indexContainsBothNames": true,
+      "bothNamesResolveToSameInode": true,
+      "upperContent": "UPPER implementation\n",
+      "lowerContent": "UPPER implementation\n",
+      "elapsedMs": 819
+    },
+    {
+      "name": "sigkill-monitor-owner-failover",
+      "reproduced": true,
+      "severity": "P1",
+      "observationSeconds": 12.5,
+      "automaticTakeover": false,
+      "reportAdvanced": false,
+      "staleLockDiagnostic": true,
+      "manualScanCanStillFindConflict": true,
+      "elapsedMs": 13927
+    },
+    {
+      "name": "one-corrupt-tracking-file-blocks-unrelated-source",
+      "reproduced": true,
+      "severity": "P1",
+      "unrelatedSourceCorruption": true,
+      "explicitlyScopedHealthyScanRejected": true,
+      "healthyStatusHasLastScanError": false,
+      "healthyReportRemainedOld": true,
+      "controlAfterRepairFindsConflict": true,
+      "elapsedMs": 1322
+    },
+    {
+      "name": "recursive-registration-disables-existing-github-observation",
+      "reproduced": true,
+      "severity": "P1",
+      "authenticGitHubSourceResolution": true,
+      "authenticGitHubClone": true,
+      "source": "https://github.com/koriym/koriym.psr4list",
+      "originalGithubEnabled": true,
+      "originalGithubAfterRegisteringClone": false,
+      "rootAndCloneStillSameSource": true,
+      "elapsedMs": 3249
+    },
+    {
+      "name": "sha256-git-repository-observer-algorithm",
+      "reproduced": true,
+      "severity": "P2",
+      "realObjectIdLength": 64,
+      "scannerErrors": [
+        "<fixture>/sha256: warning: invalid line while parsing alternate refs: 2a85cdf1fdf77276f42d91fda29a736e672ba934dc2e04678ba6dcb45ccb1358\nfatal: mismatched algorithms: client sha1; server sha256"
+      ],
+      "confirmedConflictDetected": false,
+      "elapsedMs": 694
+    },
+    {
+      "name": "slow-remote-blocks-healthy-source-monitoring",
+      "reproduced": true,
+      "severity": "P2",
+      "realSshHandshakeConnection": true,
+      "holdSeconds": 8,
+      "healthyReportMissingDuringUnrelatedNetworkStall": true,
+      "monitorHeartbeatStillRunning": true,
+      "conflictDetectedAfterReleasingUnrelatedConnection": true,
+      "elapsedMs": 9343
+    }
+  ]
+}

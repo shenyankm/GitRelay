@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-11-06T19:21:15.887227+00:00",
+  "commit": "b5cda33b2ae12fb2ca1cb4938c7f569a799e0ff1",
+  "command": "npm test",
+  "regressions": 447,
+  "productionPackageIntegration": 1,
+  "totalTests": 448,
+  "failed": 0,
+  "skipped": 0,
+  "passed": true,
+  "adversarialScenariosAreSeparate": true,
+  "note": "Green baseline tests do not cover the seven reproduced problems in probes.json."
+}

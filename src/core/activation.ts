@@ -244,6 +244,6 @@ export async function sessionActivation(
       }
       return operation?.phase === "prepare" && operation.run ? true : nextEnabled;
     },
-    { signal: options.signal, waitMs: 5000 },
+    { signal: options.signal, waitMs: 5000, recoverDeadOwner: options.adapter === "mcp" },
   );
 }

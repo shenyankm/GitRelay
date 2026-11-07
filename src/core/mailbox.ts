@@ -554,7 +554,7 @@ export async function sendMessage(
       await writeJson(join(repo.directory, "events", eventFilename(event)), event);
       return event;
     },
-    { signal, waitMs: 5000 },
+    { signal, waitMs: 5000, recoverDeadOwner: adapter === "mcp" },
   );
 }
 
@@ -614,7 +614,7 @@ export async function publishCoordination(
       } else await writeJson(location, event, () => signal?.throwIfAborted());
       await writeJson(path, { digest, eventId: id }, () => signal?.throwIfAborted());
     },
-    { signal, waitMs: 5000 },
+    { signal, waitMs: 5000, recoverDeadOwner: true },
   );
 }
 

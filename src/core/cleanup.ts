@@ -119,6 +119,7 @@ export async function collectRepository(repo: Repository, options: CleanupOption
               keys.slice(offset, offset + 32).map((key) =>
                 withLock(join(repo.directory, "sessions", `${key}.lock`), async () => {}, {
                   signal: options.signal,
+                  recoverDeadOwner: true,
                 }),
               ),
             );
@@ -206,7 +207,7 @@ export async function collectRepository(repo: Repository, options: CleanupOption
       }
       return report;
     },
-    { signal: options.signal, waitMs: 5000, token: GC_LOCK_TOKEN },
+    { signal: options.signal, waitMs: 5000, token: GC_LOCK_TOKEN, recoverDeadOwner: true },
   );
 }
 

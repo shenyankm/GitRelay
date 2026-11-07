@@ -105,6 +105,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
               signal,
               waitMs: 5000,
               busyToken: GC_LOCK_TOKEN,
+              recoverDeadOwner: adapter === "mcp",
               onAcquired: () => {
                 publishAcquired = true;
               },
@@ -310,6 +311,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
       },
       {
         signal,
+        recoverDeadOwner: adapter === "mcp",
         onAcquired: () => {
           sessionAcquired = true;
         },

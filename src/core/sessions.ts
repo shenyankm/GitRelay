@@ -241,9 +241,9 @@ export async function leaveSession(
           );
           return closed;
         },
-        { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN },
+        { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN, recoverDeadOwner: options.adapter === "mcp" },
       ),
-    { signal: options.signal },
+    { signal: options.signal, recoverDeadOwner: options.adapter === "mcp" },
   );
 }
 
@@ -407,8 +407,8 @@ export async function joinSession(
           };
           return registerWith ? registerWith(register, repo.id, key) : register();
         },
-        { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN },
+        { signal: options.signal, waitMs: 5000, busyToken: GC_LOCK_TOKEN, recoverDeadOwner: options.adapter === "mcp" },
       ),
-    { signal: options.signal },
+    { signal: options.signal, recoverDeadOwner: options.adapter === "mcp" },
   );
 }

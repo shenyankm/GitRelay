@@ -62,6 +62,24 @@ tracking because native open-world tool approvals are independent of MCP input
 validation. See [coordination](coordination.md) and
 [evidence/2026-11-07-coordination](evidence/2026-11-07-coordination/README.md).
 
+## Adversarial reliability regressions
+
+The seven findings in [hidden-problem evidence](evidence/2026-11-07-hidden-problems/README.md)
+are covered by core/MCP regressions for verified-dead lock recovery and races,
+eight competing processes, SIGKILL monitor takeover, recursive preference
+preservation, corrupt-source isolation, CRLF snapshot semantics, case-folding
+file/directory/fast-forward collisions, matching SHA-256 observers and repeated
+healthy scans while another source's SSH handshake is stalled.
+
+```sh
+node --experimental-strip-types scripts/diagnose-real.mjs --verify-fixes
+```
+
+Unlike diagnostic-only mode, `--verify-fixes` exits unsuccessfully if a selected,
+applicable scenario does not demonstrate its corrected positive behavior. Saved
+original findings remain historical evidence, not current acceptance results.
+See [fix acceptance](evidence/2026-11-07-hidden-fixes/README.md).
+
 ## Historical results
 
 The archive preserves pre-MCP benchmarks and hook/native-model traces. They

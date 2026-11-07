@@ -1,0 +1,102 @@
+{
+  "startedAt": "2026-11-06T20:17:36.220Z",
+  "finishedAt": "2026-11-06T20:18:07.712Z",
+  "commit": "b5cda33b2ae12fb2ca1cb4938c7f569a799e0ff1",
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "remoteWrites": false,
+  "implementationModified": true,
+  "verification": true,
+  "fixed": 7,
+  "skipped": 0,
+  "results": [
+    {
+      "name": "crlf-false-conflict",
+      "fixed": true,
+      "reproduced": false,
+      "severity": "P1",
+      "realDirtyFiles": [
+        "other.txt"
+      ],
+      "scannerConflictFiles": [],
+      "actualGitMergeSucceeded": true,
+      "localUnfinishedWorkPreserved": true,
+      "elapsedMs": 1235
+    },
+    {
+      "name": "case-insensitive-filesystem-collision",
+      "fixed": true,
+      "reproduced": false,
+      "severity": "P1",
+      "caseInsensitive": true,
+      "sourceIgnoreCase": "true",
+      "scannerFindings": 1,
+      "scannerErrors": [],
+      "actualGitMergeSucceeded": true,
+      "indexContainsBothNames": true,
+      "bothNamesResolveToSameInode": true,
+      "upperContent": "UPPER implementation\n",
+      "lowerContent": "UPPER implementation\n",
+      "elapsedMs": 837
+    },
+    {
+      "name": "sigkill-monitor-owner-failover",
+      "fixed": true,
+      "reproduced": false,
+      "severity": "P1",
+      "observationSeconds": 12.5,
+      "automaticTakeover": true,
+      "reportAdvanced": true,
+      "staleLockDiagnostic": false,
+      "manualScanCanStillFindConflict": true,
+      "elapsedMs": 14086
+    },
+    {
+      "name": "one-corrupt-tracking-file-blocks-unrelated-source",
+      "fixed": true,
+      "reproduced": false,
+      "severity": "P1",
+      "unrelatedSourceCorruption": true,
+      "explicitlyScopedHealthyScanRejected": false,
+      "healthyStatusHasLastScanError": false,
+      "healthyReportRemainedOld": false,
+      "controlAfterRepairFindsConflict": true,
+      "elapsedMs": 1795
+    },
+    {
+      "name": "recursive-registration-disables-existing-github-observation",
+      "fixed": true,
+      "reproduced": false,
+      "severity": "P1",
+      "authenticGitHubSourceResolution": true,
+      "authenticGitHubClone": true,
+      "source": "https://github.com/koriym/koriym.psr4list",
+      "originalGithubEnabled": true,
+      "originalGithubAfterRegisteringClone": true,
+      "rootAndCloneStillSameSource": true,
+      "elapsedMs": 3486
+    },
+    {
+      "name": "sha256-git-repository-observer-algorithm",
+      "fixed": true,
+      "reproduced": false,
+      "severity": "P2",
+      "realObjectIdLength": 64,
+      "scannerErrors": [],
+      "confirmedConflictDetected": true,
+      "elapsedMs": 865
+    },
+    {
+      "name": "slow-remote-blocks-healthy-source-monitoring",
+      "fixed": true,
+      "reproduced": false,
+      "severity": "P2",
+      "realSshHandshakeConnection": true,
+      "holdSeconds": 8,
+      "healthyReportMissingDuringUnrelatedNetworkStall": false,
+      "monitorHeartbeatStillRunning": true,
+      "conflictDetectedAfterReleasingUnrelatedConnection": true,
+      "elapsedMs": 9113
+    }
+  ]
+}

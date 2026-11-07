@@ -363,27 +363,22 @@ test("daemon retries a busy repository without delaying another or a new reposit
     addedBusyObserved = false,
     addedDirectory = "";
   const resume = Promise.withResolvers<void>();
-  const open = fs.promises.open;
-  const mocked = t.mock.method(fs.promises, "open", (async (...args: Parameters<typeof open>) => {
+  const link = fs.promises.link;
+  const mocked = t.mock.method(fs.promises, "link", (async (...args: Parameters<typeof link>) => {
     try {
-      return await open(...args);
+      return await link(...args);
     } catch (error) {
-      if (
-        args[0] === join(repo.directory, "publish.lock") &&
-        args[1] === "wx" &&
-        (error as NodeJS.ErrnoException).code === "EEXIST"
-      )
+      if (args[1] === join(repo.directory, "publish.lock") && (error as NodeJS.ErrnoException).code === "EEXIST")
         busyObserved = true;
       if (
         addedDirectory &&
-        args[0] === join(addedDirectory, "publish.lock") &&
-        args[1] === "wx" &&
+        args[1] === join(addedDirectory, "publish.lock") &&
         (error as NodeJS.ErrnoException).code === "EEXIST"
       )
         addedBusyObserved = true;
       throw error;
     }
-  }) as typeof open);
+  }) as typeof link);
   syncBuiltinESMExports();
   t.after(() => {
     mocked.mock.restore();

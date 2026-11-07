@@ -155,7 +155,7 @@ export async function withRepositoryIdentity<T>(
       const id = hash([common, identity.identity]);
       return run({ root, common, id, directory: join(stateDirectory(), "repos", id), ...identity });
     },
-    { signal, waitMs: 5000 },
+    { signal, waitMs: 5000, recoverDeadOwner: true },
   );
 }
 

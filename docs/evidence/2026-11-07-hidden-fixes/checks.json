@@ -1,0 +1,33 @@
+{
+  "recordedAt": "2026-11-06T20:19:19.276694+00:00",
+  "baseCommit": "b5cda33b2ae12fb2ca1cb4938c7f569a799e0ff1",
+  "workingTreeFixes": true,
+  "sourceSha256": "8a69b6f851ef8e0a85547127edc5b0a245139d34d136beed1af6a32c0ce89225",
+  "sourceFiles": 27,
+  "command": "npm run check",
+  "passed": true,
+  "format": true,
+  "typecheck": true,
+  "releaseMetadata": true,
+  "regressions": 463,
+  "productionPackageIntegration": 1,
+  "totalTests": 464,
+  "failed": 0,
+  "skipped": 0,
+  "packDryRun": true,
+  "newRegressionTests": 16,
+  "strictRealScenarioFixes": 7,
+  "strictRealScenarioSkips": 0,
+  "liveGithubPassed": true,
+  "remoteWrites": false,
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "platform": "Darwin arm64",
+  "notAccepted": [
+    "Windows/Linux hosted acceptance",
+    "desktop GUI",
+    "idle-model wake-up",
+    "power-failure durability",
+    "large-fork throughput"
+  ]
+}

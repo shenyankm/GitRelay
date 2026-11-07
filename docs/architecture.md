@@ -52,6 +52,9 @@ The monitor publishes events; it does not deliver them into an idle model.
 `inspectRepository` observes existing state without creating identities,
 directories or locks. Read-only MCP tools and `core/repository-snapshot.ts` use this path.
 `store.ts` retains bounded JSON I/O, atomic writes, directory checks and locks.
+Recoverable MCP locks atomically publish complete ownership and serialize
+verified-dead reclamation with unique bakery tickets; live/ambiguous records stay
+protected. Recovery keeps the existing event/receipt journals and lock ordering.
 
 The server has no HTTP listener or Web console. Tools select repositories through
 explicit `cwd` arguments; no repository catalog is needed.
@@ -62,12 +65,23 @@ explicit `cwd` arguments; no repository catalog is needed.
 identity. Canonical upstream/origin URLs or local Git common directories link
 related clones. The daemon groups registrations by source and serializes each
 group under `coordination.lock`; it does not merge ordinary mailboxes. Local
-remote registrations are recursive; unrelated disk paths are not crawled.
+remote registrations are recursive without overwriting existing member settings;
+unrelated disk paths are not crawled. Invalid registrations are quarantined per
+entry and retained as coverage errors instead of aborting global enumeration.
+Groups scan concurrently under their individual locks. The daemon schedules scans
+without awaiting remote work in its heartbeat/ref loop, and aborts/settles all
+in-flight scans before releasing ownership.
 
-`conflicts.ts` imports refs into a private bare `observer.git`. Separate temporary
-indexes and fixed-date synthetic commits represent staged and working snapshots.
-Global/system Git config and hooks are disabled for observer operations. Native
-`merge-tree` establishes actual conflicts; path overlap is a separate warning.
+`conflicts.ts` imports refs into a private bare observer matching the source's
+SHA-1/SHA-256 object format. Separate temporary indexes and fixed-date synthetic
+commits represent staged and working snapshots. A whitelist of non-executable
+source normalization settings preserves CRLF/EOL, file-mode and related semantics;
+global/system Git config and hooks stay disabled for observer operations.
+Unsupported external-filter/private-attribute snapshots remain unknown. Native
+`merge-tree` diagnoses Git conflicts; a receiver-side merged-tree path check also
+rejects case-folding file/directory aliases, including fast-forward updates.
+Filesystem folding is calibrated with existing paths, not just `core.ignorecase`.
+Cleanly mergeable path overlap remains a separate warning.
 Missing history, unsupported/racing snapshots and failed observations remain
 unknown. No user ref/index/worktree is synchronized by analysis.
 

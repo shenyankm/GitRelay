@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Coordination reliability fixes
+
+- Recover verifiably dead MCP/monitor lock owners using serialized, crash-recoverable ownership tickets; atomically publish complete lock ownership and preserve ambiguous/live locks.
+- Preserve existing source, GitHub and disabled preferences when discovering local clones.
+- Quarantine corrupt registrations without blocking unrelated sources; retain explicit coverage gaps when ancestry cannot be established.
+- Preserve safe source normalization settings in private snapshots, reject unsupported filtered/private-attribute snapshots, and diagnose receiver-side case-folding path collisions.
+- Match observer object format to SHA-1/SHA-256 sources without deleting the legacy observation store.
+- Run source scans independently of slow remote groups and the daemon heartbeat/ref loop; abort and settle in-flight scans on shutdown.
+- Add negative regressions, eight-process stale-lock contention, SIGKILL takeover and stalled-SSH monitoring acceptance; support `diagnose-real.mjs --verify-fixes`.
+
 ### Source-centered automatic coordination
 
 - Associate registered same-source clones through normalized upstream/origin identities and recursively discover local remotes, without merging existing mailboxes.

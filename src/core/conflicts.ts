@@ -1,4 +1,4 @@
-import { copyFile, lstat, mkdir, rm } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { git, gitPathLine } from "./git.ts";
@@ -11,6 +11,7 @@ export interface Revision {
   ref: string;
   commit: string;
   root?: string;
+  caseInsensitive?: boolean;
   base?: string;
   url?: string;
 }
@@ -43,12 +44,17 @@ export function observationGit(
 ) {
   return git(observer, ["-c", `core.hooksPath=${nullDevice}`, "-c", "core.fsmonitor=false", ...args], signal, paths, {
     env: { ...observerEnvironment, ...env },
+    processGroup: args.includes("fetch") && process.platform !== "win32",
   });
 }
 
 /** The observer owns every object, ref and temporary index written by analysis. */
-export async function openObserver(directory: string, signal?: AbortSignal): Promise<string> {
-  const path = join(directory, "observer.git");
+export async function openObserver(
+  directory: string,
+  signal?: AbortSignal,
+  objectFormat: "sha1" | "sha256" = "sha1",
+): Promise<string> {
+  const path = join(directory, objectFormat === "sha1" ? "observer.git" : "observer-sha256.git");
   await checkStateDirectory(path, true);
   await mkdir(path, { recursive: true, mode: 0o700 });
   for (const child of ["objects", "objects/info", "refs", "refs/relay"])
@@ -60,7 +66,7 @@ export async function openObserver(directory: string, signal?: AbortSignal): Pro
     });
     if (info && !info.isFile()) throw new Error(`Invalid observer file: ${name}; preserve state for inspection.`);
   }
-  await observationGit(path, ["init", "--bare", "--template=", "-q"], signal);
+  await observationGit(path, ["init", "--bare", `--object-format=${objectFormat}`, "--template=", "-q"], signal);
   return path;
 }
 
@@ -94,11 +100,41 @@ export async function compareRevisions(
   signal?: AbortSignal,
 ): Promise<Conflict | undefined> {
   if (!isCommit(target.commit) || !isCommit(incoming.commit)) throw new Error("Invalid revision object ID.");
-  if (target.commit === incoming.commit) return;
+  const collision = async (revision: string): Promise<Conflict | undefined> => {
+    if (!target.caseInsensitive) return;
+    const paths = names(
+      await observationGit(observer, ["ls-tree", "-r", "--name-only", "-z", revision], signal, "paths"),
+    );
+    const prefixes = new Map<string, { prefix: string; file: string }>();
+    const files = new Set<string>();
+    for (const file of paths) {
+      let prefix = "";
+      for (const part of file.split("/")) {
+        prefix = prefix ? `${prefix}/${part}` : part;
+        const key = prefix.toLowerCase();
+        const prior = prefixes.get(key);
+        if (prior && prior.prefix !== prefix) {
+          files.add(prior.file);
+          files.add(file);
+        } else if (!prior) prefixes.set(key, { prefix, file });
+      }
+    }
+    if (files.size)
+      return {
+        level: "conflict",
+        target,
+        incoming,
+        files: [...files].sort(),
+        reason:
+          "The receiver's case-insensitive filesystem cannot represent these merged paths distinctly, even if Git's abstract tree merges cleanly.",
+      };
+  };
   try {
+    if (target.commit === incoming.commit) return await collision(target.commit);
     const base = (await observationGit(observer, ["merge-base", target.commit, incoming.commit], signal)).trim();
     if (!isCommit(base)) throw new Error("No readable common ancestor.");
-    if (base === target.commit || base === incoming.commit) return;
+    if (base === target.commit || base === incoming.commit)
+      return await collision(base === target.commit ? incoming.commit : target.commit);
     const own = names(
       await observationGit(
         observer,
@@ -119,7 +155,7 @@ export async function compareRevisions(
       own.some((path) => path === file || path.startsWith(`${file}/`) || file.startsWith(`${path}/`)),
     );
     try {
-      await observationGit(
+      const merged = await observationGit(
         observer,
         [
           "-c",
@@ -134,6 +170,10 @@ export async function compareRevisions(
         signal,
         "paths",
       );
+      const tree = merged.split("\0")[0];
+      if (!isCommit(tree)) throw new Error("Invalid merge-tree output.");
+      const issue = await collision(tree);
+      if (issue) return issue;
     } catch (error) {
       signal?.throwIfAborted();
       const cause = (error as Error & { cause?: { code?: unknown; stdout?: Buffer } }).cause;
@@ -179,6 +219,32 @@ export async function worktreeRevisions(
       if (error.cause?.code === 1) return "HEAD";
       throw error;
     });
+  // Only non-executable normalization settings cross into the private observer.
+  const settings = await git(
+    root,
+    [
+      "config",
+      "--null",
+      "--get-regexp",
+      "^core\\.(autocrlf|eol|safecrlf|filemode|ignorecase|symlinks|attributesfile|precomposeunicode)$",
+    ],
+    signal,
+    "paths",
+  ).catch((error) => {
+    signal?.throwIfAborted();
+    if (error.cause?.code === 1) return "";
+    throw error;
+  });
+  const config: string[] = [];
+  let caseInsensitive = false;
+  for (const setting of names(settings)) {
+    const newline = setting.indexOf("\n");
+    if (newline < 0) throw new Error("Invalid Git snapshot settings.");
+    const key = setting.slice(0, newline),
+      value = setting.slice(newline + 1);
+    config.push("-c", `${key}=${value}`);
+    if (key === "core.ignorecase") caseInsensitive = ["true", "yes", "on", "1", ""].includes(value.toLowerCase());
+  }
   const revisions: Revision[] = [{ id: `${root}:HEAD`, kind: "worktree", repository, root, ref: branch, commit: head }];
   const index = join(observer, `index-${randomUUID()}`);
   const env = {
@@ -193,6 +259,7 @@ export async function worktreeRevisions(
       [
         `--git-dir=${observer}`,
         `--work-tree=${root}`,
+        ...config,
         "-c",
         `core.hooksPath=${nullDevice}`,
         "-c",
@@ -219,7 +286,65 @@ export async function worktreeRevisions(
       throw new Error(
         "Sparse/skip-worktree/assume-unchanged indexes cannot be observed safely; conflict status is unknown.",
       );
+    if (!caseInsensitive)
+      for (const record of names(flags)) {
+        const file = record.slice(2);
+        const variant = file.replace(/[a-zA-Z](?=[^/]*$)/, (letter) =>
+          letter === letter.toLowerCase() ? letter.toUpperCase() : letter.toLowerCase(),
+        );
+        if (variant === file) continue;
+        const original = await lstat(join(root, file)).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === "ENOENT") return;
+          throw error;
+        });
+        if (!original) continue;
+        const folded = await lstat(join(root, variant)).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === "ENOENT") return;
+          throw error;
+        });
+        caseInsensitive = !!folded && original.dev === folded.dev && original.ino === folded.ino;
+        break;
+      }
+    revisions[0].caseInsensitive = caseInsensitive;
     if (!status) return revisions;
+    const attributes = gitPathLine(
+      await git(root, ["rev-parse", "--path-format=absolute", "--git-path", "info/attributes"], signal, "paths"),
+    );
+    const privateAttributes = await readFile(attributes).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") return;
+      throw error;
+    });
+    if (privateAttributes?.length)
+      throw new Error(
+        "Private Git info/attributes cannot be safely reproduced in a shared observer; snapshot status is unknown.",
+      );
+    const filters = await git(root, ["config", "--get-regexp", "^filter\\..*\\.(clean|process)$"], signal).catch(
+      (error) => {
+        signal?.throwIfAborted();
+        if (error.cause?.code === 1) return "";
+        throw error;
+      },
+    );
+    if (filters) {
+      const files = [
+        ...new Set([
+          ...names(flags).map((record) => record.slice(2)),
+          ...names(status)
+            .filter((record) => record.startsWith("? "))
+            .map((record) => record.slice(2)),
+        ]),
+      ];
+      for (let offset = 0; offset < files.length; offset += 32) {
+        const attributes = names(
+          await git(root, ["check-attr", "--all", "-z", "--", ...files.slice(offset, offset + 32)], signal, "paths"),
+        );
+        if (attributes.length % 3) throw new Error("Invalid Git filter attributes; snapshot status is unknown.");
+        if (attributes.some((value, index) => index % 3 === 1 && value === "filter"))
+          throw new Error(
+            "External Git filters cannot be executed in the observer; filtered dirty snapshots are unknown.",
+          );
+      }
+    }
     const sparse = await git(root, ["config", "--bool", "--get", "core.sparseCheckout"], signal).catch((error) => {
       signal?.throwIfAborted();
       if (error.cause?.code === 1) return "false";

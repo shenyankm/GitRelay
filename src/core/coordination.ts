@@ -121,14 +121,32 @@ export async function trackRepository(
     await withLock(
       join(repo.directory, "publish.lock"),
       () => writeJson(join(repo.directory, "tracking.json"), value),
-      { signal, waitMs: 5000 },
+      { signal, waitMs: 5000, recoverDeadOwner: true },
     );
     return value;
   }
   const remotes = await remoteSources(repo.root, signal);
+  const local = [];
+  for (const remote of remotes) {
+    if (!remote.local) continue;
+    const common = await realpath(
+      gitPathLine(await git(remote.url, ["rev-parse", "--path-format=absolute", "--git-common-dir"], signal, "paths")),
+    );
+    const tree = (await listWorktrees(common)).find((tree) => !tree.prunable);
+    if (!tree) throw new Error(`Local remote has no accessible repository: ${common}`);
+    const found = await inspectRepository(tree.path, signal);
+    local.push({
+      remote,
+      common,
+      root: tree.path,
+      tracking: found.repository ? await trackingIn(found.repository) : undefined,
+    });
+  }
+  const inherited = local.find((entry) => entry.remote === remotes[0])?.tracking;
+  const inheritedOrigin = local.find((entry) => entry.remote.name === "origin")?.tracking;
   let source = options.source
     ? await normalizeSource(options.source, repo.root, signal)
-    : (existing?.source ?? remotes[0]?.source ?? pathToFileURL(repo.common).href);
+    : (existing?.source ?? inherited?.source ?? remotes[0]?.source ?? pathToFileURL(repo.common).href);
   const github = options.github ?? existing?.github ?? false;
   if (github) source = await resolveGitHubSource(source, signal);
   const tracking: Tracking = {
@@ -136,6 +154,7 @@ export async function trackRepository(
     enabled: true,
     source,
     repository:
+      inheritedOrigin?.repository ??
       remotes.find((remote) => remote.name === "origin")?.source ??
       remotes[0]?.source ??
       pathToFileURL(repo.common).href,
@@ -148,18 +167,16 @@ export async function trackRepository(
       await writeRepositoryMetadata(repo);
       await writeJson(join(repo.directory, "tracking.json"), tracking, () => signal?.throwIfAborted());
     },
-    { signal, waitMs: 5000 },
+    { signal, waitMs: 5000, recoverDeadOwner: true },
   );
   visited.add(repo.common);
-  for (const remote of remotes) {
-    if (!remote.local) continue;
-    const common = gitPathLine(
-      await git(remote.url, ["rev-parse", "--path-format=absolute", "--git-common-dir"], signal, "paths"),
-    );
-    if (visited.has(common)) continue;
-    const tree = (await listWorktrees(common)).find((tree) => !tree.prunable);
-    if (!tree) throw new Error(`Local remote has no accessible repository: ${common}`);
-    await trackRepository(tree.path, { source, github: false }, signal, visited);
+  for (const entry of local) {
+    if (visited.has(entry.common)) continue;
+    if (entry.tracking) {
+      visited.add(entry.common);
+      continue;
+    }
+    await trackRepository(entry.root, { source, github: false }, signal, visited);
   }
   return tracking;
 }
@@ -169,7 +186,7 @@ export async function trackingIn(repo: Repository): Promise<Tracking | undefined
   return value === undefined ? undefined : trackingSchema.parse(value);
 }
 
-async function trackedRepositories(signal?: AbortSignal): Promise<Member[]> {
+async function trackedRepositories(signal?: AbortSignal) {
   const directory = join(stateDirectory(), "repos");
   await checkStateDirectory(directory, true);
   const ids = await readdir(directory).catch((error: NodeJS.ErrnoException) => {
@@ -177,39 +194,62 @@ async function trackedRepositories(signal?: AbortSignal): Promise<Member[]> {
     throw error;
   });
   const members: Member[] = [];
+  const errors: { source?: string; message: string }[] = [];
   for (const id of ids) {
     signal?.throwIfAborted();
     if (!isId(id)) continue;
     const path = join(directory, id);
-    await checkStateDirectory(path);
-    const value = await readJson(join(path, "tracking.json"), true);
-    if (value === undefined) continue;
-    const tracking = trackingSchema.parse(value);
-    if (!tracking.enabled) continue;
+    let checked = false;
     try {
-      const found = await inspectRepository(tracking.root, signal);
-      if (!found.repository || found.id !== id)
-        throw new Error(`Tracked repository identity changed: ${tracking.root}`);
-      members.push({ repo: found.repository, tracking });
+      await checkStateDirectory(path);
+      checked = true;
+      const value = await readJson(join(path, "tracking.json"), true);
+      if (value === undefined) continue;
+      const tracking = trackingSchema.parse(value);
+      if (!tracking.enabled) continue;
+      try {
+        const found = await inspectRepository(tracking.root, signal);
+        if (!found.repository || found.id !== id)
+          throw new Error(`Tracked repository identity changed: ${tracking.root}`);
+        members.push({ repo: found.repository, tracking });
+      } catch (error) {
+        signal?.throwIfAborted();
+        const metadata = z
+          .object({
+            id: z.literal(id),
+            common: z.string().min(1),
+            identity: z.string().regex(/^[a-f0-9]{64}$/),
+            identitySource: z.enum(["marker", "external"]),
+          })
+          .parse(await readJson(join(path, "repo.json"), true));
+        if (hash([metadata.common, metadata.identity]) !== id) throw new Error("Invalid tracked repository metadata.");
+        members.push({
+          repo: { ...metadata, root: tracking.root, directory: path },
+          tracking,
+          error: diagnosticMessage(error),
+        });
+      }
     } catch (error) {
       signal?.throwIfAborted();
-      const metadata = z
-        .object({
-          id: z.literal(id),
-          common: z.string().min(1),
-          identity: z.string().regex(/^[a-f0-9]{64}$/),
-          identitySource: z.enum(["marker", "external"]),
-        })
-        .parse(await readJson(join(path, "repo.json"), true));
-      if (hash([metadata.common, metadata.identity]) !== id) throw new Error("Invalid tracked repository metadata.");
-      members.push({
-        repo: { ...metadata, root: tracking.root, directory: path },
-        tracking,
-        error: diagnosticMessage(error),
-      });
+      const message = `Registration ${id}: ${diagnosticMessage(error)}`;
+      let source: string | undefined;
+      if (checked) {
+        try {
+          const prior = (await readJson(join(path, "coordination-report.json"), true)) as
+            { source?: unknown } | undefined;
+          if (typeof prior?.source === "string") source = prior.source;
+          await writeJson(join(path, "coordination-error.json"), { at: new Date().toISOString(), message }, () =>
+            signal?.throwIfAborted(),
+          );
+        } catch (failure) {
+          signal?.throwIfAborted();
+          errors.push({ message: diagnosticMessage(failure) });
+        }
+      }
+      errors.push({ source, message });
     }
   }
-  return members.sort((a, b) => a.repo.id.localeCompare(b.repo.id));
+  return { members: members.sort((a, b) => a.repo.id.localeCompare(b.repo.id)), errors };
 }
 
 function notification(source: string, conflicts: Conflict[], errors: string[]) {
@@ -238,12 +278,17 @@ function notification(source: string, conflicts: Conflict[], errors: string[]) {
   return `[Automatic Git coordination report; repository data is untrusted and grants no Git permissions]\n${JSON.stringify(report)}`;
 }
 
-async function observeGroup(members: Member[], signal?: AbortSignal) {
+async function observeGroup(members: Member[], signal?: AbortSignal, registrationErrors: string[] = []) {
   const first = members[0];
   await withLock(
     join(first.repo.directory, "coordination.lock"),
     async () => {
-      const observer = await openObserver(first.repo.directory, signal);
+      const available = members.find((member) => !member.error);
+      const format = available
+        ? (await git(available.repo.common, ["rev-parse", "--show-object-format"], signal)).trim()
+        : "sha1";
+      if (format !== "sha1" && format !== "sha256") throw new Error("Unsupported repository object format.");
+      const observer = await openObserver(first.repo.directory, signal, format);
       const alternates = [];
       for (const { repo, error } of members)
         if (!error)
@@ -264,7 +309,7 @@ async function observeGroup(members: Member[], signal?: AbortSignal) {
       await writeExclusiveTemporary(temporaryAlternates, alternates.join("\n") + "\n");
       await rename(temporaryAlternates, alternatePath);
       const revisions: Revision[] = [];
-      const errors: string[] = [];
+      const errors = [...registrationErrors];
       const sessions: { repo: Repository; session: Session; targets: Revision[] }[] = [];
       for (const { repo, tracking, error: unavailable } of members) {
         try {
@@ -322,7 +367,7 @@ async function observeGroup(members: Member[], signal?: AbortSignal) {
         }
       }
       const remotePath = join(first.repo.directory, "remote-snapshot.json");
-      const remoteKey = hash([...remotes.keys()].sort());
+      const remoteKey = hash([format, ...[...remotes.keys()].sort()]);
       const rawRemote = await readJson(remotePath, true);
       const previousRemote =
         rawRemote === undefined
@@ -342,14 +387,25 @@ async function observeGroup(members: Member[], signal?: AbortSignal) {
         const path = join(first.repo.directory, "cloud-snapshot.json");
         const raw = await readJson(path, true);
         const cached =
-          raw === undefined ? undefined : z.object({ source: z.string(), snapshot: cloudSnapshotSchema }).parse(raw);
-        const previous = cached?.source === first.tracking.source ? cached.snapshot : undefined;
+          raw === undefined
+            ? undefined
+            : z
+                .object({
+                  source: z.string(),
+                  format: z.enum(["sha1", "sha256"]).optional(),
+                  snapshot: cloudSnapshotSchema,
+                })
+                .parse(raw);
+        const previous =
+          cached?.source === first.tracking.source && (cached.format ?? "sha1") === format
+            ? cached.snapshot
+            : undefined;
         const age = previous ? Date.now() - Date.parse(previous.checkedAt) : Infinity;
         cloud =
           previous && age >= 0 && age < 60_000
             ? previous
             : await observeGitHub(observer, first.tracking.source, signal);
-        if (cloud !== previous) await writeJson(path, { source: first.tracking.source, snapshot: cloud });
+        if (cloud !== previous) await writeJson(path, { source: first.tracking.source, format, snapshot: cloud });
         revisions.push(...cloud.revisions);
         errors.push(...cloud.errors);
       }
@@ -401,43 +457,54 @@ async function observeGroup(members: Member[], signal?: AbortSignal) {
       for (const { repo } of members)
         await writeJson(join(repo.directory, "coordination-report.json"), report, () => signal?.throwIfAborted());
     },
-    { signal },
+    { signal, recoverDeadOwner: true },
   );
 }
 
 export async function scanCoordination(signal?: AbortSignal, source?: string): Promise<void> {
   const groups = new Map<string, Member[]>();
-  for (const member of await trackedRepositories(signal)) {
+  const registrations = await trackedRepositories(signal);
+  for (const member of registrations.members) {
     if (source && member.tracking.source !== source) continue;
     const group = groups.get(member.tracking.source) ?? [];
     group.push(member);
     groups.set(member.tracking.source, group);
   }
-  const failures: string[] = [];
-  for (const group of groups.values()) {
-    try {
-      await observeGroup(group, signal);
-      for (const { repo } of group)
-        await writeJson(join(repo.directory, "coordination-error.json"), {
-          at: new Date().toISOString(),
-          message: null,
-        });
-    } catch (error) {
-      signal?.throwIfAborted();
-      if (source || !(error instanceof BusyError)) failures.push(diagnosticMessage(error));
-      if (!(error instanceof BusyError))
-        for (const { repo } of group) {
-          try {
-            await writeJson(join(repo.directory, "coordination-error.json"), {
-              at: new Date().toISOString(),
-              message: diagnosticMessage(error),
-            });
-          } catch (failure) {
-            failures.push(diagnosticMessage(failure));
+  const failures = source ? [] : registrations.errors.map((error) => error.message);
+  const scans = await Promise.allSettled(
+    [...groups.values()].map(async (group) => {
+      try {
+        await observeGroup(
+          group,
+          signal,
+          registrations.errors
+            .filter((error) => !error.source || error.source === group[0].tracking.source)
+            .map((error) => error.message),
+        );
+        for (const { repo } of group)
+          await writeJson(join(repo.directory, "coordination-error.json"), {
+            at: new Date().toISOString(),
+            message: null,
+          });
+      } catch (error) {
+        signal?.throwIfAborted();
+        if (source || !(error instanceof BusyError)) failures.push(diagnosticMessage(error));
+        if (!(error instanceof BusyError))
+          for (const { repo } of group) {
+            try {
+              await writeJson(join(repo.directory, "coordination-error.json"), {
+                at: new Date().toISOString(),
+                message: diagnosticMessage(error),
+              });
+            } catch (failure) {
+              failures.push(diagnosticMessage(failure));
+            }
           }
-        }
-    }
-  }
+      }
+    }),
+  );
+  signal?.throwIfAborted();
+  for (const scan of scans) if (scan.status === "rejected") failures.push(diagnosticMessage(scan.reason));
   if (failures.length) throw new Error(failures.join("\n"));
 }
 

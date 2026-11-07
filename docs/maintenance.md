@@ -14,20 +14,51 @@ participating server remains. It publishes changes but does not acknowledge
 messages or run model turns. An old subscription's heartbeat does not prove the
 agent is still online.
 
+## Verified-dead lock recovery
+
+MCP identity/session/publication locks and shared monitor/group locks publish a
+complete PID/token record atomically with a hard link. A process crash therefore
+does not expose a newly created empty owner record. Local state storage must
+support hard links and atomic rename.
+
+Automatic reclamation requires a verifiably dead PID and matching file identity.
+Recovery contenders publish unique, never-reused bakery tickets under
+`<lock>.recovery/`, serialize the identity check/unlink, and remove only their own
+ticket afterward. A crashed recovery participant's unique ticket can itself be
+removed after its PID is verifiably dead; no age-based stealing or permanent
+second recovery mutex is used. Lock ordering and event/receipt recovery journals
+are unchanged. Generic legacy lock calls retain their explicit-recovery default.
+
+Live PIDs, permission-denied/ambiguous owners, corrupt records and old ownerless
+locks remain protected and need inspection. PID reuse can conservatively prevent
+automatic reclamation; age alone never authorizes deleting a lock. Never manually
+remove a live lock or delete event/receipt evidence to force recovery.
+
 ## Tracked source state
 
 `tracking.json` enables same-source analysis. Disable with
 `track_repository({enabled:false})` to stop that local registration; recursively
 discovered source repositories have independent registrations and may also need
 disabling. Existing inbox data is retained. Registrations are tied to the main
-worktree/bare root rather than an ephemeral calling worktree.
+worktree/bare root rather than an ephemeral calling worktree. Discovering a local
+remote does not overwrite its existing GitHub/source/disabled preferences. A
+clone inherits a known local parent's source identity, including resolved fork
+ancestry, without re-enabling a deliberately disabled parent.
 
 `coordination-report.json` records inventories, coverage errors and scan times;
 cloud and remote snapshots have a one-minute cache. Check timestamps before
 assuming a report is current. Missing repositories are unknown, not clean, and
-healthy members continue scanning. Corrupt state is rejected and preserved.
+healthy members continue scanning. Corrupt registrations are quarantined and
+preserved with a local `coordination-error.json`. Their last complete source
+association identifies the affected coverage gap; unknown ancestry remains an
+explicit unknown rather than being assumed unrelated. Other healthy source
+groups keep producing fresh reports. Reading the corrupt registration itself
+still fails closed until repaired.
 
-The private `observer.git` retains imported objects and synthetic snapshots.
+The private `observer.git` (SHA-1) or `observer-sha256.git` retains imported objects
+and synthetic snapshots. A SHA-256 observer does not overwrite/delete an older
+SHA-1 store left by the previous implementation. Remote caches include object
+format in their identity.
 It can consume significant disk space for large fork networks. Do not remove it
 while monitoring; no automatic observer-compaction policy is claimed here.
 Ordinary message GC does not compact Git object databases.

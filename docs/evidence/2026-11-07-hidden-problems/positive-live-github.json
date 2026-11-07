@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-11-06T19:13:24.514Z",
+  "node": "v22.23.2",
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "remoteWrites": false,
+  "passed": true,
+  "github": {
+    "source": "https://github.com/koriym/koriym.psr4list",
+    "repositories": [
+      "https://github.com/koriym/koriym.psr4list"
+    ],
+    "branches": 2,
+    "pullRequests": [
+      "https://github.com/koriym/koriym.psr4list/pull/15"
+    ]
+  },
+  "endToEnd": {
+    "pullRequest": "https://github.com/koriym/koriym.psr4list/pull/15",
+    "file": ".github/workflows/continuous-integration.yml",
+    "realGitConflict": true,
+    "automaticPush": true,
+    "resourceUpdate": true,
+    "explicitAcknowledgement": true,
+    "userRefsIndexAndWorkPreserved": true
+  },
+  "finishedAt": "2026-11-06T19:13:42.805Z"
+}

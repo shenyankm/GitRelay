@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { constants, renameSync, type Stats } from "node:fs";
-import { lstat, open, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { link, lstat, mkdir, open, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -188,17 +188,138 @@ export async function writeJson(path: string, value: unknown, beforeCommit?: () 
 export class BusyError extends Error {}
 export const GC_LOCK_TOKEN = "git-relay-gc-v1";
 
+async function openOwnedLock(path: string, token?: string) {
+  const temporary = `${path}.${randomUUID()}.owner`;
+  await writeExclusiveTemporary(temporary, JSON.stringify({ pid: process.pid, token }));
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
+  let published = false;
+  try {
+    handle = await open(temporary, constants.O_RDWR | (constants.O_NOFOLLOW ?? 0));
+    await link(temporary, path);
+    published = true;
+    return handle;
+  } catch (error) {
+    await handle?.close();
+    throw error;
+  } finally {
+    try {
+      await rm(temporary);
+    } catch (error) {
+      if (published && handle) {
+        try {
+          const held = await handle.stat();
+          const current = await lstat(path).catch(() => undefined);
+          if (current?.dev === held.dev && current.ino === held.ino) await rm(path);
+        } finally {
+          await handle.close();
+        }
+      }
+      throw error;
+    }
+  }
+}
+
+// Unique bakery tickets serialize recovery without an unrecoverable second lock or compare/unlink race.
+async function recoverDeadLock(path: string, signal?: AbortSignal, waitMs = 1000): Promise<void> {
+  const directory = `${path}.recovery`;
+  await checkStateDirectory(directory, true);
+  await mkdir(directory, { recursive: true, mode: 0o700 });
+  const id = hash(randomUUID());
+  const own = join(directory, `${id}.json`);
+  const deadline = performance.now() + Math.max(1000, waitMs);
+  const tickets = async () => {
+    const entries = [];
+    for (const name of await readdir(directory)) {
+      if (!/^[a-f0-9]{64}\.json$/.test(name)) continue;
+      const location = join(directory, name);
+      const entry = (await readJson(location, true)) as { pid?: number; ticket?: number | null } | undefined;
+      if (!entry) continue;
+      if (
+        !Number.isInteger(entry.pid) ||
+        entry.pid! <= 0 ||
+        (entry.ticket !== null && (!Number.isSafeInteger(entry.ticket) || entry.ticket! < 1))
+      )
+        throw new Error(`Invalid lock recovery ticket: ${location}; preserve state.`);
+      try {
+        process.kill(entry.pid!, 0);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+          await rm(location, { force: true });
+          continue;
+        }
+        if ((error as NodeJS.ErrnoException).code !== "EPERM") throw error;
+      }
+      entries.push({ id: name.slice(0, -5), ticket: entry.ticket });
+    }
+    return entries;
+  };
+  try {
+    await writeJson(own, { pid: process.pid, ticket: null }, () => signal?.throwIfAborted());
+    const ticket = 1 + Math.max(0, ...(await tickets()).map((entry) => entry.ticket ?? 0));
+    if (!Number.isSafeInteger(ticket)) throw new Error("Lock recovery ticket overflow; preserve state.");
+    await writeJson(own, { pid: process.pid, ticket }, () => signal?.throwIfAborted());
+    for (;;) {
+      signal?.throwIfAborted();
+      const waiting = (await tickets()).some(
+        (entry) =>
+          entry.id !== id &&
+          (entry.ticket === null || entry.ticket! < ticket || (entry.ticket === ticket && entry.id < id)),
+      );
+      if (!waiting) break;
+      if (performance.now() >= deadline) throw new BusyError(`GitRelay lock recovery is busy: ${path}`);
+      await delay(10, undefined, { signal });
+    }
+    const info = await lstat(path).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") return;
+      throw error;
+    });
+    if (!info) return;
+    if (!info.isFile()) throw new Error(`Invalid git-relay lock (not a regular file): ${path}`);
+    const owner = (await readJson(path, true)) as { pid?: number } | undefined;
+    if (!Number.isInteger(owner?.pid) || owner!.pid! <= 0)
+      throw new Error(`Cannot verify lock owner: ${path}; preserve state.`);
+    try {
+      process.kill(owner!.pid!, 0);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") return;
+      const latest = await lstat(path).catch((failure: NodeJS.ErrnoException) => {
+        if (failure.code === "ENOENT") return;
+        throw failure;
+      });
+      signal?.throwIfAborted();
+      if (
+        latest &&
+        latest.dev === info.dev &&
+        latest.ino === info.ino &&
+        latest.size === info.size &&
+        latest.mtimeMs === info.mtimeMs &&
+        latest.ctimeMs === info.ctimeMs
+      )
+        await rm(path);
+    }
+  } finally {
+    await rm(own, { force: true });
+  }
+}
+
 export async function withLock<T>(
   path: string,
   run: () => Promise<T>,
-  options: { token?: string; busyToken?: string; signal?: AbortSignal; waitMs?: number; onAcquired?: () => void } = {},
+  options: {
+    token?: string;
+    busyToken?: string;
+    signal?: AbortSignal;
+    waitMs?: number;
+    onAcquired?: () => void;
+    recoverDeadOwner?: boolean;
+  } = {},
 ): Promise<T> {
   const deadline = performance.now() + (options.waitMs ?? 0);
   let lock;
   for (;;) {
     options.signal?.throwIfAborted();
     try {
-      lock = await open(path, "wx", 0o600);
+      lock = options.recoverDeadOwner ? await openOwnedLock(path, options.token) : await open(path, "wx", 0o600);
       break;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
@@ -249,6 +370,10 @@ export async function withLock<T>(
             latest.ino === info.ino &&
             latest.mtimeMs === info.mtimeMs
           ) {
+            if (options.recoverDeadOwner) {
+              await recoverDeadLock(path, options.signal, options.waitMs);
+              continue;
+            }
             throw new Error(
               `Stale git-relay lock: ${path}. Recheck the current owner before manual recovery; never remove a live lock.`,
             );
@@ -283,7 +408,7 @@ export async function withLock<T>(
   try {
     options.onAcquired?.();
     options.signal?.throwIfAborted();
-    await lock.writeFile(JSON.stringify({ pid: process.pid, token: options.token }));
+    if (!options.recoverDeadOwner) await lock.writeFile(JSON.stringify({ pid: process.pid, token: options.token }));
     options.signal?.throwIfAborted();
     return await run();
   } finally {

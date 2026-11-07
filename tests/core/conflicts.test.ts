@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
+import { access, lstat, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fixture, git } from "../helpers.ts";
@@ -65,6 +65,35 @@ test("uncommitted submodule contents cannot be mistaken for a clean parent snaps
   await importRefs(observer, repo.common, repo.id);
   await assert.rejects(worktreeRevisions(observer, f.b, "test"), /Uncommitted submodule contents/);
   assert.equal(await readFile(join(f.b, "module", "shared.txt"), "utf8"), "unfinished child work\n");
+});
+
+test("dirty filtered snapshots and private attributes remain unknown rather than executing observer filters", async (t) => {
+  const f = await fixture(t);
+  const repo = await repository(f.b);
+  const observer = await openObserver(repo.directory);
+  await importRefs(observer, repo.common, repo.id);
+  await writeFile(join(f.b, "other.txt"), "local work\n");
+  await writeFile(join(f.b, ".gitattributes"), "*.txt filter=external\n");
+  git(f.b, "config", "filter.external.clean", "cat");
+  await assert.rejects(worktreeRevisions(observer, f.b, "test"), /External Git filters/);
+  git(f.b, "config", "--unset", "filter.external.clean");
+  await writeFile(join(f.main, ".git", "info", "attributes"), "*.txt text eol=crlf\n");
+  await assert.rejects(worktreeRevisions(observer, f.b, "test"), /Private Git info\/attributes/);
+});
+
+test("filesystem case folding is detected even if core.ignorecase is incorrectly disabled", async (t) => {
+  const f = await fixture(t);
+  const folded = await lstat(join(f.b, "SHARED.TXT")).catch(() => undefined);
+  if (!folded) {
+    t.skip("actual volume is case sensitive");
+    return;
+  }
+  git(f.main, "config", "core.ignorecase", "false");
+  const repo = await repository(f.b);
+  const observer = await openObserver(repo.directory);
+  await importRefs(observer, repo.common, repo.id);
+  const [snapshot] = await worktreeRevisions(observer, f.b, "test");
+  assert.equal(snapshot.caseInsensitive, true);
 });
 
 test("dirty sparse worktrees are unknown rather than synthetic deletion conflicts", async (t) => {

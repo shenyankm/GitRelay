@@ -73,6 +73,9 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
       let heartbeatTimer: NodeJS.Timeout | undefined;
       const cleanup = new Map<string, { completed: number; nextAttempt: number }>();
       const missing = new Set<string>();
+      const scans = new Set<Promise<void>>();
+      const scanController = new AbortController();
+      const scanSignal = AbortSignal.any([options.signal, scanController.signal]);
       try {
         await heartbeat();
         heartbeatTimer = setInterval(() => void heartbeat().catch(() => {}), Math.min(intervalMs, 5000));
@@ -178,34 +181,38 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
               if (clean) progress.nextAttempt = now + retryDelay;
               await mkdir(join(directory, "trash"), { recursive: true, mode: 0o700 });
               const errors: object[] = [];
-              await withLock(join(directory, "publish.lock"), async () => {
-                const refs = [
-                  ...new Set(
-                    (await sessionsIn(repo)).filter((session) => !session.closedAt).map((session) => session.ref),
-                  ),
-                ];
-                for (const ref of refs) {
-                  options.signal.throwIfAborted();
-                  try {
-                    await synchronizeRef(
-                      repo,
-                      ref,
-                      { adapter: "daemon", session: String(process.pid) },
-                      options.signal,
-                      token,
-                    );
-                  } catch (error) {
-                    if (!options.signal.aborted)
-                      errors.push({
-                        type: "daemon.error",
-                        repo: id,
+              await withLock(
+                join(directory, "publish.lock"),
+                async () => {
+                  const refs = [
+                    ...new Set(
+                      (await sessionsIn(repo)).filter((session) => !session.closedAt).map((session) => session.ref),
+                    ),
+                  ];
+                  for (const ref of refs) {
+                    options.signal.throwIfAborted();
+                    try {
+                      await synchronizeRef(
+                        repo,
                         ref,
-                        message: error instanceof Error ? error.message : String(error),
-                      });
+                        { adapter: "daemon", session: String(process.pid) },
+                        options.signal,
+                        token,
+                      );
+                    } catch (error) {
+                      if (!options.signal.aborted)
+                        errors.push({
+                          type: "daemon.error",
+                          repo: id,
+                          ref,
+                          message: error instanceof Error ? error.message : String(error),
+                        });
+                    }
+                    await heartbeat();
                   }
-                  await heartbeat();
-                }
-              });
+                },
+                { signal: options.signal, recoverDeadOwner: true },
+              );
               for (const error of errors) await emit(error);
               if (clean && !options.signal.aborted) {
                 const started = performance.now();
@@ -234,20 +241,23 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                 });
             }
           }
-          if (!options.signal.aborted) {
-            try {
-              await scanCoordination(options.signal);
-            } catch (error) {
-              if (!options.signal.aborted)
-                await emit({
-                  type: "coordination.error",
-                  message: error instanceof Error ? error.message : String(error),
-                });
-            }
+          if (!scanSignal.aborted) {
+            const scan = scanCoordination(scanSignal)
+              .catch(async (error) => {
+                if (!scanSignal.aborted)
+                  await emit({
+                    type: "coordination.error",
+                    message: error instanceof Error ? error.message : String(error),
+                  });
+              })
+              .finally(() => scans.delete(scan));
+            scans.add(scan);
           }
           if (!options.signal.aborted) await delay(intervalMs, undefined, { signal: options.signal }).catch(() => {});
         }
       } finally {
+        scanController.abort();
+        await Promise.allSettled(scans);
         clearInterval(heartbeatTimer);
         await pendingHeartbeat?.catch(() => {});
         const state = (await readJson(join(root, "daemon.json"))) as { token?: string } | undefined;
@@ -255,6 +265,6 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
         if (heartbeatFailed) throw heartbeatError;
       }
     },
-    { token, signal: options.signal },
+    { token, signal: options.signal, recoverDeadOwner: true },
   );
 }
