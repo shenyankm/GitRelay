@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Source-only operation
+
+- Make the Node.js project private and remove npm package files/bin/exports/types, install-time builds, tarball acceptance and publication-specific release checks.
+- Remove the package SDK wrapper and declaration-only build; retain dependency locking, explicit JavaScript builds, strict type checking, core/MCP tests and CI.
+- Replace package-install acceptance with private-project and built-source stdio checks; update current setup/release documentation while retaining historical evidence and legacy uninstall guidance.
+
+### Documentation alignment
+
+- Index current source-only guides separately from historical evidence and pre-MCP optimization reports.
+- Align setup, tracking/monitor lifecycle, notification/ACK guidance and migration tables with the current tools, including host-facing MCP instructions.
+- Distinguish configured CI and dated model/package acceptance from verification of the current checkout; document rebuilding/restarting and future documentation checks.
+
 ### Coordination reliability fixes
 
 - Recover verifiably dead MCP/monitor lock owners using serialized, crash-recoverable ownership tickets; atomically publish complete lock ownership and preserve ambiguous/live locks.
@@ -29,7 +41,7 @@
 - Remove obsolete Codex environment actions, unused native-adapter options and the orphaned Darwin I/O benchmark helper; use GitRelay in lock diagnostics.
 - Keep existing repository state and recovery contracts; native inbox identities are not silently transferred.
 - Use connected MCP processes for shared monitoring and failover; automatic context injection and Stop continuation are removed.
-- Prepare version 0.2.0. Publication and hosted CI remain separate steps.
+- Keep source version 0.2.0. Hosted CI results require separate verification.
 
 ## [0.1.2] - 2026-11-04
 

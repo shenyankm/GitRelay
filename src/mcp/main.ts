@@ -34,7 +34,7 @@ try {
   });
   if (values.help) {
     process.stdout.write(
-      "GitRelay MCP server\n\nUsage: git-relay [--cwd PATH]\n\nServes MCP over stdin/stdout. Configure this command in your MCP host.\n--cwd PATH sets the default worktree; tools can explicitly select another path.\nWORKTREE_SYNC_STATE_DIR selects the shared local state directory.\n",
+      "GitRelay MCP server\n\nUsage: node /path/to/GitRelay/dist/mcp/main.js [--cwd PATH]\n\nServes MCP over stdin/stdout. Configure this command in your MCP host.\n--cwd PATH sets the default worktree; tools can explicitly select another path.\nWORKTREE_SYNC_STATE_DIR selects the shared local state directory.\n",
     );
   } else if (values.version) {
     const pkg = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8"));

@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { readdir, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import { join, resolve } from "node:path";
@@ -16,7 +15,7 @@ async function build(relative = "") {
     }
     if (!entry.name.endsWith(".ts")) continue;
     const source = await readFile(join(root, "src", path), "utf8");
-    // Node does not strip TypeScript inside node_modules, so ship runnable JS for MCP hosts.
+    // Emit runnable JavaScript for stdio hosts without a TypeScript loader.
     const code = stripTypeScriptTypes(source).replace(/((?:from\s+|import\s*\(\s*)["']\.[^"']*)\.ts(["'])/g, "$1.js$2");
     const target = resolve(root, "dist", path.replace(/\.ts$/, ".js"));
     await mkdir(resolve(target, ".."), { recursive: true });
@@ -24,9 +23,3 @@ async function build(relative = "") {
   }
 }
 await build();
-
-execFileSync(
-  process.execPath,
-  [join(root, "node_modules/typescript/bin/tsc"), "-p", join(root, "tsconfig.build.json")],
-  { stdio: "inherit" },
-);

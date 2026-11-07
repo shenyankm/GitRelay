@@ -1,6 +1,6 @@
 # Contributing
 
-Requires Node.js 22.19+ and Git.
+Requires Node.js 22.19+ and Git; merge diagnosis needs Git 2.38+.
 
 ```sh
 npm ci --ignore-scripts
@@ -15,7 +15,16 @@ unread events and recovery journals.
 New MCP behavior needs a focused protocol/regression test. For messages, verify
 that receiving does not acknowledge and that explicit acceptance survives retry.
 For lifecycle changes, verify EOF/cancellation cleanup and shared monitor
-failover. Test the packaged runtime without source or development dependencies.
+failover. Test the built source entry from an unrelated working directory and a
+worktree path containing spaces. Keep the project private; npm is for dependency
+management and local tasks, not GitRelay package publication.
+
+When commands, tools or lifecycle behavior change, update the English and Chinese
+READMEs and the affected guides in the [documentation index](docs/README.md).
+Check examples against `package.json`, the MCP schemas in `src/mcp/server.ts` and
+`.github/workflows/check.yml`; test counts and host results belong to dated
+evidence, not timeless compatibility promises. Preserve historical measurements
+and mark obsolete guidance rather than rewriting the recorded results.
 
 Benchmarks run against a built tree. `scripts/benchmark-delivery.mjs` measures the
 MCP path; the other focused scripts measure core operations. Do not compare

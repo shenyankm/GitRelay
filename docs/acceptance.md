@@ -9,27 +9,28 @@ npm run check
 node scripts/benchmark-delivery.mjs
 ```
 
-The combined check validates formatting, strict TypeScript, consistent package
-metadata, the core regression suite, real MCP stdio tests and npm packaging.
-A production installation test installs the tarball without source/dev tooling
-and calls its MCP tools from a path containing spaces.
+The combined check validates formatting, strict TypeScript, private source-project
+metadata, the core regression suite and real MCP stdio tests. Source-runtime
+checks exercise the built entry from a worktree with spaces, verify CLI help and
+version metadata, and reject npm distribution entry points/declaration artifacts.
+There is no npm packing, package installation or registry-publication gate.
 
 MCP acceptance covers discovery and input validation, read-only observation,
 independent private session handles, receive without acknowledgement,
 disconnect/reconnect, explicit/idempotent acceptance, stale/damaged batch
 rejection, partial-write retry, monitor ownership and repository isolation.
-Packaging and discovery checks reject the removed Web surface.
+Protocol discovery checks reject the removed Web surface.
 Safety regressions cover bounded/refilling tool-call budgets, concurrent-call
 limits, diagnostic sanitization and same-connection protocol-version retry.
 Existing Git/GC/storage race and corruption regressions remain required.
 
-Current refactor evidence is recorded under
+Historical MCP refactor evidence is recorded under
 [evidence/2026-11-05-mcp/summary.json](evidence/2026-11-05-mcp/summary.json).
 Local SDK acceptance, native Codex MCP discovery/calls, a real model workflow,
 desktop GUI behavior and hosted CI are independent evidence layers.
 
-The [follow-up usability run](evidence/2026-11-05-mcp-usability/summary.json)
-repeated all 433 checks and exercised 21 successful native Codex tool calls,
+The historical [follow-up usability run](evidence/2026-11-05-mcp-usability/summary.json)
+repeated its then-current 433 checks and exercised 21 successful native Codex tool calls,
 including host restart, unread recovery, explicit acknowledgement and dirty-work
 preservation. Its browser checks describe the since-removed Web console, not the
 current runtime. No model turns were run.
@@ -80,9 +81,21 @@ applicable scenario does not demonstrate its corrected positive behavior. Saved
 original findings remain historical evidence, not current acceptance results.
 See [fix acceptance](evidence/2026-11-07-hidden-fixes/README.md).
 
+## Evidence currency
+
+Use `npm run check` for the current checkout's test inventory; dated test totals
+are not a current pass count. The coordination and hidden-fix evidence predates
+the source-only change and includes now-retired package checks. Those results
+remain valid for their recorded source snapshots, not the current distribution.
+The manifest version alone does not identify a tested checkout: record the Git
+commit, uncommitted source changes/fingerprints, environment and commands when
+saving new evidence. Local regression results, live GitHub API checks, model
+consumption and hosted CI must remain separate claims.
+
 ## Historical results
 
 The archive preserves pre-MCP benchmarks and hook/native-model traces. They
-validate the old version only and do not establish the new MCP transport's
-latency, model behavior or host compatibility. See the
+validate their recorded versions only and do not establish current MCP latency,
+model behavior or host compatibility. Historical npm installation/tarball results
+are retained as evidence, not as a current distribution or acceptance workflow. See the
 [evidence archive](evidence/README.md).

@@ -12,10 +12,12 @@ returns it with the public subscription and a connection-bound `inboxUri`. Save
 the private token outside public session lists.
 To resume after a host reconnect, pass the same token. The initial join establishes
 an upstream baseline and does not replay messages sent before enrollment.
+Choose an existing branch ref; automatic source analysis additionally requires
+`track_repository` and can report conflicts that already existed before joining.
 
 `leave_session({cwd?, ref?, sessionToken, repositoryId?})` records opt-out before
-closing enrollment. Unread data and receipts remain. Use `repositoryId` when
-necessary to identify state for a removed worktree.
+closing enrollment. Unread data and receipts remain; this does not disable source
+tracking. Use `repositoryId` when necessary to identify state for a removed worktree.
 
 `list_sessions({cwd?})` reads existing records and strips activation tokens. A
 public ID or `lastSeen` does not authenticate another participant or prove it is
@@ -28,7 +30,7 @@ its unread data.
 
 `send_message({cwd?, ref?, sessionToken, text, files?})` publishes an authorized
 message under the sender's derived identity. It does not implicitly subscribe
-the sender. Omitting files broadcasts to other active recipients; a path list
+the sender. Omitting files broadcasts to other open subscriptions; a path list
 uses the engine's existing worktree relevance rules. The response's recipient
 count is an audience count, not a delivery guarantee.
 
@@ -55,7 +57,8 @@ the complete batch, call:
 
 Pass that object to `acknowledge_messages` with the same worktree and ref. Repeat
 acknowledgement of the latest completed batch is idempotent. A newer receive
-batch supersedes an older acknowledgement handle. After a lost response, poll
+batch with different event IDs supersedes an older acknowledgement handle;
+retrying an unchanged batch can return the same ID. After a lost response, poll
 again rather than guessing which event IDs were delivered. Keep calls for one
 logical receiver sequential.
 
@@ -73,10 +76,15 @@ never proves that a task is unaffected.
 
 `track_repository({cwd?, source?, github?, enabled?})` explicitly authorizes
 same-source coordination and configured remote observation. `source` overrides
-automatic upstream/origin ancestry; local remotes are recursively registered.
+automatic upstream/origin ancestry; local remotes are recursively registered
+without overwriting their existing preferences. Omitted `github` preserves this
+registration's existing setting (false for a new registration); pass
+`github=false` explicitly to turn off its GitHub API discovery.
 `github=true` additionally resolves GitHub fork ancestry and observes accessible
 fork networks, branches and open PRs. Disable with `enabled=false`; this preserves
-messages and does not disable other registrations in the source group.
+messages and does not disable other registrations in the source group. Enabling
+tracking starts a monitor candidate even without joining; notices still need
+participating subscriptions.
 
 `coordination_status({cwd?})` observes tracking and the last complete report,
 including local/remote/PR revisions, scan times, per-session findings and errors.

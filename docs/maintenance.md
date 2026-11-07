@@ -7,12 +7,14 @@ force a successful operation.
 
 ## Monitoring
 
-Joining or receiving through MCP starts a monitor candidate. Exactly one owns
-the daemon lock; other connected candidates retry and can take over after its
-owner exits. `monitor_status` is observation only. Monitoring stops when no
+Joining, receiving or enabling source tracking through MCP starts a monitor
+candidate. At most one owns the daemon lock; other connected candidates retry and
+can take over after its owner exits. `monitor_status` is observation only. Monitoring stops when no
 participating server remains. It publishes changes but does not acknowledge
 messages or run model turns. An old subscription's heartbeat does not prove the
-agent is still online.
+agent is still online. Leaving a subscription does not stop the candidate or
+disable source tracking; use `track_repository({enabled:false})` for each
+registration you intend to disable.
 
 ## Verified-dead lock recovery
 
@@ -64,7 +66,8 @@ while monitoring; no automatic observer-compaction policy is claimed here.
 Ordinary message GC does not compact Git object databases.
 
 `connections/` contains expiring per-transport leases. Graceful shutdown removes
-only the owning connection file; crashes expire within ten seconds. A lease says
+only the owning connection file. Leases expire within ten seconds without
+renewal; a verifiably dead process is considered offline sooner. A lease says
 nothing about whether a model is running or has understood a notice.
 
 ## Cleanup

@@ -14,9 +14,11 @@ After user authorization, invoke:
 { "cwd": "/absolute/path/to/clone", "github": true }
 ```
 
-with `track_repository`. Omit `github` for local/configured-remote observation
-without GitHub API discovery. The call authorizes private fetches of configured
-remote branches even when `github=false`. A host may require tool approval.
+with `track_repository`. On a new registration, omitting `github` leaves GitHub
+API discovery off. On an existing registration, omission preserves its setting;
+pass `github=false` explicitly to turn off its GitHub API discovery. The call
+authorizes private fetches of configured remote branches even when `github=false`.
+A host may require tool approval.
 
 Register each independent clone that should participate. Local remote paths are
 recursively discovered, including clone-of-clone relationships. Upstream/origin
@@ -29,7 +31,9 @@ tracking) and inherits a registered local parent's canonical source identity.
 Each independent participant calls `join_session`, saves its private token and
 uses an existing full ref (default `refs/heads/main`, or pass e.g.
 `refs/heads/master`). Its current worktree snapshots determine conflict relevance;
-this analysis is not restricted to the subscription's upstream ref.
+this analysis is not restricted to the subscription's upstream ref. Joining alone
+does not authorize source tracking. Enabling tracking starts a monitor candidate
+even before a participant joins; the server connection must remain open.
 
 The shared monitor observes all local branch/remote-tracking refs in registered
 repositories, all accessible worktrees, and their staged/working snapshots. The
@@ -40,6 +44,8 @@ into a private observer. `github=true` additionally discovers accessible fork
 networks and open PR head/base SHAs with paginated metadata requests. Source
 groups scan independently: a stalled remote cannot stop other groups or the
 monitor's heartbeat/ref loop. A group never overlaps its own in-flight scan.
+The initial upstream baseline does not suppress newly diagnosed notices about
+conflicts that predate enrollment.
 
 ## Results
 

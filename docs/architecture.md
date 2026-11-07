@@ -13,7 +13,13 @@ Stdout carries only protocol traffic, except explicit `--help`/`--version` outpu
 
 `src/mcp/server.ts` registers strict input schemas, tool annotations and workflow
 instructions. It combines request cancellation with connection shutdown, tracks
-in-flight operations and starts monitoring lazily on participation. `src/index.ts` exports the embeddable server factory.
+in-flight operations and starts monitoring lazily on join, receive or enabled
+tracking. Its server
+factory is also used directly by source-level integration tests.
+
+`scripts/build.mjs` emits runnable JavaScript into `dist`; strict type checking is
+a separate `npm run typecheck` task. The private source project has no npm package
+export wrapper, executable shim, declaration build or publication pipeline.
 
 There are no Codex hook adapters, client process scanners, plugin manifests,
 installers, shell-command dispatchers or generated TOML vendor bundles.
@@ -34,7 +40,9 @@ false. It persists the bounded pending batch in the receiver's receipt directory
 and returns a `deliveryId`; no delivered receipt is written by receive itself.
 `acknowledge_messages` validates the latest batch and session, then writes
 receipts only after the client explicitly accepts the response. Corrupt delivery
-state is preserved and rejected. A later receive can supersede an older batch.
+state is preserved and rejected. The handle is derived from the repository,
+subscription and ordered event IDs: an unchanged batch can reuse it, while a
+changed batch supersedes the older handle.
 
 The session lock precedes the publication lock. GC holds the publication lock
 and probes session locks without waiting; busy receivers retain their events.
@@ -104,6 +112,7 @@ MCP logs/resources are transport signals, not guaranteed model-context injection
 
 Core regressions preserve native Git races, publication interruption, GC journals,
 path/UTF-8 handling and lock ordering. MCP tests use real stdio clients, explicit
-message acknowledgement, disconnect/reconnect and production package installs.
+message acknowledgement, disconnect/reconnect and the built source entry running
+from an unrelated worktree with spaces.
 The absence of a delivery receipt remains observable before explicit acceptance.
 A successful local test does not establish hosted CI or an actual model workflow.

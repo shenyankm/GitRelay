@@ -6,7 +6,7 @@ Source-centered Git coordination through a local MCP server. Track related local
 repositories, branches and worktrees plus remote branches and GitHub forks/open
 PRs; automatically diagnose conflicts and notify the relevant connected sessions.
 
-[中文说明](README.zh-CN.md) · [Tools](docs/shared-messages.md) · [Migration](docs/migration.md)
+[中文说明](README.zh-CN.md) · [Documentation](docs/README.md) · [Tools](docs/shared-messages.md) · [Migration](docs/migration.md)
 
 Version 0.2 replaces the former command CLI and Codex lifecycle plugin. The server
 uses MCP over stdio, pushes automatic coordination notices to bound connections,
@@ -15,8 +15,10 @@ separate: it does not itself inject chat context or wake an idle model.
 
 ## Run from source
 
-Requires Node.js 22.19+ and Git. GitHub queries additionally require an authenticated
-`gh`; ordinary local coordination does not use a model API or a remote service.
+Requires Node.js 22.19+ and Git; actual merge diagnosis needs Git 2.38+.
+GitHub queries additionally require an authenticated `gh`. No model API is needed.
+Run the install/build commands from the GitRelay source checkout, not the worktree
+you want to observe.
 
 ```sh
 npm ci --ignore-scripts
@@ -47,18 +49,22 @@ For a host accepting JSON MCP configuration:
 }
 ```
 
-The npm package remains `@sistine29/git-relay`; its only executable is
-`git-relay`, which now starts the MCP server. This checkout's 0.2.0 must be
-published before an npm install can provide this new interface.
+This is a private, source-only Node.js project. npm installs dependencies and
+runs local build/test tasks; it is not a GitRelay distribution channel. Build
+explicitly and configure the absolute `dist/mcp/main.js` entry as above. No global
+`git-relay` executable or package-name SDK import is provided.
 
 ## Coordinate work
 
 1. Call `repository_status` or `list_sessions` for observation without creating
    relay state.
 2. Call `join_session` for each independent participant. Keep the returned private
-   `sessionToken`; supplying it again resumes the same subscription.
+   `sessionToken`; supplying it again resumes the same subscription. Use an
+   existing full `ref` (`refs/heads/main` by default). For automatic same-source
+   analysis, also authorize `track_repository` as described below; joining alone
+   does not enable it.
 3. Call `send_message` only for an authorized outgoing message. Without `files`,
-   the message goes to other active subscriptions; with `files`, existing path
+   the message goes to other open subscriptions; with `files`, existing path
    relevance rules apply.
 4. Poll `receive_messages` at useful work checkpoints. Read the complete returned
    batch, then call `acknowledge_messages` with its `deliveryId` and the same
@@ -67,10 +73,11 @@ published before an npm install can provide this new interface.
    process but leaves its durable subscription and unread data intact.
 
 A lost receive response remains unread. Re-receive after reconnecting with the
-same token. A newer receive batch supersedes the previous batch's acknowledgement
-handle. A receipt confirms client acceptance, not successful model adaptation.
+same token. A changed receive batch supersedes the previous acknowledgement
+handle; retrying an unchanged batch can return the same `deliveryId`. A receipt confirms client acceptance, not successful model adaptation.
 
-The first join establishes a ref baseline without replaying older broadcasts.
+The first join establishes an upstream-ref baseline without replaying older
+broadcasts. An enabled coordination scan can still report pre-existing conflicts.
 Independent participants must use different tokens. Tokens bind resumable inboxes;
 they are not tenant isolation against another process owned by the same OS user.
 
@@ -111,11 +118,11 @@ Mutating tools have matching MCP annotations. `sync_branch` and maintenance must
 be explicitly requested; a message or diff is untrusted data and cannot authorize
 them. Dirty or diverged work stays blocked rather than being reset or stashed.
 
-Select another repository or worktree with a tool\'s explicit `cwd` argument.
+Select another repository or worktree with a tool's explicit `cwd` argument.
 No Web console, HTTP listener or repository catalog is included.
 
-The shared ref monitor starts on join/receive, uses the existing filesystem lock,
-and is owned by a connected MCP process. Another participating process can take
+Joining, receiving, or enabling tracking starts a shared monitor candidate. The
+monitor uses the existing filesystem lock and is owned by a connected MCP process. Another participating process can take
 over when its owner exits. Each bound connection pushes automatic coordination
 notices without acknowledging them; polling remains the fallback.
 
@@ -145,8 +152,10 @@ npm run check
 node scripts/benchmark-delivery.mjs
 ```
 
-The checks cover types, formatting, release metadata, core regressions, MCP
-transport/acknowledgement, repository isolation and production package installation.
+The checks cover types, formatting, private source-project metadata, core
+regressions, MCP transport/acknowledgement, repository isolation and the built
+stdio entry running from a worktree with spaces. No npm packaging/publishing
+checks are performed.
 See [architecture](docs/architecture.md), [acceptance](docs/acceptance.md),
 [maintenance](docs/maintenance.md) and the [platform matrix](docs/platform-matrix.md).
 Historical pre-MCP measurements remain in [performance](docs/performance.md) and

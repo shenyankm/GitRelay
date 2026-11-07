@@ -4,14 +4,15 @@
 
 以源仓库为中心的 Git 协作感知与冲突通知服务：关联本地仓库、分支、工作树及远端分支、GitHub fork 和开放 PR，自动分析冲突并通知相关的已连接会话。通过本地 MCP 接入编程助手。
 
-[English](README.md) · [工具与消息协议](docs/shared-messages.md) · [迁移说明](docs/migration.md)
+[English](README.md) · [文档索引](docs/README.md) · [工具与消息协议](docs/shared-messages.md) · [迁移说明](docs/migration.md)
 
 0.2 版本完整切换到 stdio MCP，移除了旧命令 CLI、Codex hooks 和插件安装器。
 自动协作通知会主动发送到绑定的 MCP 连接；不处理通知的客户端可轮询，完整批次仍需显式确认。宿主是否把通知交给模型是独立能力，服务本身不会注入聊天上下文或唤醒空闲模型。
 
 ## 从源码运行
 
-需要 Node.js 22.19+ 和 Git。查询 GitHub 时额外需要已登录的 `gh`；本地协作不调用模型 API。
+需要 Node.js 22.19+ 和 Git；实际合并诊断需要 Git 2.38+。查询 GitHub 时额外需要已登录的 `gh`，不需要模型 API。
+以下安装和构建命令在 GitRelay 源码目录执行，而不是待观察的工作树目录。
 
 ```sh
 npm ci --ignore-scripts
@@ -38,20 +39,19 @@ codex mcp add git-relay -- node /项目绝对路径/GitRelay/dist/mcp/main.js --
 ```
 
 直接运行该程序会等待 stdin 上的 MCP 请求；stdout 仅用于协议，诊断写入 stderr。
-包名仍为 `@sistine29/git-relay`，唯一可执行命令 `git-relay` 现在启动 MCP 服务。
-源码中的 0.2.0 尚需发布后才能通过 npm 安装获得新接口。
+本项目仅从源码运行，已设置 `private: true`，不再提供 npm 包发行、全局 `git-relay` 命令或按包名导入的 SDK。npm 仍用于安装依赖、构建和测试；安装后请显式构建，并配置上述 `dist/mcp/main.js` 绝对路径。
 
 ## 使用流程
 
 1. 用 `repository_status`、`branch_status`、`list_sessions` 查看现有状态。只读查询不初始化协作存储。
-2. 每个独立参与者调用 `join_session`，保存返回的私有 `sessionToken`。恢复连接时传回相同句柄；不同参与者使用不同句柄。
-3. 用户授权发送协作消息后，调用 `send_message`。未指定 `files` 时广播给其他活跃订阅；指定路径时继续使用现有相关性规则。
+2. 每个独立参与者调用 `join_session`，保存返回的私有 `sessionToken`。恢复连接时传回相同句柄；不同参与者使用不同句柄。`ref` 应选现有完整分支引用，默认 `refs/heads/main`。自动同源分析还需按下文授权 `track_repository`，仅加入会话不会启用它。
+3. 用户授权发送协作消息后，调用 `send_message`。未指定 `files` 时广播给其他未关闭的订阅；指定路径时继续使用现有相关性规则。
 4. 在工作检查点调用 `receive_messages`。接纳完整批次后，用相同的工作树、ref、句柄和返回的 `deliveryId` 调用 `acknowledge_messages`。
 5. 退出协作时调用 `leave_session`。关闭 MCP 连接会停止本进程，不会替你注销持久订阅或删除未读消息。
 
-响应丢失时，消息仍未确认，可以在重连后再次收取。再次收取会替换待确认批次，旧的 `deliveryId` 不会误确认新消息。
+响应丢失时，消息仍未确认，可以在重连后再次收取。批次变化后会替换待确认句柄，旧的 `deliveryId` 不会误确认新消息；重收相同批次可以返回相同的 `deliveryId`。
 回执只表示客户端接受了数据，不代表模型完成理解、适配或验证。
-首次加入只建立基线，不重播先前的广播；退出期间的新广播也不会在重新加入时补发。
+首次加入只建立上游 ref 基线，不重播先前的广播；退出期间的新广播也不会在重新加入时补发。启用跟踪后，协作扫描仍可报告加入前就存在的冲突。
 
 ## 自动跟踪同源协作
 
@@ -79,7 +79,7 @@ codex mcp add git-relay -- node /项目绝对路径/GitRelay/dist/mcp/main.js --
 
 通过工具的 `cwd` 参数选择其他仓库或工作树。不再提供 Web 控制台、HTTP 监听器或仓库目录工具。
 
-加入或收取后，共享监控开始观察 ref。多个 MCP 进程通过现有文件锁选出一个监控所有者，所有者退出后其他参与进程可以接管。
+加入、收取或启用仓库跟踪后，会启动共享监控候选进程。多个 MCP 进程通过现有文件锁选出一个监控所有者，所有者退出后其他参与进程可以接管。
 各已绑定连接主动发送自动协作通知，不代替确认；忽略通知的客户端仍需轮询。
 
 每个服务实例最多突发接纳 60 次工具调用，每秒补充 1 次额度，同时运行上限为 8 次。
@@ -101,7 +101,7 @@ npm run check
 node scripts/benchmark-delivery.mjs
 ```
 
-完整检查包含核心回归、MCP 协议和消息确认、仓库隔离及生产安装包。
+完整检查包含类型与格式、私有源码项目元数据、核心回归、MCP 协议和消息确认、仓库隔离，以及包含空格的工作树路径下的构建入口运行。不再执行 npm 打包或发行检查。
 验收范围见[平台矩阵](docs/platform-matrix.md)和[验收文档](docs/acceptance.md)。
 历史性能证据保留在仓库中，不等同于新 MCP 接口的性能结果。
 

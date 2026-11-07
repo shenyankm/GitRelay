@@ -1,57 +1,27 @@
 {
   "name": "@sistine29/git-relay",
+  "private": true,
   "version": "0.2.0",
   "description": "Source-centered Git coordination: track repositories, branches, worktrees and PRs, diagnose conflicts and notify sessions",
   "license": "MIT",
   "type": "module",
-  "keywords": [
-    "git",
-    "worktree",
-    "mcp",
-    "model-context-protocol",
-    "coding-agent"
-  ],
-  "files": [
-    "dist",
-    "assets",
-    "docs/*.md",
-    "!docs/optimization-rounds.md",
-    "!docs/performance.md",
-    "README.md",
-    "README.zh-CN.md",
-    "CONTRIBUTING.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "bin": {
-    "git-relay": "./dist/mcp/main.js"
-  },
   "engines": {
     "node": ">=22.19.0"
   },
   "scripts": {
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:release": "node scripts/check-release.mjs",
-    "check": "npm run format:check && npm run typecheck && npm run check:release && npm test && npm pack --dry-run",
+    "check": "npm run format:check && npm run typecheck && npm test",
     "build": "node scripts/build.mjs",
-    "prepare": "npm run build",
     "typecheck": "tsc --noEmit",
     "benchmark": "npm run build && node scripts/benchmark.mjs",
-    "test": "npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/mcp/*.test.* && node --experimental-strip-types --test tests/mcp/package.integration.ts"
+    "test": "npm run build && node --experimental-strip-types --test tests/core/*.test.ts tests/mcp/*.test.*"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.4.0",
     "@types/node": "22.19.7",
     "prettier": "3.9.10",
     "typescript": "5.9.3"
-  },
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
   },
   "repository": {
     "type": "git",

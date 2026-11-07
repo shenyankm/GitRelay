@@ -1,3 +1,8 @@
+> Historical pre-MCP optimization report. “Retained” describes the recorded
+> snapshot, not the current feature or distribution inventory. npm/plugin packaging,
+> hook and installer instructions below are not current setup guidance; use the
+> [documentation index](README.md) and [current acceptance guide](acceptance.md).
+
 # I/O and size optimization rounds
 
 Requested scope: 50 consecutive, evidence-backed optimization rounds. This log

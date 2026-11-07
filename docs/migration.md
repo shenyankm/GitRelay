@@ -22,8 +22,11 @@ an existing global runtime. Do not leave old hooks pointing at the new executabl
 ## Connect MCP
 
 Build this checkout, then configure a stdio server as described in
-[integration](integrations.md). The source version is 0.2.0; publishing npm or a
-public listing is a separate action.
+[integration](integrations.md). The checkout is now private and source-only:
+install dependencies, build explicitly, and run `node /absolute/path/to/GitRelay/dist/mcp/main.js`.
+The old npm installation/global executable and package-name imports are not a
+current distribution interface. Previously published versions are not removed or
+changed; the versioned uninstall example above is only for legacy hook cleanup.
 
 Call `join_session` once for each logical participant. Save its private token and
 resume with the same token after reconnect. Do not put one shared token in every
@@ -38,10 +41,14 @@ subscription after reviewing its data.
 | Former behavior                                   | MCP behavior                                                      |
 | ------------------------------------------------- | ----------------------------------------------------------------- |
 | Hook-driven automatic enrollment                  | Explicit `join_session`                                           |
-| Context injection after tools / Stop continuation | Client polls `receive_messages` at work checkpoints               |
+| Context injection after tools / Stop continuation | Automatic coordination notifications/resources; polling fallback  |
 | Output completion confirms delivery               | Explicit `acknowledge_messages` after accepting the batch         |
 | Codex process scanner owns the daemon             | Connected participating MCP processes own monitoring and failover |
 | CLI status / synchronization                      | `branch_status` / explicit `sync_branch` tools                    |
+
+Automatic notices require explicit source tracking and a bound subscription;
+transport push does not itself activate a model. See
+[coordination](coordination.md) for setup and coverage.
 
 The Web console, HTTP listener and catalog tools are removed. Select repositories
 with explicit `cwd` arguments. Existing saved catalog files are left untouched;
