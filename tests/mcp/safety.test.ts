@@ -5,11 +5,11 @@ import { join } from "node:path";
 import { test, type TestContext } from "node:test";
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { diagnosticMessage } from "../../src/core/diagnostics.ts";
-import { createGitRelayServer } from "../../src/mcp/server.ts";
+import { createGitbeaconServer } from "../../src/mcp/server.ts";
 import { fixture } from "../helpers.ts";
 
 async function connect(t: TestContext, cwd: string) {
-  const runtime = createGitRelayServer({ cwd });
+  const runtime = createGitbeaconServer({ cwd });
   const client = new Client({ name: "safety-test", version: "1.0.0" });
   t.after(async () => {
     await client.close();

@@ -8,9 +8,9 @@ import { sessionKey, sessionsIn } from "../dist/core/mailbox.js";
 import { hash } from "../dist/core/store.js";
 import { repository } from "../dist/core/repository.js";
 
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-maintenance-bench-"));
-const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
-process.env.WORKTREE_SYNC_STATE_DIR = join(temporary, "state");
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-maintenance-bench-"));
+const previousState = process.env.GITBEACON_STATE_DIR;
+process.env.GITBEACON_STATE_DIR = join(temporary, "state");
 const git = (...args) =>
   execFileSync("git", ["-C", temporary, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const json = (path, value) => writeFile(path, JSON.stringify(value));
@@ -48,7 +48,6 @@ try {
         ref: "refs/heads/main",
         createdAt: at,
         lastSeen: at,
-        migrated: true,
       });
       keys.push(key);
     }
@@ -97,7 +96,7 @@ try {
     console.log(JSON.stringify({ sessions: count, events: count, sessionScanMs, retainedGcMs }));
   }
 } finally {
-  if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-  else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+  if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+  else process.env.GITBEACON_STATE_DIR = previousState;
   await rm(temporary, { recursive: true, force: true, maxRetries: 3 });
 }

@@ -38,7 +38,7 @@ export async function sessionActivation(
     const current = (await readJson(path, true)) as
       { key?: unknown; enabled?: unknown; pending?: unknown; prepared?: unknown; committed?: unknown } | undefined;
     if (current !== undefined && (!current || current.key !== key || typeof current.enabled !== "boolean"))
-      throw new Error(`Invalid GitRelay activation: ${path}; preserve it for inspection.`);
+      throw new Error(`Invalid gitbeacon activation: ${path}; preserve it for inspection.`);
     if (
       (current?.pending !== undefined || current?.prepared !== undefined || current?.committed !== undefined) &&
       (!Array.isArray(current.pending) ||
@@ -55,7 +55,7 @@ export async function sessionActivation(
             ))) ||
         typeof current.committed !== "boolean")
     )
-      throw new Error(`Invalid GitRelay activation: ${path}; preserve it for inspection.`);
+      throw new Error(`Invalid gitbeacon activation: ${path}; preserve it for inspection.`);
     return { key, path, current };
   };
   // The subscription's token is the commit point for an interrupted enable.
@@ -75,7 +75,6 @@ export async function sessionActivation(
         session.activationToken !== item.token ||
         session.adapter !== options.adapter ||
         session.session !== options.session ||
-        session.instance !== options.instance ||
         session.ref !== options.ref
       )
         continue;
@@ -164,7 +163,7 @@ export async function sessionActivation(
     if (!missing) await worktreeRoot();
     const current = await preflightLeaveSession(options);
     if (current.root || current.repositoryId !== optOut.repositoryId)
-      throw new Error("GitRelay target changed during opt-out; preserve state and retry.");
+      throw new Error("gitbeacon target changed during opt-out; preserve state and retry.");
     root = cwd;
   } else root = await worktreeRoot();
   const { key, path } = await read(root);
@@ -180,7 +179,7 @@ export async function sessionActivation(
           (await realpath(resolve(current.root))) !== root ||
           current.repositoryId !== optOut.repositoryId
         )
-          throw new Error("GitRelay subscription changed during opt-out; preserve it and retry.");
+          throw new Error("gitbeacon subscription changed during opt-out; preserve it and retry.");
       }
       const { current } = await read(root);
       const pending = (current?.pending as string[] | undefined) ?? [];

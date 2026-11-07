@@ -18,7 +18,6 @@ const base = {
   ref,
   createdAt: "2026-01-01T00:00:00.000Z",
   lastSeen: "2026-01-01T00:00:00.000Z",
-  migrated: true,
 };
 
 test("session timestamps require strings and retain parseable historical strings", () => {
@@ -36,11 +35,11 @@ test("session timestamps require strings and retain parseable historical strings
 });
 
 test("malformed closedAt cannot make a closed subscription a broadcast recipient", async (t) => {
-  const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
-  const temp = await mkdtemp(join(tmpdir(), "gitrelay-session-time-"));
+  const previousState = process.env.GITBEACON_STATE_DIR;
+  const temp = await mkdtemp(join(tmpdir(), "gitbeacon-session-time-"));
   t.after(() => {
-    if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+    if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = previousState;
   });
   t.after(() => rm(temp, { recursive: true, force: true }));
   const template = join(temp, "template"),
@@ -50,11 +49,11 @@ test("malformed closedAt cannot make a closed subscription a broadcast recipient
   const worktree = await realpath(wt),
     common = await realpath(join(worktree, ".git"));
   const state = join(temp, "state");
-  process.env.WORKTREE_SYNC_STATE_DIR = state;
+  process.env.GITBEACON_STATE_DIR = state;
   const marker = "a".repeat(64),
     id = hash([common, marker]),
     dir = join(state, "repos", id);
-  await writeFile(join(common, ".git-relay-id"), `${marker}\n`);
+  await writeFile(join(common, ".gitbeacon-id"), `${marker}\n`);
   for (const name of ["sessions", "events", "receipts", "refs", "trash"])
     await mkdir(join(dir, name), { recursive: true });
   for (const name of ["identity-owner.json", "identity-ready.json"])

@@ -23,7 +23,7 @@ export interface CleanupReport {
   retentionDays: number;
   eligible: string[];
   removed: string[];
-  kept: { id: string; reason: "unconfirmed" | "retention" | "busy" | "migration" | "publication" }[];
+  kept: { id: string; reason: "unconfirmed" | "retention" | "busy" | "subscription" | "publication" }[];
 }
 
 export function retentionDays(value = 7): number {
@@ -41,8 +41,7 @@ export async function collectRepository(repo: Repository, options: CleanupOption
     join(repo.directory, "publish.lock"),
     async () => {
       // Session metadata cannot change through the relay while this publication lock is held.
-      const migrated = new Map<string, boolean>();
-      const proofFiles = new Map<string, Map<string, string[]>>();
+      const registered = new Map<string, boolean>();
       const approved: SharedEvent[] = [];
       const trashNames = await readdir(join(repo.directory, "trash"));
       for (let offset = 0; offset < trashNames.length; offset += 4) {
@@ -135,7 +134,7 @@ export async function collectRepository(repo: Repository, options: CleanupOption
               const checks = await Promise.allSettled(
                 batch.map(async (key) => {
                   const receipt = await readReceipt(repo, key, event.id);
-                  const session = receipt && !migrated.has(key) ? await readSession(repo, key) : undefined;
+                  const session = receipt && !registered.has(key) ? await readSession(repo, key) : undefined;
                   return { key, receipt, session };
                 }),
               );
@@ -146,9 +145,9 @@ export async function collectRepository(repo: Repository, options: CleanupOption
                   report.kept.push({ id: event.id, reason: "unconfirmed" });
                   continue eventLoop;
                 }
-                if (!migrated.has(key)) migrated.set(key, session?.migrated === true);
-                if (!migrated.get(key)) {
-                  report.kept.push({ id: event.id, reason: "migration" });
+                if (!registered.has(key)) registered.set(key, session !== undefined);
+                if (!registered.get(key)) {
+                  report.kept.push({ id: event.id, reason: "subscription" });
                   continue eventLoop;
                 }
                 latest = Math.max(latest, Date.parse(receipt.at));
@@ -170,30 +169,7 @@ export async function collectRepository(repo: Repository, options: CleanupOption
             const deletions = await Promise.allSettled(
               event.recipients.slice(offset, offset + 32).map(async (key) => {
                 const directory = join(repo.directory, "receipts", key);
-                let byEvent = proofFiles.get(key);
-                if (!byEvent) {
-                  byEvent = new Map();
-                  for (const name of await readdir(directory).catch((error) => {
-                    if (error.code === "ENOENT") return [];
-                    throw error;
-                  })) {
-                    const match = /^([a-f0-9]{64})\.[a-f0-9]{64}\.pi-proof$/.exec(name);
-                    if (match) {
-                      const names = byEvent.get(match[1]) ?? [];
-                      names.push(name);
-                      byEvent.set(match[1], names);
-                    }
-                  }
-                  proofFiles.set(key, byEvent);
-                }
                 await rm(join(directory, `${event.id}.json`), { force: true });
-                const proofs = byEvent.get(event.id) ?? [];
-                for (let offset = 0; offset < proofs.length; offset += 4) {
-                  const removed = await Promise.allSettled(
-                    proofs.slice(offset, offset + 4).map((proof) => rm(join(directory, proof), { force: true })),
-                  );
-                  for (const result of removed) if (result.status === "rejected") throw result.reason;
-                }
               }),
             );
             for (const deletion of deletions) if (deletion.status === "rejected") throw deletion.reason;

@@ -22,7 +22,7 @@ const limit = 2 * 1024 * 1024;
 const ref = "refs/heads/main";
 
 test("JSON writes honor the reader's exact UTF-8 byte limit without replacing old state", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-limit-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-limit-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "state.json");
   const exact = "🚀" + "x".repeat(limit - 6); // Quotes plus four UTF-8 bytes.
@@ -57,7 +57,6 @@ test("oversized broadcast fails before publication and preserves the existing in
         createdAt,
         lastSeen: createdAt,
         baseline: f.initial,
-        migrated: true,
       }),
     );
   }

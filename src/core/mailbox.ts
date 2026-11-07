@@ -12,7 +12,6 @@ const posixParentPath = /(?:^|\/)\.\.(?![^/])/;
 export interface Identity {
   adapter: string;
   session: string;
-  instance?: string;
 }
 
 export interface Session extends Identity {
@@ -22,7 +21,6 @@ export interface Session extends Identity {
   createdAt: string;
   lastSeen: string;
   baseline?: string;
-  migrated?: boolean;
   closedAt?: string;
   posixPaths?: true;
   activationToken?: string;
@@ -55,15 +53,11 @@ export function validateIdentity(identity: Identity): void {
     throw new Error("An adapter name (max 64 characters) is required.");
   if (typeof identity.session !== "string" || !identity.session || identity.session.length > 512)
     throw new Error("A non-empty session ID (max 512 characters) is required.");
-  if (identity.instance !== undefined && !isId(identity.instance))
-    throw new Error("A session instance must be a 64-character ID.");
 }
 
 export function sessionKey(repo: Pick<Repository, "root">, identity: Identity, ref: string): string {
   validateIdentity(identity);
-  const parts = [repo.root, ref, identity.adapter, identity.session];
-  if (identity.instance !== undefined) parts.push(identity.instance);
-  return hash(parts);
+  return hash([repo.root, ref, identity.adapter, identity.session]);
 }
 
 export async function listSessions(cwd: string, signal?: AbortSignal): Promise<Session[]> {
@@ -91,7 +85,6 @@ export function validateSession(value: unknown, key: string): Session {
     !Number.isFinite(Date.parse(session.lastSeen)) ||
     (session.closedAt !== undefined &&
       (typeof session.closedAt !== "string" || !Number.isFinite(Date.parse(session.closedAt)))) ||
-    (session.migrated !== undefined && typeof session.migrated !== "boolean") ||
     (session.baseline !== undefined && !isCommit(session.baseline)) ||
     (session.posixPaths !== undefined && session.posixPaths !== true) ||
     (session.activationToken !== undefined &&
@@ -119,7 +112,7 @@ export async function sessionsIn(repo: Repository): Promise<Session[]> {
   return sessions;
 }
 
-/** Caller owns publish.lock, also held by GC while reusing validated migration state. */
+/** Caller owns publish.lock, which also serializes subscription changes with GC. */
 export async function registerSession(
   repo: Pick<Repository, "root" | "directory">,
   identity: Identity,
@@ -131,7 +124,7 @@ export async function registerSession(
 ): Promise<Session> {
   const adapter = identity.adapter;
   validateIdentity({ adapter, session: "snapshot" });
-  identity = { adapter, session: identity.session, instance: identity.instance };
+  identity = { adapter, session: identity.session };
   validateIdentity(identity);
   repo = { root: repo.root, directory: repo.directory };
   const key = sessionKey(repo, identity, ref);
@@ -156,7 +149,6 @@ export async function registerSession(
     createdAt: previous?.createdAt ?? now,
     lastSeen: now,
     baseline: previous?.baseline ?? baseline,
-    migrated: previous?.migrated,
     closedAt: reopen ? undefined : previous?.closedAt,
     activationToken: activationToken ?? previous?.activationToken,
     posixPaths:
@@ -205,10 +197,6 @@ function orderUpstream(events: SharedEvent[]): SharedEvent[] {
   const upstream = events.filter((event): event is UpstreamEvent => event.kind === "upstream");
   if (!upstream.length) return events;
   const ends = new Map<string, UpstreamEvent[]>();
-  const migration = (event: UpstreamEvent) =>
-    event.recipients.length === 1 &&
-    event.id === hash(["upstream", event.ref, event.previous, event.commit, `migration:${event.recipients[0]}`]);
-  const migrations = new Set(upstream.filter(migration).map((event) => event.id));
   const transitions = new Map<string, UpstreamEvent[]>();
   const parents = new Map(upstream.map((event) => [event.id, [] as UpstreamEvent[]]));
   for (const event of upstream) {
@@ -216,7 +204,6 @@ function orderUpstream(events: SharedEvent[]): SharedEvent[] {
     const group = ends.get(key) ?? [];
     group.push(event);
     ends.set(key, group);
-    if (migrations.has(event.id)) continue;
     const transition = JSON.stringify([event.ref, event.previous, event.commit]);
     const children = transitions.get(transition) ?? [];
     children.push(event);
@@ -227,12 +214,8 @@ function orderUpstream(events: SharedEvent[]): SharedEvent[] {
     const event = children[0];
     const targets = new Map(children.map((child) => [child.id, parents.get(child.id)!]));
     for (const parent of ends.get(JSON.stringify([event.ref, event.previous])) ?? []) {
-      if (migrations.has(parent.id)) {
-        for (const [id, list] of targets) if (id !== parent.id) list.push(parent);
-      } else {
-        const id = hash(["upstream", event.ref, event.previous, event.commit, parent.id]);
-        if (id !== parent.id) targets.get(id)?.push(parent);
-      }
+      const id = hash(["upstream", event.ref, event.previous, event.commit, parent.id]);
+      if (id !== parent.id) targets.get(id)?.push(parent);
     }
   }
   const state = new Map<string, number>(),
@@ -370,10 +353,8 @@ export async function publishUpstream(
   const sender: Identity & { root: string } = {
     adapter: identity.adapter,
     session: identity.session,
-    instance: identity.instance,
     root: repository.root,
   };
-  if (sender.instance === undefined) delete sender.instance;
   validateIdentity(sender);
   if (
     typeof sender.root !== "string" ||
@@ -493,10 +474,9 @@ function validateMessage(text: unknown, files: unknown, strict = true, posixPath
 export async function sendMessage(
   options: Identity & { cwd: string; ref?: string; text: string; files?: string[]; signal?: AbortSignal },
 ): Promise<AgentMessage> {
-  const { cwd, adapter, session, instance, text, signal } = options;
-  const identity: Identity = { adapter, session, instance },
+  const { cwd, adapter, session, text, signal } = options;
+  const identity: Identity = { adapter, session },
     ref = options.ref ?? "refs/heads/main";
-  if (identity.instance === undefined) delete identity.instance;
   validateIdentity(identity);
   const files = validateMessage(text, options.files ?? [], true, process.platform !== "win32");
   const posixPaths =
@@ -595,7 +575,7 @@ export async function publishCoordination(
         id,
         kind: "message",
         createdAt: new Date().toISOString(),
-        sender: { adapter: "git-relay", session: "coordination", root: repo.root },
+        sender: { adapter: "gitbeacon", session: "coordination", root: repo.root },
         recipients: [session.key],
         text,
         files: [],

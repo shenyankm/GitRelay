@@ -39,41 +39,41 @@ export async function repositoryIdentity(
   common: string,
   create: boolean,
 ): Promise<{ identity: string; identitySource: "marker" | "external" } | undefined> {
-  const raw = process.env.WORKTREE_SYNC_REPOSITORY_IDS;
+  const raw = process.env.GITBEACON_REPOSITORY_IDS;
   if (raw) {
     let mapping: unknown;
     try {
       mapping = JSON.parse(raw);
     } catch {
       throw new Error(
-        "WORKTREE_SYNC_REPOSITORY_IDS must be a JSON object mapping canonical Git common directories to 64-character IDs.",
+        "GITBEACON_REPOSITORY_IDS must be a JSON object mapping canonical Git common directories to 64-character IDs.",
       );
     }
     if (!mapping || typeof mapping !== "object" || Array.isArray(mapping))
-      throw new Error("WORKTREE_SYNC_REPOSITORY_IDS must be a JSON object.");
+      throw new Error("GITBEACON_REPOSITORY_IDS must be a JSON object.");
     const value = (mapping as Record<string, unknown>)[common];
     if (value !== undefined) {
       if (!isId(value)) throw new Error(`Invalid external repository identity for ${common}.`);
       return { identity: value, identitySource: "external" };
     }
   }
-  const marker = join(common, ".git-relay-id");
+  const marker = join(common, ".gitbeacon-id");
   async function readMarker(): Promise<string | undefined> {
     const info = await lstat(marker).catch((error) => {
       if (error.code === "ENOENT") return undefined;
       throw error;
     });
     if (!info) return;
-    if (!info.isFile() || info.isSymbolicLink()) throw new Error(`Invalid GitRelay repository identity: ${marker}`);
+    if (!info.isFile() || info.isSymbolicLink()) throw new Error(`Invalid gitbeacon repository identity: ${marker}`);
     const file = await open(marker, constants.O_RDONLY | constants.O_NONBLOCK | (constants.O_NOFOLLOW ?? 0));
     try {
       const opened = await file.stat();
       if (!opened.isFile() || opened.dev !== info.dev || opened.ino !== info.ino || opened.size > 65)
-        throw new Error(`Invalid GitRelay repository identity: ${marker}`);
+        throw new Error(`Invalid gitbeacon repository identity: ${marker}`);
       const bytes = Buffer.alloc(66);
       const { bytesRead } = await file.read(bytes, 0, bytes.length, 0);
       const text = bytes.subarray(0, bytesRead).toString("utf8");
-      if (!/^[a-f0-9]{64}\n$/.test(text)) throw new Error(`Invalid GitRelay repository identity: ${marker}`);
+      if (!/^[a-f0-9]{64}\n$/.test(text)) throw new Error(`Invalid gitbeacon repository identity: ${marker}`);
       return text.slice(0, 64);
     } finally {
       await file.close();
@@ -81,7 +81,7 @@ export async function repositoryIdentity(
   }
   let identity = await readMarker();
   if (!identity && create) {
-    const temporary = join(common, `.git-relay-id-${randomUUID()}.tmp`);
+    const temporary = join(common, `.gitbeacon-id-${randomUUID()}.tmp`);
     let complete = false;
     try {
       await writeExclusiveTemporary(temporary, `${hash(randomUUID())}\n`);
@@ -96,13 +96,13 @@ export async function repositoryIdentity(
     } catch (error) {
       if (["EACCES", "EPERM", "EROFS"].includes((error as NodeJS.ErrnoException).code ?? ""))
         throw new Error(
-          `Cannot create GitRelay identity in ${common}; configure WORKTREE_SYNC_REPOSITORY_IDS for this read-only repository.${complete ? "" : ` If present, the temporary path ${temporary} was preserved.`}`,
+          `Cannot create gitbeacon identity in ${common}; configure GITBEACON_REPOSITORY_IDS for this read-only repository.${complete ? "" : ` If present, the temporary path ${temporary} was preserved.`}`,
           { cause: error },
         );
       throw error;
     }
     identity = await readMarker();
-    if (!identity) throw new Error(`GitRelay repository identity disappeared: ${marker}`);
+    if (!identity) throw new Error(`gitbeacon repository identity disappeared: ${marker}`);
   }
   return identity ? { identity, identitySource: "marker" } : undefined;
 }
@@ -124,14 +124,13 @@ export async function inspectRepository(cwd: string, signal?: AbortSignal) {
   if (!ready) return { ...location, repository: undefined };
   const owner = (await readJson(join(directory, "identity-owner.json"), true)) as { id?: string } | undefined;
   if (ready.id !== id || owner?.id !== id)
-    throw new Error("Incomplete GitRelay state initialization; inspect prior state.");
+    throw new Error("Incomplete gitbeacon state initialization; inspect prior state.");
   await checkRepositoryDirectories(directory);
   const repository: Repository = { root, common, id, directory, ...identity };
-  await assertMigrationReady(repository);
   return { ...location, repository };
 }
 
-/** Identity initialization and legacy migration share this lock. */
+/** Serialize repository identity initialization and recovery. */
 export async function withRepositoryIdentity<T>(
   cwd: string,
   signal: AbortSignal | undefined,
@@ -151,7 +150,7 @@ export async function withRepositoryIdentity<T>(
     async () => {
       const identity = await repositoryIdentity(common, initialize);
       if (!identity)
-        throw new Error(`GitRelay repository identity is missing in ${common}; restore it before retrying.`);
+        throw new Error(`gitbeacon repository identity is missing in ${common}; restore it before retrying.`);
       const id = hash([common, identity.identity]);
       return run({ root, common, id, directory: join(stateDirectory(), "repos", id), ...identity });
     },
@@ -167,34 +166,6 @@ export async function writeRepositoryMetadata(repo: Repository): Promise<void> {
   if (JSON.stringify(previous) !== JSON.stringify(metadata)) await writeJson(path, metadata);
 }
 
-/** A claimed migration must finish before its destination can receive events. */
-export async function assertMigrationReady(repo: Repository): Promise<void> {
-  const claims = join(stateDirectory(), "identity-migration-claims"),
-    source = hash(repo.common);
-  const claim = (await readJson(join(claims, `${source}.json`))) as { common?: string; newId?: string } | undefined;
-  if (claim === undefined) return;
-  if (!claim || typeof claim !== "object" || Array.isArray(claim) || claim.common !== repo.common || !isId(claim.newId))
-    throw new Error(`Invalid GitRelay migration claim: ${source}`);
-  if (claim.newId !== repo.id) return;
-  const published = (await readJson(join(claims, `${source}.publishing.json`))) as
-    { common?: string; newId?: string } | undefined;
-  const completed = (await readJson(join(claims, `${source}.completed.json`))) as
-    { common?: string; newId?: string } | undefined;
-  const provenance = (await readJson(join(repo.directory, "identity-migration.json"))) as
-    { legacy?: string; id?: string } | undefined;
-  if (
-    published?.common !== repo.common ||
-    published.newId !== repo.id ||
-    completed?.common !== repo.common ||
-    completed.newId !== repo.id ||
-    provenance?.legacy !== source ||
-    provenance.id !== repo.id
-  )
-    throw new Error(
-      `GitRelay migration is incomplete for ${repo.common}; resume migrate_repository and preserve the prior state.`,
-    );
-}
-
 /** Prior states are never silently associated with a replacement identity. */
 export async function priorRepositories(repo: Repository): Promise<string[]> {
   const parent = join(stateDirectory(), "repos");
@@ -205,7 +176,7 @@ export async function priorRepositories(repo: Repository): Promise<string[]> {
     if (error.code === "ENOENT") return [];
     throw error;
   });
-  const candidates = [...new Set([hash(repo.common), ...names])].filter((name) => isId(name) && name !== repo.id);
+  const candidates = [...new Set(names)].filter((name) => isId(name) && name !== repo.id);
   for (let offset = 0; offset < candidates.length; offset += 32) {
     const reads = await Promise.allSettled(
       candidates.slice(offset, offset + 32).map(async (name) =>
@@ -236,7 +207,7 @@ export async function recordRepositoryIdentity(repo: Repository): Promise<void> 
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
     const info = await lstat(path);
-    if (!info.isFile()) throw new Error(`Invalid GitRelay identity history: ${path}`);
+    if (!info.isFile()) throw new Error(`Invalid gitbeacon identity history: ${path}`);
   }
 }
 
@@ -264,14 +235,14 @@ export async function recoverRepositoryInitialization(
     signal,
     async (repo) => {
       if (repo.directory !== directory)
-        throw new Error(`GitRelay identity changed while preparing recovery: ${common}`);
+        throw new Error(`gitbeacon identity changed while preparing recovery: ${common}`);
       const info = await lstat(repo.directory).catch((error) => {
         if (error.code === "ENOENT") throw new Error(`Nothing to recover for ${repo.common}; state is missing.`);
         throw error;
       });
-      if (!info.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
+      if (!info.isDirectory()) throw new Error(`Invalid gitbeacon state directory: ${repo.directory}`);
       const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
-      if (ready?.id === repo.id) throw new Error(`GitRelay state is already initialized: ${repo.directory}`);
+      if (ready?.id === repo.id) throw new Error(`gitbeacon state is already initialized: ${repo.directory}`);
       const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
       const ownerInfo = await lstat(join(repo.directory, "identity-owner.json")).catch((error) => {
         if (error.code === "ENOENT") return undefined;
@@ -299,7 +270,7 @@ export async function recoverRepositoryInitialization(
         if (!item.isDirectory() || (await readdir(path)).length)
           throw new Error(`Incomplete state contains data: ${repo.directory}; inspect and preserve it manually.`);
       }
-      const archive = join(stateDirectory(), "repos", `.git-relay-recovery-${randomUUID()}`);
+      const archive = join(stateDirectory(), "repos", `.gitbeacon-recovery-${randomUUID()}`);
       await mkdir(archive, { mode: 0o700 });
       const archived = join(archive, repo.id);
       await rename(repo.directory, archived);
@@ -315,19 +286,19 @@ export async function chooseFreshRepository(
   signal?: AbortSignal,
 ): Promise<{ id: string; prior: string[] }> {
   return withRepositoryIdentity(cwd, signal, async (repo) => {
-    await assertMigrationReady(repo);
     const existing = await lstat(repo.directory).catch((error) => {
       if (error.code === "ENOENT") return undefined;
       throw error;
     });
     if (existing)
-      throw new Error(`GitRelay state already exists: ${repo.directory}; inspect it before choosing fresh state.`);
+      throw new Error(`gitbeacon state already exists: ${repo.directory}; inspect it before choosing fresh state.`);
     const prior = await priorRepositories(repo);
     const choices = join(stateDirectory(), "identity-choices"),
       path = join(choices, `${repo.id}.json`);
     await mkdir(choices, { recursive: true, mode: 0o700 });
     const previous = (await readJson(path)) as { id?: string } | undefined;
-    if (previous !== undefined && previous.id !== repo.id) throw new Error(`Invalid GitRelay identity choice: ${path}`);
+    if (previous !== undefined && previous.id !== repo.id)
+      throw new Error(`Invalid gitbeacon identity choice: ${path}`);
     if (!previous) {
       const temporary = `${path}.${randomUUID()}.tmp`;
       await writeExclusiveTemporary(temporary, JSON.stringify({ id: repo.id }));
@@ -351,33 +322,32 @@ export async function repository(
     cwd,
     signal,
     async (repo) => {
-      await assertMigrationReady(repo);
       const existing = await lstat(repo.directory).catch((error) => {
         if (error.code === "ENOENT") return undefined;
         throw error;
       });
       if (existing) {
-        if (!existing.isDirectory()) throw new Error(`Invalid GitRelay state directory: ${repo.directory}`);
+        if (!existing.isDirectory()) throw new Error(`Invalid gitbeacon state directory: ${repo.directory}`);
         const ready = (await readJson(join(repo.directory, "identity-ready.json"))) as { id?: string } | undefined;
         const owner = (await readJson(join(repo.directory, "identity-owner.json"))) as { id?: string } | undefined;
         if (ready?.id !== repo.id || owner?.id !== repo.id)
           throw new Error(
-            `Incomplete GitRelay state initialization: ${repo.directory}; inspect and preserve it before recovery.`,
+            `Incomplete gitbeacon state initialization: ${repo.directory}; inspect and preserve it before recovery.`,
           );
         await checkRepositoryDirectories(repo.directory);
       } else {
         if (!initialize)
-          throw new Error(`GitRelay repository state is missing: ${repo.directory}; preserve it for inspection.`);
+          throw new Error(`gitbeacon repository state is missing: ${repo.directory}; preserve it for inspection.`);
         const prior = await priorRepositories(repo);
         const choice = (await readJson(join(stateDirectory(), "identity-choices", `${repo.id}.json`))) as
           { id?: string } | undefined;
         if (prior.length && choice?.id !== repo.id)
           throw new Error(
-            `Earlier GitRelay state exists for ${repo.common}; call choose_fresh_repository${prior.includes(hash(repo.common)) ? " or migrate_repository" : ""} after inspecting it. Prior state is preserved.`,
+            `Earlier gitbeacon state exists for ${repo.common}; call choose_fresh_repository after inspecting it. Prior state is preserved.`,
           );
         await recordRepositoryIdentity(repo);
         await mkdir(join(stateDirectory(), "repos"), { recursive: true, mode: 0o700 });
-        const temporary = join(stateDirectory(), "repos", `.git-relay-owner-${randomUUID()}.tmp`);
+        const temporary = join(stateDirectory(), "repos", `.gitbeacon-owner-${randomUUID()}.tmp`);
         await writeExclusiveTemporary(temporary, JSON.stringify({ id: repo.id }));
         try {
           await mkdir(repo.directory, { mode: 0o700 });
@@ -394,7 +364,7 @@ export async function repository(
             ) {
               throw Object.assign(
                 new Error(
-                  `Cannot publish GitRelay state ownership using a hard link; inspect and preserve the incomplete directory: ${repo.directory}`,
+                  `Cannot publish gitbeacon state ownership using a hard link; inspect and preserve the incomplete directory: ${repo.directory}`,
                   { cause: error },
                 ),
                 { code },

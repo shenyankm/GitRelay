@@ -17,11 +17,11 @@ test("callback BusyError is propagated without acknowledging the event", async (
   const receiver = { cwd: f.b, adapter: "test", session: "b", ref: "refs/heads/main", async deliver() {} };
   await consumeMailbox(receiver);
   await sendMessage({ cwd: f.a, adapter: "test", session: "a", text: "pending" });
-  for (const point of ["isDelivered", "isPending", "deliver", "beforeReceipt"] as const) {
+  for (const point of ["deliver"] as const) {
     const fail = () => {
       throw new BusyError(`callback ${point}`);
     };
-    const options = { ...receiver, ...(point === "beforeReceipt" ? { isDelivered: () => true } : {}), [point]: fail };
+    const options = { ...receiver, [point]: fail };
     await assert.rejects(consumeMailbox(options), new RegExp(`callback ${point}`));
   }
   assert.equal((await consumeMailbox(receiver)).length, 1);

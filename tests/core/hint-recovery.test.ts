@@ -15,16 +15,16 @@ import { type Repository } from "../../src/core/repository.ts";
 const ref = "refs/heads/main",
   agent = { adapter: "test", session: "receiver" };
 async function fixture(t: TestContext) {
-  const base = await mkdtemp(join(tmpdir(), "gitrelay-hint-recovery-"));
+  const base = await mkdtemp(join(tmpdir(), "gitbeacon-hint-recovery-"));
   t.after(() => rm(base, { recursive: true, force: true }));
   const keys = Object.keys(process.env).filter(
-    (key) => key.startsWith("GIT_") || key === "WORKTREE_SYNC_STATE_DIR" || key === "WORKTREE_SYNC_REPOSITORY_IDS",
+    (key) => key.startsWith("GIT_") || key === "GITBEACON_STATE_DIR" || key === "GITBEACON_REPOSITORY_IDS",
   );
   const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
   for (const key of keys) delete process.env[key];
   t.after(() => {
     for (const key of Object.keys(process.env))
-      if (key.startsWith("GIT_") || key === "WORKTREE_SYNC_STATE_DIR" || key === "WORKTREE_SYNC_REPOSITORY_IDS")
+      if (key.startsWith("GIT_") || key === "GITBEACON_STATE_DIR" || key === "GITBEACON_REPOSITORY_IDS")
         delete process.env[key];
     Object.assign(process.env, previous);
   });
@@ -77,7 +77,7 @@ async function fixture(t: TestContext) {
     identity,
     identitySource: "marker",
   };
-  await writeFile(join(common, ".git-relay-id"), `${identity}\n`);
+  await writeFile(join(common, ".gitbeacon-id"), `${identity}\n`);
   for (const name of ["sessions", "events", "receipts", "refs", "trash"])
     await mkdir(join(repo.directory, name), { recursive: true });
   for (const name of ["identity-ready.json", "identity-owner.json"])
@@ -88,7 +88,7 @@ async function fixture(t: TestContext) {
     cursorPath = join(repo.directory, "refs", `${hash(ref)}.json`);
   await writeFile(
     join(repo.directory, "sessions", `${key}.json`),
-    JSON.stringify({ ...agent, key, root, ref, createdAt: now, lastSeen: now, baseline: a, migrated: true }),
+    JSON.stringify({ ...agent, key, root, ref, createdAt: now, lastSeen: now, baseline: a }),
   );
   await writeFile(cursorPath, JSON.stringify({ ref, commit: a, checkedAt: now, daemonToken: token }));
   await writeFile(join(state, "daemon.lock"), JSON.stringify({ pid: process.pid, token }));
@@ -96,7 +96,7 @@ async function fixture(t: TestContext) {
     join(state, "daemon.json"),
     JSON.stringify({ pid: process.pid, token, intervalMs: 5000, heartbeatAt: now }),
   );
-  process.env.WORKTREE_SYNC_STATE_DIR = state;
+  process.env.GITBEACON_STATE_DIR = state;
   const delivered: Notification[] = [];
   const consume = () =>
     consumeMailbox({
@@ -110,12 +110,12 @@ async function fixture(t: TestContext) {
   let copy = 0;
   const retry = async () => {
     const next = `${state}-copy-${++copy}`,
-      source = process.env.WORKTREE_SYNC_STATE_DIR!;
+      source = process.env.GITBEACON_STATE_DIR!;
     await cp(source, next, {
       recursive: true,
       filter: (path) => !path.endsWith(".lock") || path.endsWith("daemon.lock"),
     });
-    process.env.WORKTREE_SYNC_STATE_DIR = next;
+    process.env.GITBEACON_STATE_DIR = next;
     return { ...repo, directory: join(next, "repos", id) };
   };
   return { a, b, base, root, repo, cursorPath, key, git, consume, retry, delivered };

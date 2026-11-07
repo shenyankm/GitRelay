@@ -17,7 +17,7 @@ import {
   withLock,
   writeJson,
 } from "./store.ts";
-import { assertMigrationReady, checkRepositoryDirectories, repositoryIdentity, type Repository } from "./repository.ts";
+import { checkRepositoryDirectories, repositoryIdentity, type Repository } from "./repository.ts";
 
 export interface DaemonOptions {
   signal: AbortSignal;
@@ -111,20 +111,12 @@ export async function runDaemon(options: DaemonOptions): Promise<void> {
                 !["marker", "external"].includes(metadata.identitySource ?? "") ||
                 hash([metadata.common, metadata.identity]) !== id
               )
-                continue; // Legacy state remains untouched until explicitly migrated.
+                throw new Error(`Invalid repository identity: ${id}`);
               const ready = (await readJson(join(directory, "identity-ready.json"))) as { id?: string } | undefined;
               const owner = (await readJson(join(directory, "identity-owner.json"))) as { id?: string } | undefined;
               if (ready?.id !== id || owner?.id !== id)
-                throw new Error(`Incomplete GitRelay state initialization: ${directory}`);
+                throw new Error(`Incomplete gitbeacon state initialization: ${directory}`);
               const identitySource = metadata.identitySource as "marker" | "external";
-              await assertMigrationReady({
-                id,
-                common: metadata.common,
-                root: metadata.common,
-                directory,
-                identity: metadata.identity,
-                identitySource,
-              });
               await checkRepositoryDirectories(directory, true);
               let common: string;
               try {

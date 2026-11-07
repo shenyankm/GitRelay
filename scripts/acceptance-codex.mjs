@@ -22,7 +22,7 @@ try {
   await writeFile(join(f.b, "shared.txt"), "Codex receiver unfinished work\n");
   await trackRepository(f.b);
   const prompt =
-    "This is a bounded GitRelay MCP acceptance test in a disposable local repository. Do not edit any files or call other servers. Using only gitrelay MCP tools and a shell sleep if needed: join_session (tracking was already explicitly enabled by the test operator); then wait for a peer to modify a conflicting branch. Check coordination_status/receive_messages at two-second intervals, at most 12 attempts. Once you receive an automatic coordination report with a conflict finding, explicitly acknowledge the complete batch using its deliveryId, then leave_session and report the conflicting path. Do not synchronize, merge, reset, stash, push or call cleanup. Do not claim a server notification woke you: this test only establishes native tool/model consumption and acknowledgement.";
+    "This is a bounded gitbeacon MCP acceptance test in a disposable local repository. Do not edit any files or call other servers. Using only gitbeacon MCP tools and a shell sleep if needed: join_session (tracking was already explicitly enabled by the test operator); then wait for a peer to modify a conflicting branch. Check coordination_status/receive_messages at two-second intervals, at most 12 attempts. Once you receive an automatic coordination report with a conflict finding, explicitly acknowledge the complete batch using its deliveryId, then leave_session and report the conflicting path. Do not synchronize, merge, reset, stash, push or call cleanup. Do not claim a server notification woke you: this test only establishes native tool/model consumption and acknowledgement.";
   child = spawn(
     "codex",
     [
@@ -36,11 +36,11 @@ try {
       "-C",
       f.b,
       "-c",
-      'mcp_servers.gitrelay.command="node"',
+      'mcp_servers.gitbeacon.command="node"',
       "-c",
-      `mcp_servers.gitrelay.args=${JSON.stringify([entry, "--cwd", f.b])}`,
+      `mcp_servers.gitbeacon.args=${JSON.stringify([entry, "--cwd", f.b])}`,
       "-c",
-      `mcp_servers.gitrelay.env.WORKTREE_SYNC_STATE_DIR=${JSON.stringify(join(f.root, "state"))}`,
+      `mcp_servers.gitbeacon.env.GITBEACON_STATE_DIR=${JSON.stringify(join(f.root, "state"))}`,
       prompt,
     ],
     { env: process.env, stdio: ["ignore", "pipe", "pipe"] },
@@ -81,7 +81,7 @@ try {
     const sessions = await sessionsIn(repo);
     const events = (await eventsIn(repo)).filter(
       (event) =>
-        event.sender.adapter === "git-relay" && event.kind === "message" && event.text.includes('"level":"conflict"'),
+        event.sender.adapter === "gitbeacon" && event.kind === "message" && event.text.includes('"level":"conflict"'),
     );
     assert.ok(events.length, `No automatic conflict was published. ${output.slice(-4096)}`);
     let accepted = false;

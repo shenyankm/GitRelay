@@ -17,12 +17,12 @@ const ref = "refs/heads/main",
   token = hash("test-daemon"),
   previousToken = hash("previous-daemon");
 async function fixture(t: TestContext, options: { heartbeat?: boolean; cursorToken?: unknown; age?: number } = {}) {
-  const directory = await mkdtemp(join(tmpdir(), "gitrelay-daemon-ref-token-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-daemon-ref-token-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const priorState = process.env.WORKTREE_SYNC_STATE_DIR;
+  const priorState = process.env.GITBEACON_STATE_DIR;
   t.after(() => {
-    if (priorState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = priorState;
+    if (priorState === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = priorState;
   });
   const template = join(directory, "template"),
     raw = join(directory, "repo"),
@@ -60,7 +60,7 @@ async function fixture(t: TestContext, options: { heartbeat?: boolean; cursorTok
   const identity = "a".repeat(64),
     id = hash([common, identity]),
     repo: Repository = { root, common, id, directory: join(state, "repos", id), identity, identitySource: "marker" };
-  await writeFile(join(common, ".git-relay-id"), `${identity}\n`);
+  await writeFile(join(common, ".gitbeacon-id"), `${identity}\n`);
   for (const name of ["sessions", "events", "receipts", "refs", "trash"])
     await mkdir(join(repo.directory, name), { recursive: true });
   for (const name of ["identity-ready.json", "identity-owner.json"])
@@ -70,7 +70,7 @@ async function fixture(t: TestContext, options: { heartbeat?: boolean; cursorTok
     cursorPath = join(repo.directory, "refs", `${hash(ref)}.json`);
   await writeFile(
     join(repo.directory, "sessions", `${key}.json`),
-    JSON.stringify({ ...agent, key, root, ref, createdAt: now, lastSeen: now, baseline: first, migrated: true }),
+    JSON.stringify({ ...agent, key, root, ref, createdAt: now, lastSeen: now, baseline: first }),
   );
   await writeFile(
     cursorPath,
@@ -88,7 +88,7 @@ async function fixture(t: TestContext, options: { heartbeat?: boolean; cursorTok
       JSON.stringify({ pid: process.pid, token, intervalMs: 5000, heartbeatAt: now }),
     );
   }
-  process.env.WORKTREE_SYNC_STATE_DIR = state;
+  process.env.GITBEACON_STATE_DIR = state;
   return { root, state, repo, key, first, second, cursorPath };
 }
 const use = (f: Awaited<ReturnType<typeof fixture>>) =>
@@ -292,7 +292,7 @@ for (const scenario of [
           join(recoveredState, "daemon.json"),
           JSON.stringify({ pid: process.pid, token, intervalMs: 5000, heartbeatAt: new Date().toISOString() }),
         );
-        process.env.WORKTREE_SYNC_STATE_DIR = recoveredState;
+        process.env.GITBEACON_STATE_DIR = recoveredState;
         const received: string[] = [];
         await consumeMailbox({
           cwd: f.root,

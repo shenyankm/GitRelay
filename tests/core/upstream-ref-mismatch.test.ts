@@ -16,7 +16,7 @@ test("upstream events cannot acknowledge a recipient subscribed to another ref",
   const previous = f.initial,
     commit = await f.commit(f.main, "shared.txt", "upstream\n");
   await writeFile(join(f.b, "shared.txt"), "local\n");
-  const base = process.env.WORKTREE_SYNC_STATE_DIR!;
+  const base = process.env.GITBEACON_STATE_DIR!;
   await consumeMailbox({ cwd: f.b, ref, ...actor, async deliver() {} });
   const repoId = (await readdir(join(base, "repos"))).find((id) => /^[a-f0-9]{64}$/.test(id));
   assert.ok(repoId);
@@ -26,7 +26,7 @@ test("upstream events cannot acknowledge a recipient subscribed to another ref",
   async function scenario(run: (repo: Repository, event: UpstreamEvent) => Promise<void>) {
     const state = join(f.root, `scenario-${++count}`);
     await cp(base, state, { recursive: true, filter: (path) => !path.endsWith(".lock") });
-    process.env.WORKTREE_SYNC_STATE_DIR = state;
+    process.env.GITBEACON_STATE_DIR = state;
     const directory = join(state, "repos", repoId!);
     const repo = { directory } as Repository;
     const event: UpstreamEvent = {
@@ -42,7 +42,7 @@ test("upstream events cannot acknowledge a recipient subscribed to another ref",
     await run(repo, event);
   }
   const pathFor = (repo: Repository, event: UpstreamEvent) => join(repo.directory, "events", `${event.id}.json`);
-  for (const mode of ["normal", "upstreamOnly", "isDelivered", "isPending"] as const) {
+  {
     await scenario(async (repo, event) => {
       const path = pathFor(repo, event);
       await writeJson(path, event);
@@ -55,23 +55,6 @@ test("upstream events cannot acknowledge a recipient subscribed to another ref",
         async deliver() {
           calls++;
         },
-        ...(mode === "upstreamOnly" ? { upstreamOnly: true } : {}),
-        ...(mode === "isDelivered"
-          ? {
-              isDelivered() {
-                calls++;
-                return true;
-              },
-            }
-          : {}),
-        ...(mode === "isPending"
-          ? {
-              isPending() {
-                calls++;
-                return true;
-              },
-            }
-          : {}),
       };
       await assert.rejects(consumeMailbox(options), /session subscribed to another ref/);
       assert.equal(calls, 0);

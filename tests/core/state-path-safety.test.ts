@@ -7,11 +7,10 @@ import { test } from "node:test";
 import { consumeMailbox } from "../../src/core/consumer.ts";
 import { readReceipt, sendMessage, sessionKey } from "../../src/core/mailbox.ts";
 import { hash, readJson } from "../../src/core/store.ts";
-import { migrateLegacyState } from "../../src/core/identity-migration.ts";
 import { leaveSession } from "../../src/core/sessions.ts";
 
 async function fixture(t: { after(fn: () => void | Promise<void>): void }) {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-state-path-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-state-path-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const root = join(directory, "repo"),
     template = join(directory, "template"),
@@ -26,17 +25,17 @@ async function fixture(t: { after(fn: () => void | Promise<void>): void }) {
     id = hash([common, identity]),
     directoryPath = join(state, "repos", id);
   await mkdir(directoryPath, { recursive: true });
-  await writeFile(join(common, ".git-relay-id"), `${identity}\n`);
+  await writeFile(join(common, ".gitbeacon-id"), `${identity}\n`);
   for (const name of ["identity-owner.json", "identity-ready.json"])
     await writeFile(join(directoryPath, name), JSON.stringify({ id }));
   return { root, worktree, common, directory, directoryPath, id, identity, outside, state };
 }
 
 function preserveState(t: { after(fn: () => void): void }): void {
-  const previous = process.env.WORKTREE_SYNC_STATE_DIR;
+  const previous = process.env.GITBEACON_STATE_DIR;
   t.after(() => {
-    if (previous === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = previous;
+    if (previous === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = previous;
   });
 }
 
@@ -50,11 +49,11 @@ test(
     preserveState(t);
     for (const linked of folders) {
       const f = await fixture(t);
-      process.env.WORKTREE_SYNC_STATE_DIR = f.state;
+      process.env.GITBEACON_STATE_DIR = f.state;
       for (const name of folders)
         if (name === linked) await symlink(f.outside, join(f.directoryPath, name));
         else await mkdir(join(f.directoryPath, name));
-      await assert.rejects(sendMessage(message(f.root)), /Invalid GitRelay state directory/);
+      await assert.rejects(sendMessage(message(f.root)), /Invalid gitbeacon state directory/);
       assert.ok((await lstat(join(f.directoryPath, linked))).isSymbolicLink());
       assert.deepEqual(await readdir(f.outside), []);
     }
@@ -66,17 +65,12 @@ test(
   { skip: process.platform === "win32" },
   async (t) => {
     preserveState(t);
-    for (const linked of [
-      "identity-locks",
-      "identity-choices",
-      "identity-history",
-      "identity-migration-claims",
-    ] as const) {
+    for (const linked of ["identity-locks", "identity-choices", "identity-history"] as const) {
       const f = await fixture(t);
-      process.env.WORKTREE_SYNC_STATE_DIR = f.state;
+      process.env.GITBEACON_STATE_DIR = f.state;
       for (const name of folders) await mkdir(join(f.directoryPath, name));
       await symlink(f.outside, join(f.state, linked));
-      await assert.rejects(sendMessage(message(f.root)), /Invalid GitRelay state directory/);
+      await assert.rejects(sendMessage(message(f.root)), /Invalid gitbeacon state directory/);
       assert.ok((await lstat(join(f.state, linked))).isSymbolicLink());
       assert.deepEqual(await readdir(f.outside), []);
     }
@@ -84,7 +78,7 @@ test(
     for (const name of folders) await mkdir(join(f.directoryPath, name));
     const alias = join(f.directory, "state-alias");
     await symlink(f.state, alias);
-    process.env.WORKTREE_SYNC_STATE_DIR = alias;
+    process.env.GITBEACON_STATE_DIR = alias;
     const event = await sendMessage(message(f.root));
     assert.ok((await readdir(join(f.directoryPath, "events"))).includes(`${event.id}.json`));
   },
@@ -96,7 +90,7 @@ test(
   async (t) => {
     preserveState(t);
     const f = await fixture(t);
-    process.env.WORKTREE_SYNC_STATE_DIR = f.state;
+    process.env.GITBEACON_STATE_DIR = f.state;
     for (const name of folders) await mkdir(join(f.directoryPath, name));
     const ref = "refs/heads/main",
       identity = { adapter: "test", session: "receiver" };
@@ -112,7 +106,7 @@ test(
           delivered = true;
         },
       }),
-      /Invalid GitRelay state directory/,
+      /Invalid gitbeacon state directory/,
     );
     assert.equal(delivered, false);
     assert.deepEqual(await readdir(f.outside), []);
@@ -125,7 +119,7 @@ test(
   async (t) => {
     preserveState(t);
     const f = await fixture(t);
-    process.env.WORKTREE_SYNC_STATE_DIR = f.state;
+    process.env.GITBEACON_STATE_DIR = f.state;
     for (const name of folders) await mkdir(join(f.directoryPath, name));
     const key = "b".repeat(64),
       id = "c".repeat(64),
@@ -166,7 +160,7 @@ test("leaving a missing worktree skips unrelated incomplete repository state", a
     missing = join(f.directory, "missing-worktree"),
     ref = "refs/heads/main",
     identity = { adapter: "test", session: "old" };
-  process.env.WORKTREE_SYNC_STATE_DIR = f.state;
+  process.env.GITBEACON_STATE_DIR = f.state;
   for (const name of folders) await mkdir(join(f.directoryPath, name));
   const now = new Date().toISOString(),
     key = sessionKey({ root: missing }, identity, ref);
@@ -176,62 +170,8 @@ test("leaving a missing worktree skips unrelated incomplete repository state", a
   );
   await writeFile(
     join(f.directoryPath, "sessions", `${key}.json`),
-    JSON.stringify({ ...identity, key, root: missing, ref, createdAt: now, lastSeen: now, migrated: true }),
+    JSON.stringify({ ...identity, key, root: missing, ref, createdAt: now, lastSeen: now }),
   );
   await mkdir(join(f.state, "repos", "e".repeat(64), "sessions"), { recursive: true });
   assert.ok((await leaveSession({ cwd: missing, ...identity, ref }))?.closedAt);
 });
-
-test(
-  "direct identity migration rejects a linked claims directory",
-  { skip: process.platform === "win32" },
-  async (t) => {
-    preserveState(t);
-    const f = await fixture(t);
-    process.env.WORKTREE_SYNC_STATE_DIR = f.state;
-    const claims = join(f.state, "identity-migration-claims");
-    await symlink(f.outside, claims);
-    await assert.rejects(
-      migrateLegacyState({
-        common: f.common,
-        oldDirectory: join(f.state, "repos", hash(f.common)),
-        newDirectory: f.directoryPath,
-        newId: f.id,
-        identity: f.identity,
-        identitySource: "marker",
-      }),
-      /Invalid GitRelay state directory/,
-    );
-    assert.equal(await readlink(claims), f.outside);
-    assert.deepEqual(await readdir(f.outside), []);
-  },
-);
-
-test(
-  "direct identity migration rejects a linked repos directory",
-  { skip: process.platform === "win32" },
-  async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-migration-link-"));
-    t.after(() => rm(directory, { recursive: true, force: true }));
-    const outside = join(directory, "outside"),
-      repos = join(directory, "repos"),
-      common = join(directory, "common.git"),
-      identity = "a".repeat(64),
-      id = hash([common, identity]);
-    await mkdir(outside);
-    await symlink(outside, repos);
-    await assert.rejects(
-      migrateLegacyState({
-        common,
-        oldDirectory: join(repos, hash(common)),
-        newDirectory: join(repos, id),
-        newId: id,
-        identity,
-        identitySource: "marker",
-      }),
-      /Invalid GitRelay state directory/,
-    );
-    assert.equal(await readlink(repos), outside);
-    assert.deepEqual(await readdir(outside), []);
-  },
-);

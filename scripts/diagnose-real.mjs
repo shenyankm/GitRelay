@@ -170,7 +170,7 @@ await probe("sigkill-monitor-owner-failover", async (t) => {
   await delay(12500);
   const after = await survivor.call("monitor_status");
   const status = await survivor.call("coordination_status");
-  const staleDiagnostic = survivor.stderr().includes("Stale git-relay lock");
+  const staleDiagnostic = survivor.stderr().includes("Stale gitbeacon lock");
   const manual = await eventually(async () => {
     try {
       return await survivor.call("scan_repository");

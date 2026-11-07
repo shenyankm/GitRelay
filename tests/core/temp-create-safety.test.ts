@@ -1,15 +1,13 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { mkdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { syncBuiltinESMExports } from "node:module";
 import { basename, join, sep } from "node:path";
 import { test } from "node:test";
-import { migrateLegacyState } from "../../src/core/identity-migration.ts";
-import { hash, writeJson } from "../../src/core/store.ts";
 import { chooseFreshRepository, repository, repositoryIdentity } from "../../src/core/repository.ts";
 import { fixture } from "../helpers.ts";
 
-for (const kind of ["identity", "choice", "owner", "migration"] as const) {
+for (const kind of ["identity", "choice", "owner"] as const) {
   for (const failure of ["collision", "partial", "access"] as const) {
     test(`${kind} preserves an exclusive temporary file on ${failure}`, async (t) => {
       const f = await fixture(t),
@@ -18,27 +16,14 @@ for (const kind of ["identity", "choice", "owner", "migration"] as const) {
       let action: () => Promise<unknown>;
       if (kind === "identity") action = () => repositoryIdentity(common, true);
       else if (kind === "choice") action = () => chooseFreshRepository(f.main);
-      else if (kind === "owner") action = () => repository(f.main);
-      else {
-        const repos = join(f.root, "migration", "repos"),
-          identity = "a".repeat(64),
-          id = hash([common, identity]);
-        const oldDirectory = join(repos, hash(common)),
-          newDirectory = join(repos, id);
-        await mkdir(oldDirectory, { recursive: true });
-        await writeJson(join(oldDirectory, "repo.json"), { id: hash(common), common });
-        action = () =>
-          migrateLegacyState({ common, oldDirectory, newDirectory, newId: id, identity, identitySource: "marker" });
-      }
+      else action = () => repository(f.main);
       const matches = (path: string) =>
         path.endsWith(".tmp") &&
         (kind === "identity"
-          ? basename(path).startsWith(".git-relay-id-")
+          ? basename(path).startsWith(".gitbeacon-id-")
           : kind === "choice"
             ? path.includes(`${sep}identity-choices${sep}`)
-            : kind === "owner"
-              ? basename(path).startsWith(".git-relay-owner-")
-              : path.includes(`${sep}identity-migration-claims${sep}`));
+            : basename(path).startsWith(".gitbeacon-owner-"));
       const original = fs.promises.writeFile;
       let temporary = "";
       fs.promises.writeFile = (async (file: any, data: any, options: any) => {

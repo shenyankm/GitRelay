@@ -17,10 +17,10 @@ const ref = "refs/heads/main",
 test("daemon status skips the heartbeat without a readable lock", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "heartbeat-no-lock-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const previous = process.env.WORKTREE_SYNC_STATE_DIR,
+  const previous = process.env.GITBEACON_STATE_DIR,
     originalOpen = fs.promises.open,
     heartbeat = join(root, "daemon.json");
-  process.env.WORKTREE_SYNC_STATE_DIR = root;
+  process.env.GITBEACON_STATE_DIR = root;
   let heartbeatReads = 0;
   fs.promises.open = async function (path, ...args) {
     if (String(path) === heartbeat) heartbeatReads++;
@@ -39,8 +39,8 @@ test("daemon status skips the heartbeat without a readable lock", async (t) => {
   } finally {
     fs.promises.open = originalOpen;
     syncBuiltinESMExports();
-    if (previous === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = previous;
+    if (previous === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = previous;
   }
 });
 
@@ -75,8 +75,8 @@ test("ref cursor accepts valid legacy timestamps and rejects non-string values w
 test("daemon heartbeat non-string and malformed values fall back without trusting the PID", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "heartbeat-types-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const prior = process.env.WORKTREE_SYNC_STATE_DIR;
-  process.env.WORKTREE_SYNC_STATE_DIR = root;
+  const prior = process.env.GITBEACON_STATE_DIR;
+  process.env.GITBEACON_STATE_DIR = root;
   try {
     await writeFile(join(root, "daemon.lock"), JSON.stringify({ pid: process.pid, token }));
     const file = join(root, "daemon.json"),
@@ -93,8 +93,8 @@ test("daemon heartbeat non-string and malformed values fall back without trustin
     assert.equal((await daemonStatus()).running, false);
     assert.equal(await readFile(file, "utf8"), "{broken");
   } finally {
-    if (prior === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = prior;
+    if (prior === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = prior;
   }
 });
 
@@ -145,14 +145,14 @@ test("invalid array heartbeat does not mask an advanced ref", async (t) => {
     now = new Date().toISOString();
   const repo = { root, common, id, directory: dir, identity, identitySource: "marker" as const },
     key = sessionKey(repo, agent, ref);
-  await writeFile(join(common, ".git-relay-id"), `${identity}\n`);
+  await writeFile(join(common, ".gitbeacon-id"), `${identity}\n`);
   for (const name of ["sessions", "events", "receipts", "refs", "trash"])
     await mkdir(join(dir, name), { recursive: true });
   for (const name of ["identity-owner.json", "identity-ready.json"])
     await writeFile(join(dir, name), JSON.stringify({ id }));
   await writeFile(
     join(dir, "sessions", `${key}.json`),
-    JSON.stringify({ ...agent, key, root, ref, createdAt: now, lastSeen: now, baseline: first, migrated: true }),
+    JSON.stringify({ ...agent, key, root, ref, createdAt: now, lastSeen: now, baseline: first }),
   );
   await writeFile(
     join(dir, "refs", `${hash(ref)}.json`),
@@ -163,8 +163,8 @@ test("invalid array heartbeat does not mask an advanced ref", async (t) => {
     join(state, "daemon.json"),
     JSON.stringify({ pid: process.pid, token, intervalMs: 5000, heartbeatAt: [now] }),
   );
-  const prior = process.env.WORKTREE_SYNC_STATE_DIR;
-  process.env.WORKTREE_SYNC_STATE_DIR = state;
+  const prior = process.env.GITBEACON_STATE_DIR;
+  process.env.GITBEACON_STATE_DIR = state;
   try {
     await consumeMailbox({
       cwd: root,
@@ -177,7 +177,7 @@ test("invalid array heartbeat does not mask an advanced ref", async (t) => {
     assert.equal((await readRef(repo, ref))?.commit, second);
     assert.equal((await readdir(join(dir, "events"))).length, 1);
   } finally {
-    if (prior === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = prior;
+    if (prior === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = prior;
   }
 });

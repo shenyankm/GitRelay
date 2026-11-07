@@ -14,8 +14,8 @@ import { repository } from "../dist/core/repository.js";
 
 const exec = promisify(execFile);
 const consumer = new URL("../dist/core/consumer.js", import.meta.url).href;
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-concurrency-bench-"));
-const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-concurrency-bench-"));
+const previousState = process.env.GITBEACON_STATE_DIR;
 const git = (...args) =>
   execFileSync(
     "git",
@@ -50,7 +50,7 @@ try {
     }),
   );
   for (const count of [1, 4, 8]) {
-    process.env.WORKTREE_SYNC_STATE_DIR = join(temporary, `state-${count}`);
+    process.env.GITBEACON_STATE_DIR = join(temporary, `state-${count}`);
     const repo = await repository(temporary);
     const sessions = [];
     for (let i = 0; i < count; i++) {
@@ -205,7 +205,7 @@ try {
     );
   }
 } finally {
-  if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-  else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+  if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+  else process.env.GITBEACON_STATE_DIR = previousState;
   await rm(temporary, { recursive: true, force: true, maxRetries: 3 });
 }

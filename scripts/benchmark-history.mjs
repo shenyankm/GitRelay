@@ -5,7 +5,7 @@ import { tmpdir, platform, arch } from "node:os";
 import { join } from "node:path";
 import { inspectChange } from "../dist/core/changes.js";
 
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-history-bench-"));
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-history-bench-"));
 const git = (cwd, ...args) =>
   execFileSync(
     "git",

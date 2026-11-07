@@ -34,7 +34,7 @@ export async function enableSession(options: SessionOptions): Promise<Session | 
         },
       });
       if (!prepared) throw disabled;
-      if (!joined) throw new Error("GitRelay subscription was not registered.");
+      if (!joined) throw new Error("gitbeacon subscription was not registered.");
       return joined;
     });
   } catch (error) {

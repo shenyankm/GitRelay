@@ -13,13 +13,13 @@ import { hash, withLock } from "../../src/core/store.ts";
 import { type Repository } from "../../src/core/repository.ts";
 
 async function fixture(t: { after(fn: () => void | Promise<void>): void }) {
-  const dir = await mkdtemp(join(tmpdir(), "git-relay-consumer-input-"));
+  const dir = await mkdtemp(join(tmpdir(), "gitbeacon-consumer-input-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
-  const oldState = process.env.WORKTREE_SYNC_STATE_DIR;
-  process.env.WORKTREE_SYNC_STATE_DIR = join(dir, "state");
+  const oldState = process.env.GITBEACON_STATE_DIR;
+  process.env.GITBEACON_STATE_DIR = join(dir, "state");
   t.after(() => {
-    if (oldState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = oldState;
+    if (oldState === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = oldState;
   });
   const cwd = join(dir, "repo"),
     template = join(dir, "template");
@@ -77,7 +77,7 @@ test("consumer retains the session identity across asynchronous repository and r
 });
 
 test("registerSession snapshots repository and identity before the first read", async (t) => {
-  const dir = await mkdtemp(join(tmpdir(), "git-relay-register-input-"));
+  const dir = await mkdtemp(join(tmpdir(), "gitbeacon-register-input-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const first = join(dir, "first"),
     other = join(dir, "other");
@@ -115,9 +115,6 @@ test("consumer keeps inherited callbacks lazy, bound to the caller, and uses the
     ref: "refs/heads/main",
     adapter: "test",
     session: "target",
-    get initialCursor(): never {
-      throw new Error("migrated cursor should not be read");
-    },
     get deliver() {
       getterReceiver = this;
       return async function (this: unknown, notifications: unknown[]) {
@@ -145,7 +142,6 @@ test("consumer keeps inherited callbacks lazy, bound to the caller, and uses the
           createdAt: now,
           lastSeen: now,
           baseline: commit,
-          migrated: true,
         }),
       );
       await writeFile(
@@ -219,7 +215,7 @@ test("leave closes the original session even if its caller changes the options",
     directory = join(dir, "state", "repos", id);
   for (const name of ["sessions", "events", "receipts", "refs", "trash"])
     await mkdir(join(directory, name), { recursive: true });
-  await writeFile(join(common, ".git-relay-id"), `${marker}\n`);
+  await writeFile(join(common, ".gitbeacon-id"), `${marker}\n`);
   for (const name of ["identity-owner.json", "identity-ready.json"])
     await writeFile(join(directory, name), JSON.stringify({ id }));
   const now = new Date().toISOString(),
@@ -230,10 +226,7 @@ test("leave closes the original session even if its caller changes the options",
       key = sessionKey({ root }, identity, ref);
     const path = join(directory, "sessions", `${key}.json`);
     paths.set(session, path);
-    await writeFile(
-      path,
-      JSON.stringify({ ...identity, key, root, ref, createdAt: now, lastSeen: now, migrated: true }),
-    );
+    await writeFile(path, JSON.stringify({ ...identity, key, root, ref, createdAt: now, lastSeen: now }));
   }
   const options = { cwd: root, ref, adapter: "test", session: "initial" };
   const pending = leaveSession(options);
@@ -263,7 +256,7 @@ test("leave retains the repository ID while locating a missing worktree", async 
     now = new Date().toISOString();
   await writeFile(
     join(directory, "sessions", `${key}.json`),
-    JSON.stringify({ ...session, key, root: missing, ref, createdAt: now, lastSeen: now, migrated: true }),
+    JSON.stringify({ ...session, key, root: missing, ref, createdAt: now, lastSeen: now }),
   );
   const options = { cwd: missing, ref, ...session, repositoryId: id };
   const pending = leaveSession(options);

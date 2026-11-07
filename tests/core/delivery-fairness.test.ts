@@ -16,10 +16,9 @@ test("rejected messages do not indefinitely starve later messages", async (t) =>
     ref: "refs/heads/main",
     adapter: "test",
     session: "fair",
-    deliverIndividually: true,
     async deliver(batch: Notification[]) {
-      attempted.push(batch[0].event.id);
-      return batch[0].event.id === ids[8];
+      attempted.push(...batch.map((item) => item.event.id));
+      return false;
     },
   };
   await consumeMailbox(receiver);
@@ -43,10 +42,9 @@ test("a rejected oversized notification does not indefinitely starve a small mes
     ref: "refs/heads/main",
     adapter: "test",
     session: "large",
-    deliverIndividually: true,
     async deliver(batch: Notification[]) {
-      attempted.push(batch[0].event.id);
-      return batch[0].event.id === ids[1];
+      attempted.push(...batch.map((item) => item.event.id));
+      return false;
     },
   };
   await consumeMailbox(receiver);

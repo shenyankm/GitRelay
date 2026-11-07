@@ -12,8 +12,17 @@ test("MCP discovers typed tools and reads new/dirty repositories without state w
   const f = await fixture(t);
   const { client, call, stderr } = await connectMcp(t, f.b);
   const tools = (await client.listTools()).tools;
-  assert.equal(tools.length, 18);
-  const removed = ["open_console", "list_repositories", "add_repository", "remove_repository"];
+  assert.equal(tools.length, 16);
+  assert.equal(client.getServerCapabilities()?.logging, undefined);
+  assert.equal(client.getServerCapabilities()?.resources?.subscribe, true);
+  const removed = [
+    "open_console",
+    "list_repositories",
+    "add_repository",
+    "remove_repository",
+    "migrate_repository",
+    "retire_session",
+  ];
   assert.ok(tools.every((tool) => !removed.includes(tool.name)));
   assert.ok(tools.some((tool) => tool.name === "receive_messages" && tool.annotations?.readOnlyHint === false));
   assert.ok(tools.some((tool) => tool.name === "repository_status" && tool.annotations?.readOnlyHint === true));
@@ -25,7 +34,7 @@ test("MCP discovers typed tools and reads new/dirty repositories without state w
   assert.equal(snapshot.worktrees.length, 4);
   assert.equal(snapshot.status.value.worktree.branch, "feature/b");
   await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
-  await assert.rejects(access(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+  await assert.rejects(access(join(f.main, ".git", ".gitbeacon-id")), { code: "ENOENT" });
   assert.equal(stderr(), "");
   await assert.rejects(call("join_session", { ref: "main" }), /full branch ref/);
   await assert.rejects(call("join_session", { ref: "refs/heads/bad..name" }), /check-ref-format/);

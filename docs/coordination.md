@@ -1,6 +1,6 @@
 # Source-centered coordination
 
-GitRelay tracks a source's registered local repositories, branches and worktrees,
+gitbeacon tracks a source's registered local repositories, branches and worktrees,
 configured remote branches, and (with GitHub authorization) accessible fork
 networks and open PRs. It diagnoses conflicts and routes durable notices to the
 participating subscriptions, then pushes notices to their bound MCP connections.
@@ -81,15 +81,17 @@ retain private resumable inboxes, explicit ACK, partial-write recovery and GC.
 A joined or resumed MCP connection is bound to that participant's inbox URI:
 
 ```text
-git-relay://inbox/<public-session-key>
+gitbeacon://inbox/<public-session-key>
 ```
 
-The server pushes automatic reports via `notifications/message` and announces
-`notifications/resources/updated`. Message notifications use the SDK's logging
-compatibility surface, deprecated in the 2026 MCP revision; resource reads are
-the non-logging path. The bound resource returns at most eight unacknowledged
-automatic notices. Another connection cannot read it merely by knowing its URI.
-Manual/file-scoped messages keep the original poll-time relevance rules.
+Subscribe to the exact inbox URI using `subscriptions/listen` on MCP 2026-07-28
+or `resources/subscribe` on supported 2025 connections. The server announces
+changes via `notifications/resources/updated`; read the resource after subscribing
+and on updates for at most eight unacknowledged automatic notices. Dynamic inbox
+membership emits `notifications/resources/list_changed`. Another unbound
+connection cannot read or subscribe to the inbox merely by knowing its URI.
+Business data is not sent through logging notifications. Manual/file-scoped
+messages keep the original poll-time relevance rules.
 
 Neither a notification nor a resource read confirms acceptance. Call
 `receive_messages`, accept the complete batch, then `acknowledge_messages` with

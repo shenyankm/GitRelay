@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { syncBuiltinESMExports } from "node:module";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -381,39 +381,6 @@ test("repo identity is shared across worktrees but not across separate clones", 
   assert.equal(message.recipients.length, 0);
 });
 
-test("legacy cursors migrate without being deleted and queued delivery is acknowledged only after acceptance", async (t) => {
-  const f = await fixture(t);
-  const repo = await repository(f.b);
-  const identity = { adapter: "codex", session: "legacy" };
-  const key = sessionKey(repo, identity, ref);
-  const legacyDirectory = join(repo.common, "worktree-agent-sync");
-  await mkdir(legacyDirectory);
-  const legacyPath = join(legacyDirectory, `${key}.json`);
-  await writeFile(legacyPath, JSON.stringify({ root: f.b, ref, commit: f.initial }));
-  await writeFile(join(f.b, "shared.txt"), "local\n");
-  await f.commit(f.main, "shared.txt", "upstream\n");
-  let received = 0;
-  let accepted = false;
-  const options = {
-    cwd: f.b,
-    ref,
-    ...identity,
-    async deliver() {
-      received++;
-      return accepted;
-    },
-  };
-  await consumeMailbox(options);
-  await consumeMailbox(options);
-  assert.equal(received, 2);
-  accepted = true;
-  await consumeMailbox(options);
-  await consumeMailbox(options);
-  assert.equal(received, 3);
-  assert.equal(JSON.parse(await readFile(legacyPath, "utf8")).commit, f.initial);
-  assert.equal((await eventsIn(repo)).length, 1);
-});
-
 test("rewind followed by the same forward update creates a new event rather than reusing an old receipt", async (t) => {
   const f = await fixture(t);
   await writeFile(join(f.b, "shared.txt"), "local\n");
@@ -469,93 +436,6 @@ test("message validation and cancellation do not advance receipts", async (t) =>
   assert.equal(count, 1);
 });
 
-test("cancellation while awaiting delivery confirmation preserves the event and releases locks", async (t) => {
-  const f = await fixture(t);
-  const recipient = { cwd: f.b, ref, adapter: "test", session: "recipient", async deliver() {} };
-  await consumeMailbox(recipient);
-  const repo = await repository(f.b),
-    key = sessionKey(repo, recipient, ref);
-  for (const result of [true, false]) {
-    const event = await sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: `confirmation ${result}` });
-    const abort = new AbortController();
-    const entered = Promise.withResolvers<void>(),
-      release = Promise.withResolvers<void>();
-    const pending = consumeMailbox({
-      ...recipient,
-      signal: abort.signal,
-      async isDelivered() {
-        entered.resolve();
-        await release.promise;
-        return result;
-      },
-      async deliver() {
-        assert.fail("cancelled confirmation must not deliver");
-      },
-    });
-    await entered.promise;
-    abort.abort();
-    release.resolve();
-    await assert.rejects(pending, /abort/i);
-    await assert.rejects(stat(join(repo.directory, "receipts", key, `${event.id}.json`)), { code: "ENOENT" });
-    await assert.rejects(stat(join(repo.directory, "sessions", `${key}.lock`)), { code: "ENOENT" });
-    await assert.rejects(stat(join(repo.directory, "publish.lock")), { code: "ENOENT" });
-    let count = 0;
-    await consumeMailbox({
-      ...recipient,
-      async deliver() {
-        count++;
-      },
-    });
-    assert.equal(count, 1);
-  }
-});
-
-test("cancellation while awaiting pending delivery inspection preserves the event and releases locks", async (t) => {
-  const f = await fixture(t);
-  const recipient = { cwd: f.b, ref, adapter: "test", session: "recipient", async deliver() {} };
-  await consumeMailbox(recipient);
-  const repo = await repository(f.b),
-    key = sessionKey(repo, recipient, ref);
-  for (const result of [true, false]) {
-    const event = await sendMessage({
-      cwd: f.a,
-      adapter: "test",
-      session: "sender",
-      text: `pending inspection ${result}`,
-    });
-    const abort = new AbortController();
-    const entered = Promise.withResolvers<void>(),
-      release = Promise.withResolvers<void>();
-    const pending = consumeMailbox({
-      ...recipient,
-      signal: abort.signal,
-      async isPending() {
-        entered.resolve();
-        await release.promise;
-        return result;
-      },
-      async deliver() {
-        assert.fail("cancelled inspection must not deliver");
-      },
-    });
-    await entered.promise;
-    abort.abort();
-    release.resolve();
-    await assert.rejects(pending, /abort/i);
-    await assert.rejects(stat(join(repo.directory, "receipts", key, `${event.id}.json`)), { code: "ENOENT" });
-    await assert.rejects(stat(join(repo.directory, "sessions", `${key}.lock`)), { code: "ENOENT" });
-    await assert.rejects(stat(join(repo.directory, "publish.lock")), { code: "ENOENT" });
-    let count = 0;
-    await consumeMailbox({
-      ...recipient,
-      async deliver() {
-        count++;
-      },
-    });
-    assert.equal(count, 1);
-  }
-});
-
 test("cancellation during receipt preparation does not commit any receipt", async (t) => {
   const f = await fixture(t);
   const recipient = { cwd: f.b, ref, adapter: "test", session: "recipient", async deliver() {} };
@@ -563,7 +443,7 @@ test("cancellation during receipt preparation does not commit any receipt", asyn
   const repo = await repository(f.b),
     key = sessionKey(repo, recipient, ref),
     directory = join(repo.directory, "receipts", key);
-  for (const mode of ["known", "irrelevant", "accepted"] as const) {
+  for (const mode of ["irrelevant", "accepted"] as const) {
     const event = await sendMessage({
       cwd: f.a,
       adapter: "test",
@@ -597,7 +477,6 @@ test("cancellation during receipt preparation does not commit any receipt", asyn
         consumeMailbox({
           ...recipient,
           signal: abort.signal,
-          isDelivered: mode === "known" ? async () => true : undefined,
           async deliver() {
             delivered++;
           },

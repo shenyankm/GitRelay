@@ -32,7 +32,7 @@ const ref = "refs/heads/main";
 const exec = promisify(execFile);
 
 test("GC busy marker only skips a fresh live matching lock", { skip: process.platform === "win32" }, async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-gc-token-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-gc-token-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "publish.lock");
   const attempt = () =>
@@ -40,11 +40,11 @@ test("GC busy marker only skips a fresh live matching lock", { skip: process.pla
   await writeFile(path, JSON.stringify({ pid: process.pid, token: GC_LOCK_TOKEN }));
   await assert.rejects(
     attempt(),
-    (error: unknown) => error instanceof BusyError && /GitRelay is busy/.test(error.message),
+    (error: unknown) => error instanceof BusyError && /gitbeacon is busy/.test(error.message),
   );
   await assert.rejects(
     withLock(path, async () => {}, { waitMs: 30 }),
-    /GitRelay lock remains busy/,
+    /gitbeacon lock remains busy/,
   );
   const old = new Date(Date.now() - 61_000);
   await utimes(path, old, old);
@@ -63,7 +63,7 @@ test("GC busy marker only skips a fresh live matching lock", { skip: process.pla
   await assert.rejects(
     attempt(),
     (error: unknown) =>
-      error instanceof Error && !(error instanceof BusyError) && /Stale git-relay lock/.test(error.message),
+      error instanceof Error && !(error instanceof BusyError) && /Stale gitbeacon lock/.test(error.message),
   );
   await stat(path); // The stale lock is reported, not stolen.
   await writeFile(path, "");
@@ -79,7 +79,7 @@ test("GC busy marker only skips a fresh live matching lock", { skip: process.pla
 });
 
 test("ownerless lock inspection retries when initialization completes", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-lock-initializing-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-lock-initializing-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "session.lock");
   await writeFile(path, "");
@@ -110,7 +110,7 @@ test("ownerless lock inspection retries when initialization completes", async (t
 });
 
 test("ownerless lock inspection remains abortable and preserves the lock", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-lock-cancel-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-lock-cancel-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "session.lock");
   await writeFile(path, "");
@@ -127,7 +127,7 @@ test(
   "GC busy marker is ignored when the lock path was replaced during inspection",
   { skip: process.platform === "win32" },
   async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-gc-token-race-"));
+    const directory = await mkdtemp(join(tmpdir(), "gitbeacon-gc-token-race-"));
     t.after(() => rm(directory, { recursive: true, force: true }));
     const path = join(directory, "publish.lock"),
       replacement = join(directory, "replacement");
@@ -164,7 +164,7 @@ test(
   "cancellation during GC lock inspection is not mistaken for a busy skip",
   { skip: process.platform === "win32" },
   async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-gc-token-cancel-"));
+    const directory = await mkdtemp(join(tmpdir(), "gitbeacon-gc-token-cancel-"));
     t.after(() => rm(directory, { recursive: true, force: true }));
     const path = join(directory, "publish.lock");
     await writeFile(path, JSON.stringify({ pid: process.pid, token: GC_LOCK_TOKEN }));
@@ -199,7 +199,7 @@ test(
   "cancellation after GC owner liveness check is not mistaken for a busy skip",
   { skip: process.platform === "win32" },
   async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-gc-token-cancel-late-"));
+    const directory = await mkdtemp(join(tmpdir(), "gitbeacon-gc-token-cancel-late-"));
     t.after(() => rm(directory, { recursive: true, force: true }));
     const path = join(directory, "publish.lock");
     await writeFile(path, JSON.stringify({ pid: process.pid, token: GC_LOCK_TOKEN }));
@@ -227,7 +227,7 @@ test(
 );
 
 test("JSON replacement preserves values and cleans temporary files on write or rename failure", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-write-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-write-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "state.json");
   await writeJson(path, { text: "original" });
@@ -246,7 +246,7 @@ test("JSON replacement preserves values and cleans temporary files on write or r
 });
 
 test("JSON writes preserve colliding, unverified, partial and replaced temporary files", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-ownership-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-ownership-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "state.json");
   await writeJson(path, { text: "original" });
@@ -304,7 +304,7 @@ test("JSON writes preserve colliding, unverified, partial and replaced temporary
 });
 
 test("JSON reads preserve UTF-8, size boundaries, missing files and parse errors", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "state.json");
   assert.equal(await readJson(path), undefined);
@@ -328,7 +328,7 @@ test("JSON reads preserve UTF-8, size boundaries, missing files and parse errors
 });
 
 test("JSON reads reuse the small-file buffer when probing EOF", async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-buffer-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-buffer-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const path = join(directory, "state.json"),
     value = { text: "跨工作区消息 🚀" };
@@ -354,7 +354,7 @@ test("JSON reads reuse the small-file buffer when probing EOF", async (t) => {
 
 for (const mode of ["short", "grow", "shrink"] as const)
   test(`JSON reads preserve bytes through ${mode} reads`, async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-json-read-"));
+    const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-read-"));
     t.after(() => rm(directory, { recursive: true, force: true }));
     const path = join(directory, "state.json"),
       large = { text: "更新🚀".repeat(8192) },
@@ -385,7 +385,7 @@ test(
   "JSON reads retry a path published after open reported ENOENT",
   { skip: process.platform === "win32" },
   async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-json-publish-"));
+    const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-publish-"));
     t.after(() => rm(directory, { recursive: true, force: true }));
     const originalOpen = fs.promises.open;
     for (const kind of ["file", "symlink", "fifo"] as const) {
@@ -419,7 +419,7 @@ test(
   "JSON read retry stays bounded and returns missing if the path disappears",
   { skip: process.platform === "win32" },
   async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-json-retry-"));
+    const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-retry-"));
     t.after(() => rm(directory, { recursive: true, force: true }));
     const path = join(directory, "state.json"),
       originalOpen = fs.promises.open,
@@ -471,7 +471,7 @@ test(
 
 for (const oversized of [false, true])
   test(`JSON reads enforce the limit after file growth (oversized=${oversized})`, async (t) => {
-    const directory = await mkdtemp(join(tmpdir(), "git-relay-json-growth-"));
+    const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-growth-"));
     t.after(() => rm(directory, { recursive: true, force: true }));
     const path = join(directory, "state.json"),
       value = "x".repeat(2 * 1024 * 1024 - 2 + Number(oversized));
@@ -498,7 +498,7 @@ for (const oversized of [false, true])
   });
 
 test("dangling state links are not mistaken for missing data", { skip: process.platform === "win32" }, async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-json-link-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-json-link-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const target = join(directory, "target.json"),
     link = join(directory, "link.json");

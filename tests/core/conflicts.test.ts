@@ -51,7 +51,7 @@ test(
     await mkdir(path);
     await symlink(join(f.main, ".git", "objects"), join(path, "objects"));
     const config = await readFile(join(f.main, ".git", "config"));
-    await assert.rejects(openObserver(repo.directory), /Invalid GitRelay state directory/);
+    await assert.rejects(openObserver(repo.directory), /Invalid gitbeacon state directory/);
     assert.deepEqual(await readFile(join(f.main, ".git", "config")), config);
   },
 );

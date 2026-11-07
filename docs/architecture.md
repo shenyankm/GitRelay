@@ -1,6 +1,6 @@
-# GitRelay architecture
+# gitbeacon architecture
 
-GitRelay is a local stdio MCP server over a filesystem coordination engine. The
+gitbeacon is a local stdio MCP server over a filesystem coordination engine. The
 MCP service and shared ref monitor use the same
 repository identities, event files, receipts and locks for one OS user.
 
@@ -32,8 +32,8 @@ records never expose the resumable handle. The same token can be used after
 reconnect; separate participants need separate tokens. This is a binding and
 resumption mechanism, not tenant isolation from the same OS user.
 
-`session-lifecycle.ts` retains transactional enable/disable and interrupted
-activation recovery. It is no longer driven by natural-language prompt matching.
+`session-lifecycle.ts` implements transactional enable/disable and interrupted
+enrollment recovery for explicit MCP subscriptions. Enrollment is driven only by explicit MCP session tools.
 
 `mcp-mailbox.ts` receives through the existing consumer with `deliver` returning
 false. It persists the bounded pending batch in the receiver's receipt directory
@@ -56,7 +56,7 @@ to the owning MCP connection, not the executable name of a specific host. Durabl
 subscriptions remain after disconnect; only an explicit leave closes them.
 The monitor publishes events; it does not deliver them into an idle model.
 
-`repository.ts` owns discovery, identity, initialization and migration readiness.
+`repository.ts` owns discovery, identity, initialization and recovery.
 `inspectRepository` observes existing state without creating identities,
 directories or locks. Read-only MCP tools and `core/repository-snapshot.ts` use this path.
 `store.ts` retains bounded JSON I/O, atomic writes, directory checks and locks.
@@ -103,10 +103,11 @@ coordination cursors deduplicate stable reports, preserve interrupted publicatio
 and distinguish subsequent changes/resolutions. Unread notices survive disconnect.
 
 `connections.ts` binds joined/resumed subscriptions to this transport. It renews
-10-second presence leases, pushes automatic notices and inbox resource updates,
+10-second presence leases, serves automatic notices through inbox resources,
+announces resource-list/inbox updates to subscribers,
 and removes its presence on shutdown. Resource reads are connection-bound and do
 not confirm receipt. There is no cross-process command execution or implicit ACK.
-MCP logs/resources are transport signals, not guaranteed model-context injection.
+Resource updates are transport signals, not guaranteed model-context injection.
 
 ## Validation
 

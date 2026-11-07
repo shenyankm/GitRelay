@@ -1,15 +1,15 @@
 # Source updates
 
-GitRelay is a private, source-only Node.js project. npm manages dependencies and
+gitbeacon is a private, source-only Node.js project. npm manages dependencies and
 local tasks; there is no npm packing/publishing workflow, package-name SDK export,
 global executable shim or install-time build hook.
 
-From the GitRelay source checkout, validate and run an update:
+From the gitbeacon source checkout, validate and run an update:
 
 ```sh
 npm ci --ignore-scripts
 npm run check
-node /absolute/path/to/GitRelay/dist/mcp/main.js --cwd /absolute/path/to/worktree
+node /absolute/path/to/gitbeacon/dist/mcp/main.js --cwd /absolute/path/to/worktree
 ```
 
 `npm run check` checks formatting and types, builds JavaScript, and runs the core
@@ -29,6 +29,7 @@ own verification; this project does not validate tags as npm release requests.
 
 Previously published npm versions are historical artifacts and are not altered
 by making this checkout private. Existing global installations are not silently
-uninstalled. See [migration](migration.md) for legacy hook cleanup. Historical
+uninstalled. See [breaking upgrades](migration.md) for the new MCP-only state
+namespace; no plugin uninstall or state-import implementation is included. Historical
 package/tarball evidence remains in the repository without being reinterpreted as
 current distribution support.

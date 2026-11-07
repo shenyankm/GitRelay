@@ -21,9 +21,9 @@ const variants = {
   candidate: consumeMailbox,
 };
 const sampleCount = baseline ? 6 : 3;
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-bench-"));
-const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
-process.env.WORKTREE_SYNC_STATE_DIR = join(temporary, "state");
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-bench-"));
+const previousState = process.env.GITBEACON_STATE_DIR;
+process.env.GITBEACON_STATE_DIR = join(temporary, "state");
 const git = (cwd, ...args) =>
   execFileSync(
     "git",
@@ -189,7 +189,7 @@ try {
     }
   }
 } finally {
-  if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-  else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+  if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+  else process.env.GITBEACON_STATE_DIR = previousState;
   await rm(temporary, { recursive: true, force: true });
 }

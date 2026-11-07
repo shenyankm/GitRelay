@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { branchStatus } from "../../src/core/branch-status.ts";
 
 test("ambiguous Git HEAD labels distinguish branches from detached or non-branch HEAD", async (t) => {
-  const root = await mkdtemp(join(tmpdir(), "git-relay-status-"));
+  const root = await mkdtemp(join(tmpdir(), "gitbeacon-status-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const home = join(root, "home"),
     repo = join(root, "repo"),

@@ -181,7 +181,7 @@ test(
     await withLock(join(repo.directory, "publish.lock"), async () => {
       for (let index = 0; index < 90; index++) {
         const session = await registerSession(repo, { adapter: "test", session: `receiver-${index}` }, ref, f.initial);
-        await writeJson(join(repo.directory, "sessions", `${session.key}.json`), { ...session, migrated: true });
+        await writeJson(join(repo.directory, "sessions", `${session.key}.json`), { ...session });
       }
     });
     const confirmed = await sendMessage({ cwd: f.a, adapter: "sender", session: "sender", text: "confirmed" });

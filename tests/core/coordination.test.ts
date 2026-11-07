@@ -19,7 +19,7 @@ async function subscribe(cwd: string) {
 
 function reports(batch: Awaited<ReturnType<typeof receiveMessages>>) {
   return batch.notifications
-    .filter((item) => item.kind === "message" && item.event.sender.adapter === "git-relay")
+    .filter((item) => item.kind === "message" && item.event.sender.adapter === "gitbeacon")
     .map((item) =>
       JSON.parse(item.event.kind === "message" ? item.event.text.slice(item.event.text.indexOf("\n") + 1) : "null"),
     );
@@ -50,7 +50,7 @@ test("tracks all peer branches and dirty worktrees, diagnoses real conflicts wit
   await acknowledgeMessages({ ...receiver, deliveryId: batch.deliveryId! });
   await scanCoordination();
   assert.deepEqual((await receiveMessages(receiver)).notifications, []);
-  assert.equal((await eventsIn(repo)).filter((event) => event.sender.adapter === "git-relay").length, 1);
+  assert.equal((await eventsIn(repo)).filter((event) => event.sender.adapter === "gitbeacon").length, 1);
 });
 
 test("same-source independent clones route automatic messages but retain separate ordinary mailboxes", async (t) => {

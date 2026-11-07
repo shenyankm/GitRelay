@@ -150,7 +150,7 @@ test(
       env: {
         PATH: process.env.PATH,
         HOME: state.root,
-        WORKTREE_SYNC_STATE_DIR: stateDirectory(),
+        GITBEACON_STATE_DIR: stateDirectory(),
         TEST_CWD: state.receiver.cwd,
         TEST_PREVIOUS: state.first,
         TEST_COMMIT: state.second,
@@ -173,7 +173,7 @@ test(
     assert.equal(JSON.parse(contents).pid, child.pid);
     await assert.rejects(
       withLock(lock, () => synchronizeRef(state.repo, ref, state.receiver)),
-      /Stale git-relay lock/,
+      /Stale gitbeacon lock/,
     );
     assert.equal(await readFile(lock, "utf8"), contents);
     // This lock belongs to the exited test child in fixture's private state dir.

@@ -13,11 +13,11 @@ test("invalid upstream input never publishes or changes an existing event", asyn
     template = join(dir, "template"),
     cwd = join(dir, "repo");
   t.after(() => rm(dir, { recursive: true, force: true }));
-  const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
-  process.env.WORKTREE_SYNC_STATE_DIR = join(dir, "state");
+  const previousState = process.env.GITBEACON_STATE_DIR;
+  process.env.GITBEACON_STATE_DIR = join(dir, "state");
   t.after(() => {
-    if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+    if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = previousState;
   });
   await mkdir(template);
   execFileSync("git", ["init", "--template", template, cwd], { stdio: "pipe" });

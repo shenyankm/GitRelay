@@ -4,6 +4,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { addWorktree } from "../src/core/git.ts";
 
+const fixtureCleanups = new WeakMap<object, (() => Promise<void>)[]>();
+
+export function beforeFixtureCleanup(t: { after(fn: () => Promise<void>): void }, cleanup: () => Promise<void>) {
+  const callbacks = fixtureCleanups.get(t);
+  if (callbacks) callbacks.push(cleanup);
+  else t.after(cleanup);
+}
+
 export function git(cwd: string, ...args: string[]): string {
   return execFileSync(
     "git",
@@ -13,14 +21,19 @@ export function git(cwd: string, ...args: string[]): string {
 }
 
 export async function fixture(t: { after(fn: () => void | Promise<void>): void }) {
-  const temp = await mkdtemp(join(tmpdir(), "git-relay-"));
-  t.after(() => rm(temp, { recursive: true, force: true }));
+  const temp = await mkdtemp(join(tmpdir(), "gitbeacon-"));
+  if (!fixtureCleanups.has(t)) fixtureCleanups.set(t, []);
+  t.after(async () => {
+    const callbacks = fixtureCleanups.get(t)!;
+    await Promise.all(callbacks.splice(0).map((cleanup) => cleanup()));
+    await rm(temp, { recursive: true, force: true });
+  });
   const root = await realpath(temp);
-  const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
-  process.env.WORKTREE_SYNC_STATE_DIR = join(root, "state");
+  const previousState = process.env.GITBEACON_STATE_DIR;
+  process.env.GITBEACON_STATE_DIR = join(root, "state");
   t.after(() => {
-    if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+    if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = previousState;
   });
   const main = join(root, "main");
   git(root, "init", "-b", "main", main);

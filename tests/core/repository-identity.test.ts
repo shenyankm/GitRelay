@@ -33,11 +33,11 @@ test("concurrent processes publish one identity shared across worktrees", async 
   assert.equal(new Set(repositories.map((repo) => repo.id)).size, 1);
   assert.equal(new Set(repositories.map((repo) => repo.common)).size, 1);
   assert.equal(new Set(repositories.map((repo) => repo.directory)).size, 1);
-  const marker = await readFile(join(repositories[0].common, ".git-relay-id"), "utf8");
+  const marker = await readFile(join(repositories[0].common, ".gitbeacon-id"), "utf8");
   assert.match(marker, /^[a-f0-9]{64}\n$/);
   const next = await repository(f.b);
   assert.equal(next.id, repositories[0].id);
-  assert.equal(await readFile(join(next.common, ".git-relay-id"), "utf8"), marker);
+  assert.equal(await readFile(join(next.common, ".gitbeacon-id"), "utf8"), marker);
 });
 
 test("initialization publishes its owner on the repository state filesystem", async (t) => {
@@ -50,7 +50,7 @@ test("initialization publishes its owner on the repository state filesystem", as
     const realLink = fs.link;
     fs.link = async (from, to) => {
       if (basename(to) === "identity-owner.json") {
-        if (!basename(from).startsWith(".git-relay-owner-") || dirname(from) !== dirname(dirname(to)))
+        if (!basename(from).startsWith(".gitbeacon-owner-") || dirname(from) !== dirname(dirname(to)))
           throw new Error("owner temporary is not in the state filesystem");
         console.log(JSON.stringify({ from, to }));
       }
@@ -87,7 +87,7 @@ test("failure writing the initial owner leaves no unowned state directory", asyn
     import { syncBuiltinESMExports } from "node:module";
     const realWrite = fs.writeFile;
     fs.writeFile = async (path, ...args) => {
-      if (String(path).includes(".git-relay-owner-")) {
+      if (String(path).includes(".gitbeacon-owner-")) {
         const error = new Error("disk full"); error.code = "ENOSPC"; throw error;
       }
       return realWrite(path, ...args);
@@ -130,7 +130,7 @@ test("interruption after publishing the owner can be recovered without deleting 
     timeout: 20_000,
   });
   const pending = await withRepositoryIdentity(f.main, undefined, async (repo) => repo);
-  await assert.rejects(repository(f.main), /Incomplete GitRelay state initialization/);
+  await assert.rejects(repository(f.main), /Incomplete gitbeacon state initialization/);
   const { archived } = await recoverRepositoryInitialization(f.main);
   assert.deepEqual(JSON.parse(await readFile(join(archived, "identity-owner.json"), "utf8")), { id: pending.id });
   assert.equal((await repository(f.main)).id, pending.id);
@@ -164,7 +164,7 @@ test("a failed ready write is archived intact before initialization is retried",
   const pending = await withRepositoryIdentity(f.main, undefined, async (repo) => repo);
   const temporary = (await readdir(pending.directory)).find((name) => name.startsWith("identity-ready.json."));
   assert.ok(temporary);
-  await assert.rejects(repository(f.main), /Incomplete GitRelay state initialization/);
+  await assert.rejects(repository(f.main), /Incomplete gitbeacon state initialization/);
   const { archived } = await recoverRepositoryInitialization(f.main);
   assert.equal(await readFile(join(archived, temporary), "utf8"), "partial");
   assert.equal((await repository(f.main)).id, pending.id);
@@ -197,7 +197,7 @@ for (const code of ["EPERM", "EACCES", "EOPNOTSUPP", "ENOTSUP", "EXDEV"]) {
       import { basename } from "node:path";
       const realLink = fs.link;
       fs.link = async (from, to) => {
-        if (basename(from).startsWith(".git-relay-owner-") && basename(to) === "identity-owner.json") {
+        if (basename(from).startsWith(".gitbeacon-owner-") && basename(to) === "identity-owner.json") {
           const error = new Error("hard links unavailable"); error.code = ${JSON.stringify(code)}; throw error;
         }
         return realLink(from, to);
@@ -217,7 +217,7 @@ for (const code of ["EPERM", "EACCES", "EOPNOTSUPP", "ENOTSUP", "EXDEV"]) {
     assert.match(result.message, /hard link.*inspect and preserve/);
     const pending = await withRepositoryIdentity(f.main, undefined, async (repo) => repo);
     assert.deepEqual(await readdir(pending.directory), []);
-    await assert.rejects(repository(f.main), /Incomplete GitRelay state initialization/);
+    await assert.rejects(repository(f.main), /Incomplete gitbeacon state initialization/);
     await assert.rejects(recoverRepositoryInitialization(f.main), /ownership/);
     assert.deepEqual(await readdir(pending.directory), []);
   });
@@ -229,7 +229,7 @@ test(
   async (t) => {
     const f = await fixture(t);
     const initial = await repository(f.main);
-    const markerPath = join(initial.common, ".git-relay-id");
+    const markerPath = join(initial.common, ".gitbeacon-id");
     const marker = await readFile(markerPath);
     const mode = (await stat(initial.common)).mode & 0o777;
     await chmod(initial.common, 0o555);
@@ -252,8 +252,8 @@ test(
     const mode = (await stat(common)).mode & 0o777;
     await chmod(common, 0o555);
     try {
-      await assert.rejects(repository(f.main), /read.only|WORKTREE_SYNC_REPOSITORY_IDS/i);
-      await assert.rejects(lstat(join(common, ".git-relay-id")), { code: "ENOENT" });
+      await assert.rejects(repository(f.main), /read.only|GITBEACON_REPOSITORY_IDS/i);
+      await assert.rejects(lstat(join(common, ".gitbeacon-id")), { code: "ENOENT" });
     } finally {
       await chmod(common, mode);
     }
@@ -267,8 +267,8 @@ test(
     const f = await fixture(t);
     const common = join(f.main, ".git"),
       id = "a".repeat(64);
-    const previous = process.env.WORKTREE_SYNC_REPOSITORY_IDS;
-    process.env.WORKTREE_SYNC_REPOSITORY_IDS = JSON.stringify({ [common]: id });
+    const previous = process.env.GITBEACON_REPOSITORY_IDS;
+    process.env.GITBEACON_REPOSITORY_IDS = JSON.stringify({ [common]: id });
     const mode = (await stat(common)).mode & 0o777;
     await chmod(common, 0o555);
     try {
@@ -276,36 +276,22 @@ test(
       assert.equal(main.id, hash([common, id]));
       assert.equal(other.id, main.id);
       assert.equal(main.identitySource, "external");
-      await assert.rejects(lstat(join(common, ".git-relay-id")), { code: "ENOENT" });
+      await assert.rejects(lstat(join(common, ".gitbeacon-id")), { code: "ENOENT" });
     } finally {
       await chmod(common, mode);
-      if (previous === undefined) delete process.env.WORKTREE_SYNC_REPOSITORY_IDS;
-      else process.env.WORKTREE_SYNC_REPOSITORY_IDS = previous;
+      if (previous === undefined) delete process.env.GITBEACON_REPOSITORY_IDS;
+      else process.env.GITBEACON_REPOSITORY_IDS = previous;
     }
   },
 );
 
 test("an invalid existing identity marker is rejected and preserved", async (t) => {
   const f = await fixture(t);
-  const markerPath = join(f.main, ".git", ".git-relay-id");
-  const contents = "not-a-git-relay-identity\n";
+  const markerPath = join(f.main, ".git", ".gitbeacon-id");
+  const contents = "not-a-gitbeacon-identity\n";
   await writeFile(markerPath, contents);
   await assert.rejects(repository(f.main));
   assert.equal(await readFile(markerPath, "utf8"), contents);
-});
-
-test("invalid falsy migration claims are rejected and preserved", async (t) => {
-  const f = await fixture(t);
-  const repo = await repository(f.main);
-  const claims = join(stateDirectory(), "identity-migration-claims");
-  await mkdir(claims);
-  const path = join(claims, `${hash(repo.common)}.json`);
-  for (const value of [null, false, 0, ""]) {
-    const contents = JSON.stringify(value);
-    await writeFile(path, contents);
-    await assert.rejects(repository(f.main), /Invalid GitRelay migration claim/);
-    assert.equal(await readFile(path, "utf8"), contents);
-  }
 });
 
 test(
@@ -313,7 +299,7 @@ test(
   { skip: process.platform === "win32" },
   async (t) => {
     const f = await fixture(t);
-    const markerPath = join(f.main, ".git", ".git-relay-id");
+    const markerPath = join(f.main, ".git", ".gitbeacon-id");
     const target = join(f.root, "marker-target");
     const contents = `${"a".repeat(64)}\n`;
     await writeFile(target, contents);
@@ -343,7 +329,7 @@ test("unrelated corrupt state cannot block a new repository or erase same-path h
   await rm(join(f.main, ".git"), { recursive: true });
   git(f.main, "init", "-b", "main");
   await f.commit(f.main, "shared.txt", "replacement\n");
-  await assert.rejects(repository(f.main), /Earlier GitRelay state exists/);
+  await assert.rejects(repository(f.main), /Earlier gitbeacon state exists/);
   assert.equal(await readFile(metadataPath, "utf8"), "{broken");
 });
 
@@ -354,7 +340,7 @@ test("owned empty incomplete initialization can be archived and retried", async 
   await writeFile(join(pending.directory, "identity-owner.json"), JSON.stringify({ id: pending.id }));
   for (const folder of ["sessions", "events", "receipts", "refs", "trash"])
     await mkdir(join(pending.directory, folder));
-  await assert.rejects(repository(f.main), /Incomplete GitRelay state initialization/);
+  await assert.rejects(repository(f.main), /Incomplete gitbeacon state initialization/);
   const { archived } = await recoverRepositoryInitialization(f.main);
   assert.equal(JSON.parse(await readFile(join(archived, "identity-owner.json"), "utf8")).id, pending.id);
   await assert.rejects(lstat(pending.directory), { code: "ENOENT" });
@@ -366,7 +352,7 @@ test("an empty unowned initialization remains in place for manual inspection", a
   const f = await fixture(t);
   const pending = await withRepositoryIdentity(f.main, undefined, async (repo) => repo);
   await mkdir(pending.directory, { recursive: true });
-  await assert.rejects(repository(f.main), /Incomplete GitRelay state initialization/);
+  await assert.rejects(repository(f.main), /Incomplete gitbeacon state initialization/);
   await assert.rejects(recoverRepositoryInitialization(f.main), /ownership/);
   assert.deepEqual(await readdir(pending.directory), []);
 });
@@ -386,7 +372,7 @@ for (const hasOwner of [false, true]) {
   });
 }
 
-for (const state of ["ready", "missing-ready", "migration-incomplete"] as const) {
+for (const state of ["ready", "missing-ready"] as const) {
   test(`leave for a removed worktree handles ${state} state safely`, async (t) => {
     const f = await fixture(t);
     const receiver = { cwd: f.b, ref: "refs/heads/main", adapter: "test", session: "removed", async deliver() {} };
@@ -396,22 +382,11 @@ for (const state of ["ready", "missing-ready", "migration-incomplete"] as const)
     const before = await readFile(path);
     await rm(f.b, { recursive: true });
     if (state === "missing-ready") await rm(join(repo.directory, "identity-ready.json"));
-    if (state === "migration-incomplete") {
-      const claims = join(stateDirectory(), "identity-migration-claims");
-      await mkdir(claims);
-      await writeFile(
-        join(claims, `${hash(repo.common)}.json`),
-        JSON.stringify({ common: repo.common, newId: repo.id }),
-      );
-    }
     if (state === "ready") {
       assert.ok((await leaveSession(receiver))?.closedAt);
       assert.ok(JSON.parse(await readFile(path, "utf8")).closedAt);
     } else {
-      await assert.rejects(
-        leaveSession(receiver),
-        state === "missing-ready" ? /Incomplete GitRelay state initialization/ : /migration is incomplete/,
-      );
+      await assert.rejects(leaveSession(receiver), /Incomplete gitbeacon state initialization/);
       assert.deepEqual(await readFile(path), before);
     }
   });
@@ -420,14 +395,14 @@ for (const state of ["ready", "missing-ready", "migration-incomplete"] as const)
 test("recovery without an identity or state does not create either", async (t) => {
   const f = await fixture(t);
   await assert.rejects(recoverRepositoryInitialization(f.main), /nothing to recover/i);
-  await assert.rejects(lstat(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+  await assert.rejects(lstat(join(f.main, ".git", ".gitbeacon-id")), { code: "ENOENT" });
   await assert.rejects(lstat(stateDirectory()), { code: "ENOENT" });
 });
 
 test("prior identity state does not recommend legacy migration", async (t) => {
   const f = await fixture(t);
   await repository(f.main);
-  await writeFile(join(f.main, ".git", ".git-relay-id"), `${"0".repeat(64)}\n`);
+  await writeFile(join(f.main, ".git", ".gitbeacon-id"), `${"0".repeat(64)}\n`);
   await assert.rejects(repository(f.main), (error: Error) => {
     assert.match(error.message, /choose_fresh_repository/);
     assert.doesNotMatch(error.message, /migrate_repository/);
@@ -437,14 +412,7 @@ test("prior identity state does not recommend legacy migration", async (t) => {
 
 test("recovery with an existing identity and missing state leaves locks untouched", async (t) => {
   const f = await fixture(t);
-  await writeFile(join(f.main, ".git", ".git-relay-id"), `${"1".repeat(64)}\n`);
+  await writeFile(join(f.main, ".git", ".gitbeacon-id"), `${"1".repeat(64)}\n`);
   await assert.rejects(recoverRepositoryInitialization(f.main), /nothing to recover/i);
   await assert.rejects(lstat(stateDirectory()), { code: "ENOENT" });
-});
-
-test("path-keyed prior state offers migration", async (t) => {
-  const f = await fixture(t);
-  const common = join(f.main, ".git");
-  await mkdir(join(stateDirectory(), "repos", hash(common)), { recursive: true });
-  await assert.rejects(repository(f.main), /choose_fresh_repository or migrate_repository/);
 });

@@ -1,18 +1,15 @@
-import { mkdir, readdir } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import {
   HistoryUnavailableError,
   inspectChange,
   pathMatcher,
-  readCursor,
   resolveMain,
   worktreeFiles,
   type Change,
-  type Cursor,
 } from "./changes.ts";
 import {
   eventsIn,
-  publishUpstream,
   readSession,
   registerSession,
   sessionKey,
@@ -34,35 +31,21 @@ export interface MailboxOptions extends Identity {
   cwd: string;
   ref: string;
   signal?: AbortSignal;
-  initialCursor?: Cursor;
-  isDelivered?(eventId: string, event?: SharedEvent, location?: DeliveryLocation): boolean | Promise<boolean>;
-  /** Synchronously revalidate the host immediately before publishing a confirmed receipt. */
-  beforeReceipt?(eventId: string, event?: SharedEvent, location?: DeliveryLocation): void;
-  /** Skip a host-owned but not yet durable event without acknowledging it. */
-  isPending?(eventId: string, event?: SharedEvent, location?: DeliveryLocation): boolean | Promise<boolean>;
   /** false means queued but not durably accepted: retry without writing a receipt. */
   deliver(notifications: Notification[], location?: DeliveryLocation): Promise<void | boolean>;
-  /** Deliver and acknowledge one notification at a time. */
-  deliverIndividually?: boolean;
-  upstreamOnly?: boolean;
   /** Explicitly accept a notification that history could not be compared, rather than a diff. */
   acknowledgeUnavailableHistory?: boolean;
 }
 
 /** Register, publish shared ref updates, then consume this session's independent inbox. */
 export async function consumeMailbox(options: MailboxOptions): Promise<Notification[]> {
-  return consumeMailboxInternal(options, options.deliverIndividually === true);
-}
-
-async function consumeMailboxInternal(options: MailboxOptions, individually: boolean): Promise<Notification[]> {
   const adapter = options.adapter;
   validateIdentity({ adapter, session: "snapshot" });
   const session = options.session;
   validateIdentity({ adapter, session });
-  const identity = { adapter, session, instance: options.instance };
+  const identity = { adapter, session };
   validateIdentity(identity);
   const signal = options.signal;
-  const upstreamOnly = !!options.upstreamOnly;
   signal?.throwIfAborted();
   const cwd = options.cwd;
   const ref = options.ref;
@@ -88,17 +71,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
               // A daemon hint cannot rule out a later interrupted publication.
               current = await synchronizeRef(repo, ref, identity, signal);
               await writeRepositoryMetadata(repo);
-              const registered = await registerSession(repo, identity, ref, current, !upstreamOnly);
-              if (!registered.migrated) {
-                const legacyPath = join(repo.common, "worktree-agent-sync", `${key}.json`);
-                const legacy = options.initialCursor ?? (await readJson(legacyPath));
-                const previous = legacy === undefined ? undefined : readCursor(legacy, repo.root, ref);
-                if (legacy !== undefined && !previous) throw new Error(`Invalid legacy cursor: ${legacyPath}`);
-                const baseline = registered.baseline!;
-                if (previous && previous.commit !== baseline)
-                  await publishUpstream(repo, identity, ref, previous.commit, baseline, [key], `migration:${key}`);
-                await writeJson(join(repo.directory, "sessions", `${key}.json`), { ...registered, migrated: true });
-              }
+              await registerSession(repo, identity, ref, current, true);
               return true;
             },
             {
@@ -141,22 +114,6 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
           );
         const notifications: Notification[] = [];
         let overlaps: ((file: string) => boolean) | undefined;
-        let piProofs: Set<string> | undefined;
-        // Retain the legacy proof guard so removing an adapter cannot acknowledge an unknown delivery.
-        const hasPiProof = async (id: string): Promise<boolean> => {
-          if (adapter !== "pi") return false;
-          if (!piProofs) {
-            const names = await readdir(receipts);
-            signal?.throwIfAborted();
-            piProofs = new Set(
-              names.flatMap((name) => {
-                const match = /^([a-f0-9]{64})\.[a-f0-9]{64}\.pi-proof$/.exec(name);
-                return match ? [match[1]] : [];
-              }),
-            );
-          }
-          return piProofs.has(id);
-        };
         let size = 0;
         const events = await eventsIn(repo, key, signal);
         const cursorPath = join(receipts, "delivery-cursor.json");
@@ -181,7 +138,7 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
         let upstreamPending = false;
         for (const event of ordered) {
           signal?.throwIfAborted();
-          if (!event.recipients.includes(key) || (upstreamOnly && event.kind !== "upstream")) continue;
+          if (!event.recipients.includes(key)) continue;
           if (event.kind === "message" && event.pathFormat === "posix-v1" && process.platform === "win32")
             throw new Error(`POSIX filename event ${event.id} requires a POSIX receiver; event preserved.`);
           if (event.kind === "upstream" && event.ref !== ref)
@@ -190,46 +147,6 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
             );
           if (event.kind === "upstream" && upstreamPending) continue;
           const receipt = join(receipts, `${event.id}.json`);
-          const delivered = await options.isDelivered?.(event.id, event, { repository: repo, sessionKey: key });
-          signal?.throwIfAborted();
-          const hasProof = await hasPiProof(event.id);
-          signal?.throwIfAborted();
-          const unknownProof = () =>
-            new Error(
-              `Pi delivery outcome is unknown for event ${event.id}; preserve the event and proofs in ${receipts} for native verification or manual recovery.`,
-            );
-          if (delivered) {
-            if (hasProof && !options.beforeReceipt) throw unknownProof();
-            await writeReceipt(
-              receipt,
-              event.id,
-              "delivered",
-              options.beforeReceipt
-                ? () => {
-                    const result: unknown = options.beforeReceipt!(event.id, event, {
-                      repository: repo,
-                      sessionKey: key,
-                    });
-                    if (
-                      result &&
-                      (typeof result === "object" || typeof result === "function") &&
-                      typeof (result as { then?: unknown }).then === "function"
-                    ) {
-                      void Promise.resolve(result).catch(() => {});
-                      throw new Error("beforeReceipt must be synchronous; the event was not acknowledged.");
-                    }
-                  }
-                : undefined,
-            );
-            continue;
-          }
-          const pending = await options.isPending?.(event.id, event, { repository: repo, sessionKey: key });
-          signal?.throwIfAborted();
-          if (pending) {
-            if (event.kind === "upstream") upstreamPending = true;
-            continue;
-          }
-          if (hasProof) throw unknownProof();
           let notification: Notification | undefined;
           if (event.kind === "upstream" && event.ref === ref) {
             let change: Change | undefined;
@@ -294,20 +211,14 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
           },
           signal ? () => signal.throwIfAborted() : undefined,
         );
-        const attempted: Notification[] = [];
-        let blockedUpstream = false;
-        for (const batch of individually ? notifications.map((notification) => [notification]) : [notifications]) {
-          if (individually && blockedUpstream && batch[0].kind === "upstream") continue;
-          attempted.push(...batch);
-          const accepted = await options.deliver(batch, { repository: repo, sessionKey: key });
-          signal?.throwIfAborted();
-          if (accepted !== false) {
-            for (const notification of batch)
-              await writeReceipt(join(receipts, `${notification.event.id}.json`), notification.event.id, "delivered");
-          } else if (batch.some((item) => item.kind === "upstream")) blockedUpstream = true;
+        const accepted = await options.deliver(notifications, { repository: repo, sessionKey: key });
+        signal?.throwIfAborted();
+        if (accepted !== false) {
+          for (const notification of notifications)
+            await writeReceipt(join(receipts, `${notification.event.id}.json`), notification.event.id, "delivered");
         }
         if (historyFailure) throw historyFailure;
-        return attempted;
+        return notifications;
       },
       {
         signal,
@@ -324,27 +235,4 @@ async function consumeMailboxInternal(options: MailboxOptions, individually: boo
     }
     throw error;
   }
-}
-
-export interface ConsumerOptions extends Identity {
-  cwd: string;
-  ref: string;
-  signal?: AbortSignal;
-  deliver(change: Change): Promise<void>;
-}
-
-/** Compatibility API for hosts that only consume upstream changes, not agent messages. */
-export async function consumeChanges(options: ConsumerOptions): Promise<Change | undefined> {
-  const notifications = await consumeMailboxInternal(
-    {
-      ...options,
-      upstreamOnly: true,
-      async deliver(batch) {
-        for (const notification of batch)
-          if (notification.kind === "upstream") await options.deliver(notification.change);
-      },
-    },
-    true,
-  );
-  return notifications.find((notification) => notification.kind === "upstream")?.change;
 }

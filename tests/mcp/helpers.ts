@@ -2,6 +2,7 @@ import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { fileURLToPath } from "node:url";
 import type { TestContext } from "node:test";
+import { beforeFixtureCleanup } from "../helpers.ts";
 
 export async function connectMcp(
   t: TestContext,
@@ -19,8 +20,11 @@ export async function connectMcp(
   transport.stderr?.on("data", (chunk) => {
     stderr += String(chunk);
   });
-  const client = new Client({ name: "git-relay-test", version: "1.0.0" });
-  t.after(async () => {
+  const client = new Client(
+    { name: "gitbeacon-test", version: "1.0.0" },
+    { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+  );
+  beforeFixtureCleanup(t, async () => {
     await client.close();
   });
   try {

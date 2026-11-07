@@ -14,7 +14,7 @@ const variants = {
 const apis = {};
 for (const [name, directory] of Object.entries(variants))
   apis[name] = await import(pathToFileURL(join(directory, "core/mailbox.js")));
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-order-bench-"));
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-order-bench-"));
 const key = hash("receiver"),
   ref = "refs/heads/main",
   results = [];
@@ -31,7 +31,7 @@ try {
         const index = ids.length;
         const previous = commit(index ? (workload === "rollback" ? (index - 1) % 2 : index - 1) : -1);
         const current = commit(workload === "rollback" ? index % 2 : index);
-        const id = hash(["upstream", ref, previous, current, index ? ids.at(-1) : `migration:${key}`]);
+        const id = hash(["upstream", ref, previous, current, ids.at(-1) ?? ""]);
         await writeFile(
           join(directory, "events", `${id}.json`),
           JSON.stringify({
@@ -92,7 +92,7 @@ try {
       medians,
       results,
       workload:
-        "Synthetic valid upstream event chains with an initial legacy migration; repeated two-commit rollbacks and a linear-history control; reversed timestamps; same real state files, held session lock, one warm-up and setup excluded; alternating variants",
+        "Synthetic valid upstream event chains with linked publication IDs; repeated two-commit rollbacks and a linear-history control; reversed timestamps; same real state files, held session lock, one warm-up and setup excluded; alternating variants",
       limitations:
         "Warm local caches and uncontrolled external load. Measures locked inbox scanning and ordering, not Git history comparison, full backlog delivery, native-client latency, cold caches, network filesystems or per-variant peak memory.",
     }),

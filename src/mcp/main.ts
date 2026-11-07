@@ -2,7 +2,7 @@
 import { serveStdio, StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
-import { createGitRelayServer } from "./server.ts";
+import { createGitbeaconServer } from "./server.ts";
 import { diagnosticMessage } from "../core/diagnostics.ts";
 
 let blocked = false;
@@ -13,7 +13,7 @@ function diagnostic(error: unknown) {
   if (blocked) return;
   const message = diagnosticMessage(error);
   try {
-    if (!process.stderr.write(`git-relay: ${message}\n`)) {
+    if (!process.stderr.write(`gitbeacon: ${message}\n`)) {
       blocked = true;
       process.stderr.once("drain", () => {
         blocked = false;
@@ -34,7 +34,7 @@ try {
   });
   if (values.help) {
     process.stdout.write(
-      "GitRelay MCP server\n\nUsage: node /path/to/GitRelay/dist/mcp/main.js [--cwd PATH]\n\nServes MCP over stdin/stdout. Configure this command in your MCP host.\n--cwd PATH sets the default worktree; tools can explicitly select another path.\nWORKTREE_SYNC_STATE_DIR selects the shared local state directory.\n",
+      "gitbeacon MCP server\n\nUsage: node /path/to/gitbeacon/dist/mcp/main.js [--cwd PATH]\n\nServes MCP over stdin/stdout. Configure this command in your MCP host.\n--cwd PATH sets the default worktree; tools can explicitly select another path.\nGITBEACON_STATE_DIR selects the shared local state directory.\n",
     );
   } else if (values.version) {
     const pkg = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8"));
@@ -42,12 +42,12 @@ try {
   } else {
     if (values.cwd === "") throw new TypeError("--cwd must not be empty.");
     const abort = new AbortController();
-    let runtime: ReturnType<typeof createGitRelayServer> | undefined;
+    let runtime: ReturnType<typeof createGitbeaconServer> | undefined;
     let shutdown: Promise<void> | undefined;
     const wire = new StdioServerTransport();
     const transport = serveStdio(
       () => {
-        runtime = createGitRelayServer({ cwd: values.cwd, signal: abort.signal, onDiagnostic: diagnostic });
+        runtime = createGitbeaconServer({ cwd: values.cwd, signal: abort.signal, onDiagnostic: diagnostic });
         return runtime.server;
       },
       {

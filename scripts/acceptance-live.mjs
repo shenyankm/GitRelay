@@ -15,9 +15,9 @@ import { eventsIn, readReceipt } from "../dist/core/mailbox.js";
 // Read-only GitHub calls. Test modifications, Git objects and coordination state stay in a disposable local directory.
 const source = process.argv[2] ?? "https://github.com/koriym/Koriym.Psr4List";
 const project = fileURLToPath(new URL("../", import.meta.url));
-const temp = await realpath(await mkdtemp(join(tmpdir(), "gitrelay-live-")));
-const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
-process.env.WORKTREE_SYNC_STATE_DIR = join(temp, "state");
+const temp = await realpath(await mkdtemp(join(tmpdir(), "gitbeacon-live-")));
+const previousState = process.env.GITBEACON_STATE_DIR;
+process.env.GITBEACON_STATE_DIR = join(temp, "state");
 const summary = {
   startedAt: new Date().toISOString(),
   node: process.version,
@@ -76,11 +76,10 @@ try {
   }
   assert.ok(file, "No safe regular changed file exists for a real conflict probe");
   await mkdir(dirname(join(root, file)), { recursive: true });
-  const content = "GitRelay live acceptance: incompatible local modification\n";
+  const content = "gitbeacon live acceptance: incompatible local modification\n";
   await writeFile(join(root, file), content);
   const refs = await observationGit(root, ["for-each-ref"]);
   const index = await readFile(join(root, ".git", "index"));
-  const pushed = [];
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [join(project, "dist/mcp/main.js"), "--cwd", root],
@@ -91,10 +90,10 @@ try {
   transport.stderr?.on("data", (data) => {
     diagnostics = (diagnostics + data).slice(-8192);
   });
-  client = new Client({ name: "gitrelay-live-acceptance", version: "1.0.0" });
-  client.setNotificationHandler("notifications/message", (message) => {
-    pushed.push(message);
-  });
+  client = new Client(
+    { name: "gitbeacon-live-acceptance", version: "1.0.0" },
+    { versionNegotiation: { mode: { pin: "2026-07-28" } } },
+  );
   const updates = [];
   client.setNotificationHandler("notifications/resources/updated", (message) => {
     updates.push(message);
@@ -106,11 +105,12 @@ try {
     return result.structuredContent;
   };
   const joined = await call("join_session");
+  await client.listen({ resourceSubscriptions: [joined.inboxUri] });
   await call("track_repository", { github: true });
   const deadline = performance.now() + 120_000;
   let report;
   while (performance.now() < deadline) {
-    if (pushed.some((message) => JSON.stringify(message).includes("conflict"))) {
+    if (updates.length > 0) {
       report = (await call("coordination_status")).report;
       if (
         report?.sessions.some((session) =>
@@ -133,7 +133,7 @@ try {
   assert.ok(JSON.stringify(resource).includes(pull.url));
   const repo = await repository(root);
   const event = (await eventsIn(repo)).find(
-    (event) => event.sender.adapter === "git-relay" && event.kind === "message" && event.text.includes(pull.url),
+    (event) => event.sender.adapter === "gitbeacon" && event.kind === "message" && event.text.includes(pull.url),
   );
   assert.ok(event);
   assert.equal(await readReceipt(repo, joined.session.key, event.id), undefined);
@@ -159,8 +159,8 @@ try {
 } finally {
   await client?.close();
   await rm(temp, { recursive: true, force: true });
-  if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-  else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+  if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+  else process.env.GITBEACON_STATE_DIR = previousState;
   summary.finishedAt = new Date().toISOString();
   process.stdout.write(JSON.stringify(summary, null, 2) + "\n");
 }

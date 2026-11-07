@@ -4,7 +4,7 @@ import { readFile, readdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { promisify } from "node:util";
-import { consumeChanges, consumeMailbox } from "../../src/core/consumer.ts";
+import { consumeMailbox } from "../../src/core/consumer.ts";
 import { collectGarbage } from "../../src/core/cleanup.ts";
 import {
   eventsIn,
@@ -26,8 +26,8 @@ test(
   { skip: process.platform === "win32" },
   async (t) => {
     const f = await fixture(t);
-    const sender = { cwd: f.b, ref, adapter: "test", session: "shared", instance: hash("one") };
-    const other = { ...sender, instance: hash("two"), async deliver() {} };
+    const sender = { cwd: f.b, ref, adapter: "test", session: "shared-one" };
+    const other = { ...sender, session: "shared-two", async deliver() {} };
     const otherRef = { ...sender, ref: "refs/heads/other", async deliver() {} };
     git(f.b, "branch", "other");
     await joinSession(sender);
@@ -40,7 +40,7 @@ test(
     const repo = await repository(f.b);
     const event = await sendMessage({ ...sender, text: "message", files: ["\\notes"] });
     assert.deepEqual(event.recipients, [sessionKey(repo, other, ref)]);
-    // A second ref remains an independent target, even with the same instance.
+    // A second ref remains an independent target, even with the same session.
     await joinSession(otherRef);
     await assert.rejects(
       sendMessage({ ...sender, text: "message", files: ["\\notes"] }),
@@ -48,18 +48,6 @@ test(
     );
   },
 );
-
-test("capability registration uses the captured consumer mode", { skip: process.platform === "win32" }, async (t) => {
-  const f = await fixture(t);
-  const options = { cwd: f.b, ref, adapter: "test", session: "upstream", upstreamOnly: true, async deliver() {} };
-  const pending = consumeMailbox(options);
-  options.upstreamOnly = false;
-  await pending;
-  await assert.rejects(
-    sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "message", files: ["\\notes"] }),
-    /all recipients.*compatible POSIX receiver/,
-  );
-});
 
 test(
   "a Windows join clears an earlier POSIX receiver capability",
@@ -83,22 +71,6 @@ test(
       sendMessage({ cwd: f.a, adapter: "test", session: "sender", text: "message", files: ["\\notes"] }),
       /all recipients.*compatible POSIX receiver/,
     );
-  },
-);
-
-test(
-  "upstream-only consumers cannot claim POSIX message capability",
-  { skip: process.platform === "win32" },
-  async (t) => {
-    const f = await fixture(t);
-    const receiver = { cwd: f.b, ref, adapter: "test", session: "upstream", async deliver() {} };
-    const message = { cwd: f.a, adapter: "test", session: "sender", text: "message", files: ["\\notes"] };
-    await consumeChanges(receiver);
-    await assert.rejects(sendMessage(message), /all recipients.*compatible POSIX receiver/);
-    await consumeMailbox(receiver);
-    assert.equal((await sendMessage(message)).pathFormat, "posix-v1");
-    await consumeChanges(receiver);
-    await assert.rejects(sendMessage(message), /all recipients.*compatible POSIX receiver/);
   },
 );
 

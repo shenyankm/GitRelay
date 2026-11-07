@@ -17,7 +17,7 @@ for (const [name, directory] of Object.entries(variants))
     ...(await import(pathToFileURL(join(directory, "core/branch-status.js")))),
     ...(await import(pathToFileURL(join(directory, "core/changes.js")))),
   };
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-reads-bench-"));
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-reads-bench-"));
 const git = (...args) =>
   execFileSync(
     "git",

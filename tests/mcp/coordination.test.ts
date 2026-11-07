@@ -24,25 +24,25 @@ test(
     const f = await fixture(t);
     const receiver = await connectMcp(t, f.b);
     const observer = await connectMcp(t, f.a);
-    const messages: any[] = [];
     const updates: any[] = [];
-    receiver.client.setNotificationHandler("notifications/message", (message) => {
-      messages.push(message);
-    });
     receiver.client.setNotificationHandler("notifications/resources/updated", (message) => {
       updates.push(message);
     });
     const joined = await receiver.call("join_session");
+    assert.equal(joined.inboxUri, `gitbeacon://inbox/${joined.session.key}`);
+    const subscription = await receiver.client.listen({ resourceSubscriptions: [joined.inboxUri] });
+    assert.deepEqual(subscription.honoredFilter.resourceSubscriptions, [joined.inboxUri]);
     await observer.call("track_repository");
     await writeFile(join(f.b, "shared.txt"), "my unfinished change\n");
     await f.commit(f.a, "shared.txt", "peer unmerged change\n");
-    await eventually(async () => messages.some((message) => JSON.stringify(message).includes("conflict")));
+    await eventually(async () => updates.length > 0);
     assert.ok(updates.length > 0);
+    assert.ok(updates.every((update) => JSON.stringify(update).includes(joined.inboxUri)));
     const resources = await receiver.client.readResource({ uri: joined.inboxUri });
     assert.match(JSON.stringify(resources), /peer unmerged|conflict/);
     const repo = await repository(f.b);
     const event = (await eventsIn(repo)).find(
-      (event) => event.sender.adapter === "git-relay" && event.recipients.includes(joined.session.key),
+      (event) => event.sender.adapter === "gitbeacon" && event.recipients.includes(joined.session.key),
     );
     assert.ok(event);
     assert.equal(await readReceipt(repo, joined.session.key, event.id), undefined);

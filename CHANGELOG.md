@@ -2,11 +2,25 @@
 
 ## [Unreleased]
 
+### Rename to gitbeacon
+
+- Rename the private source project and MCP server to `gitbeacon`; explicitly describe it as a Model Context Protocol server in the READMEs and project metadata.
+- Update host configuration, help/diagnostics, inbox resource URIs, notification labels and the source-level `createGitbeaconServer` factory.
+- Use a new `GITBEACON_*` environment/state namespace, `.gitbeacon-id` identities and gitbeacon event/lock/snapshot labels; old data is left untouched, not automatically imported.
+- Rename the GitHub repository to `shenyankm/gitbeacon` and identify it as an MCP server; update the canonical URL while retaining the actual local checkout path.
+
+### MCP-only breaking cleanup
+
+- Delete legacy repository migration, cursor import, native instance identities, Pi proof handling and native-host delivery callbacks; remove the `migrate_repository` and old public-key `retire_session` tools and obsolete compatibility tests.
+- Use standard MCP resource subscription/read/update/list-change workflows instead of logging notifications for business messages; keep explicit batch acknowledgement and connection-bound access.
+- Retain transactional enrollment, Git safety checks, unread protection, GC journals and verified-dead lock recovery; old plugin and CLI state is outside the supported runtime.
+- Keep SDK support for standard 2025 and 2026 MCP protocols; this is protocol support, not a native-client plugin compatibility layer.
+
 ### Source-only operation
 
 - Make the Node.js project private and remove npm package files/bin/exports/types, install-time builds, tarball acceptance and publication-specific release checks.
 - Remove the package SDK wrapper and declaration-only build; retain dependency locking, explicit JavaScript builds, strict type checking, core/MCP tests and CI.
-- Replace package-install acceptance with private-project and built-source stdio checks; update current setup/release documentation while retaining historical evidence and legacy uninstall guidance.
+- Replace package-install acceptance with private-project and built-source stdio checks; update current setup/release documentation while retaining historical evidence.
 
 ### Documentation alignment
 
@@ -38,8 +52,8 @@
 - Add typed query, session, message, explicit acknowledgement, synchronization and maintenance tools.
 - Remove the Web console, HTTP listener and catalog tools; select repositories with explicit tool cwd arguments.
 - Bound tool-call rates and concurrency, sanitize diagnostics and allow same-connection protocol-version retries.
-- Remove obsolete Codex environment actions, unused native-adapter options and the orphaned Darwin I/O benchmark helper; use GitRelay in lock diagnostics.
-- Keep existing repository state and recovery contracts; native inbox identities are not silently transferred.
+- Remove obsolete Codex environment actions, unused native-adapter options and the orphaned Darwin I/O benchmark helper; use gitbeacon in lock diagnostics.
+- Preserve recovery invariants inside the current MCP state namespace; old native inbox identities are not transferred.
 - Use connected MCP processes for shared monitoring and failover; automatic context injection and Stop continuation are removed.
 - Keep source version 0.2.0. Hosted CI results require separate verification.
 

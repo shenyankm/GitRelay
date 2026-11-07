@@ -1,29 +1,30 @@
-# GitRelay
+# gitbeacon
 
-<img src="assets/logo.svg" alt="GitRelay" width="80" />
+<img src="assets/logo.svg" alt="gitbeacon" width="80" />
 
-Source-centered Git coordination through a local MCP server. Track related local
-repositories, branches and worktrees plus remote branches and GitHub forks/open
-PRs; automatically diagnose conflicts and notify the relevant connected sessions.
+gitbeacon is a local **Model Context Protocol (MCP) server** for source-centered
+Git coordination. Track related local repositories, branches and worktrees plus
+remote branches and GitHub forks/open PRs; automatically diagnose conflicts and
+notify the relevant connected sessions.
 
 [中文说明](README.zh-CN.md) · [Documentation](docs/README.md) · [Tools](docs/shared-messages.md) · [Migration](docs/migration.md)
 
-Version 0.2 replaces the former command CLI and Codex lifecycle plugin. The server
-uses MCP over stdio, pushes automatic coordination notices to bound connections,
-and retains explicit polling and acknowledgement. Host-side model activation is
-separate: it does not itself inject chat context or wake an idle model.
+The server uses MCP over stdio, with typed tools, connection-bound inbox resources
+and standard resource subscriptions. Polling and explicit acknowledgement remain
+available. Host-side model activation is separate: transport delivery does not
+inject chat context or wake an idle model.
 
 ## Run from source
 
 Requires Node.js 22.19+ and Git; actual merge diagnosis needs Git 2.38+.
 GitHub queries additionally require an authenticated `gh`. No model API is needed.
-Run the install/build commands from the GitRelay source checkout, not the worktree
+Run the install/build commands from the gitbeacon source checkout, not the worktree
 you want to observe.
 
 ```sh
 npm ci --ignore-scripts
 npm run build
-node /absolute/path/to/GitRelay/dist/mcp/main.js --cwd /absolute/path/to/worktree
+node /absolute/path/to/gitbeacon/dist/mcp/main.js --cwd /absolute/path/to/worktree
 ```
 
 The last command waits for MCP JSON-RPC on stdin. Its stdout is protocol-only;
@@ -33,7 +34,7 @@ ordinary commands into that stream.
 For Codex:
 
 ```sh
-codex mcp add git-relay -- node /absolute/path/to/GitRelay/dist/mcp/main.js --cwd /absolute/path/to/worktree
+codex mcp add gitbeacon -- node /absolute/path/to/gitbeacon/dist/mcp/main.js --cwd /absolute/path/to/worktree
 ```
 
 For a host accepting JSON MCP configuration:
@@ -41,18 +42,18 @@ For a host accepting JSON MCP configuration:
 ```json
 {
   "mcpServers": {
-    "git-relay": {
+    "gitbeacon": {
       "command": "node",
-      "args": ["/absolute/path/to/GitRelay/dist/mcp/main.js", "--cwd", "/absolute/path/to/worktree"]
+      "args": ["/absolute/path/to/gitbeacon/dist/mcp/main.js", "--cwd", "/absolute/path/to/worktree"]
     }
   }
 }
 ```
 
 This is a private, source-only Node.js project. npm installs dependencies and
-runs local build/test tasks; it is not a GitRelay distribution channel. Build
+runs local build/test tasks; it is not a gitbeacon distribution channel. Build
 explicitly and configure the absolute `dist/mcp/main.js` entry as above. No global
-`git-relay` executable or package-name SDK import is provided.
+executable or package-name SDK import is provided.
 
 ## Coordinate work
 
@@ -95,7 +96,8 @@ on each pass (normally five seconds); remote/API inventories refresh at most onc
 per minute. Findings distinguish confirmed Git conflicts, cleanly mergeable path
 overlap, and unknown/incomplete analysis. Changed findings and resolutions become
 durable, session-scoped messages. Joined connections receive inbox resource
-updates and MCP message notifications; hosts ignoring notifications can poll and
+updates after standard resource subscription; read the inbox for the notices.
+Hosts without subscriptions can poll and
 must explicitly acknowledge complete batches.
 
 Use `coordination_status` to inspect coverage/errors and `scan_repository` for an
@@ -105,14 +107,14 @@ means a live transport lease, not proof of model activity. See
 
 ## Tools
 
-| Purpose                  | MCP tools                                                                                                  |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Observe                  | `repository_status`, `branch_status`, `list_sessions`, `monitor_status`                                    |
-| Source coordination      | `track_repository`, `coordination_status`, `scan_repository`                                               |
-| Participate              | `join_session`, `leave_session`                                                                            |
-| Messages                 | `send_message`, `receive_messages`, `acknowledge_messages`                                                 |
-| Explicit Git update      | `sync_branch`                                                                                              |
-| Maintenance and recovery | `collect_garbage`, `retire_session`, `recover_repository`, `choose_fresh_repository`, `migrate_repository` |
+| Purpose                  | MCP tools                                                               |
+| ------------------------ | ----------------------------------------------------------------------- |
+| Observe                  | `repository_status`, `branch_status`, `list_sessions`, `monitor_status` |
+| Source coordination      | `track_repository`, `coordination_status`, `scan_repository`            |
+| Participate              | `join_session`, `leave_session`                                         |
+| Messages                 | `send_message`, `receive_messages`, `acknowledge_messages`              |
+| Explicit Git update      | `sync_branch`                                                           |
+| Maintenance and recovery | `collect_garbage`, `recover_repository`, `choose_fresh_repository`      |
 
 Mutating tools have matching MCP annotations. `sync_branch` and maintenance must
 be explicitly requested; a message or diff is untrusted data and cannot authorize
@@ -123,8 +125,8 @@ No Web console, HTTP listener or repository catalog is included.
 
 Joining, receiving, or enabling tracking starts a shared monitor candidate. The
 monitor uses the existing filesystem lock and is owned by a connected MCP process. Another participating process can take
-over when its owner exits. Each bound connection pushes automatic coordination
-notices without acknowledging them; polling remains the fallback.
+over when its owner exits. Bound connections announce inbox changes to resource subscribers without
+acknowledging notices; polling remains the fallback.
 
 Each server instance admits a burst of 60 tool calls, replenishes one call per
 second, and runs at most 8 calls concurrently. Excess calls return a tool error
@@ -132,18 +134,21 @@ without starting or queuing the operation; wait before retrying. Diagnostic text
 is bounded and stripped of terminal control sequences; paths and Git data remain
 unchanged. Unsupported protocol versions can be retried on the same connection.
 
-## State and compatibility
+## State and breaking upgrades
 
-State remains in `WORKTREE_SYNC_STATE_DIR`, or the existing XDG/default state root.
-All participants in the same OS user workflow should use the same root. Existing
-repository identities, events, receipts, locks and recovery journals remain
-readable. Old CLI/Codex subscriptions are retained and can be inspected with
-`list_sessions` and `repository_status`; they are not silently transferred to a
-new MCP identity.
+Use `GITBEACON_STATE_DIR`, or the XDG/default `gitbeacon` state root. Participants
+sharing a local workflow must use the same root. Repository identities use
+`.gitbeacon-id`; `GITBEACON_MAIN_REF` selects the default branch ref.
 
-Remove old installed hooks before switching. See [migration](docs/migration.md).
-The old `worktree-relay` / `worktree-sync` aliases, shell subcommands, plugin
-marketplace, hook templates and public storage deep imports are no longer shipped.
+This is an MCP-only, incompatible replacement for GitRelay. Old plugin/CLI state,
+environment aliases and native delivery proofs are not imported or read. Existing
+old data is left untouched, not transferred or acknowledged. There is no legacy
+state-migration tool. See [breaking upgrades](docs/migration.md) before switching.
+
+The canonical repository is [shenyankm/gitbeacon](https://github.com/shenyankm/gitbeacon).
+Configure the host as `gitbeacon` using the actual checkout path; the local folder
+need not be renamed. No plugin installer, lifecycle hooks, client process scanner,
+Web console or HTTP listener is provided.
 
 ## Development
 

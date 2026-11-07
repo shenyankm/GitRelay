@@ -112,7 +112,6 @@ export async function synchronizeRef(
   let eventId = cursor?.eventId;
   if (cursor && cursor.commit !== current) {
     const sessions = (await sessionsIn(repo)).filter((session) => !session.closedAt && session.ref === ref);
-    // Legacy send-first sessions migrate only history preceding their ordinary upstream subscription.
     for (const session of sessions) {
       if (!session.baseline) await registerSession({ ...repo, root: session.root }, session, ref, cursor.commit);
     }

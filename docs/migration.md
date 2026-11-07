@@ -1,59 +1,59 @@
-# Migrating to GitRelay 0.2 MCP
+# Breaking upgrade to gitbeacon MCP
 
-This is a breaking interface change. The local event/receipt storage remains;
-the old shell subcommands, compatibility executable aliases, public core deep
-imports, Codex hooks, installer and plugin marketplace are removed.
+`gitbeacon` is a local Model Context Protocol (MCP) server, not a lifecycle plugin
+or a shell-command integration. This is a deliberately incompatible source
+refactor; old plugin, CLI and native-host state migration is not provided.
 
-## Before upgrading an existing installation
+## Configure the MCP server
 
-1. Finish or inspect unread work under the old native subscriptions. Keep the
-   original state root and repository identity markers.
-2. If managed hooks were installed by 0.1.2, use that version's uninstall before
-   upgrading, for example `npx --yes @sistine29/git-relay@0.1.2 uninstall --platform codex`.
-   Review its result; it preserves user-owned configuration and uncertain state.
-3. If installed as a local Codex plugin, remove `git-relay@git-relay-local` through
-   Codex's plugin manager. Remove any independently configured duplicate hooks
-   only after identifying their owner. Restart the host afterwards.
+1. Build the source checkout as described in [integration](integrations.md).
+2. Remove or disable old plugin/hook and duplicate MCP registrations in your host.
+   This checkout does not manage or uninstall client plugins.
+3. Register the built `dist/mcp/main.js` entry as `gitbeacon`, using its actual
+   absolute path. The canonical GitHub repository is now
+   [shenyankm/gitbeacon](https://github.com/shenyankm/gitbeacon); the local checkout
+   directory need not be renamed.
+4. Restart the host's MCP server and call `join_session` for each participant.
+   Save each returned private `sessionToken`; independent participants must not
+   share one. Authorize `track_repository` separately for automatic coordination.
 
-The refactor does not edit your normal Codex configuration or silently uninstall
-an existing global runtime. Do not leave old hooks pointing at the new executable:
-`git-relay hook codex` is no longer a valid command.
+## New state namespace
 
-## Connect MCP
+- `GITBEACON_STATE_DIR` selects an absolute shared state directory. The default is
+  `$XDG_STATE_HOME/gitbeacon` when XDG_STATE_HOME is absolute, otherwise
+  `~/.local/state/gitbeacon`.
+- `GITBEACON_MAIN_REF` selects the default full branch ref.
+- `GITBEACON_REPOSITORY_IDS` supplies explicit identities for read-only Git
+  common directories; otherwise `.gitbeacon-id` records the repository identity.
+- Inbox resources use `gitbeacon://inbox/<public-session-key>`; discover the URI
+  returned by the current connection rather than inventing one.
 
-Build this checkout, then configure a stdio server as described in
-[integration](integrations.md). The checkout is now private and source-only:
-install dependencies, build explicitly, and run `node /absolute/path/to/GitRelay/dist/mcp/main.js`.
-The old npm installation/global executable and package-name imports are not a
-current distribution interface. Previously published versions are not removed or
-changed; the versioned uninstall example above is only for legacy hook cleanup.
+The previous `WORKTREE_SYNC_*` / `WORKTREE_MAIN_REF` environment variables,
+`.git-relay-id` marker and `worktree-agent-sync` state directory are not read.
+Old private handles, inbox URIs and receipts are not automatically transferred.
+Do not point the new server at an old state directory expecting compatibility.
+Review and retain old unread data separately; the refactor does not delete it or
+mark it delivered. `migrate_repository`, `retire_session` and native delivery-proof recovery have
+been removed, not hidden behind a compatibility flag.
 
-Call `join_session` once for each logical participant. Save its private token and
-resume with the same token after reconnect. Do not put one shared token in every
-agent's configuration. New MCP identities do not assume an old native session ID.
-Old subscriptions and unread records remain on disk; there is no automatic inbox
-transfer or automatic acknowledgement. Use `list_sessions` and
-`repository_status` to inspect existing records, then explicitly retire a listed
-subscription after reviewing its data.
+## MCP notification and acceptance workflow
 
-## Workflow changes
+Use standard resource subscriptions for automatic change notices:
+`subscriptions/listen` on MCP 2026-07-28, or `resources/subscribe` on supported
+2025-era connections. Read the bound inbox resource after subscribing and when
+it changes. No business messages are sent through `notifications/message`.
+Hosts without resource subscriptions can poll `receive_messages` instead.
 
-| Former behavior                                   | MCP behavior                                                      |
-| ------------------------------------------------- | ----------------------------------------------------------------- |
-| Hook-driven automatic enrollment                  | Explicit `join_session`                                           |
-| Context injection after tools / Stop continuation | Automatic coordination notifications/resources; polling fallback  |
-| Output completion confirms delivery               | Explicit `acknowledge_messages` after accepting the batch         |
-| Codex process scanner owns the daemon             | Connected participating MCP processes own monitoring and failover |
-| CLI status / synchronization                      | `branch_status` / explicit `sync_branch` tools                    |
+Neither a resource read nor a change notification acknowledges delivery. Accept
+an entire `receive_messages` batch with `acknowledge_messages` using its exact
+worktree, ref, token and `deliveryId`. MCP transport delivery does not prove that
+a model has understood a message or wake an idle model.
 
-Automatic notices require explicit source tracking and a bound subscription;
-transport push does not itself activate a model. See
-[coordination](coordination.md) for setup and coverage.
+The source-level factory is `createGitbeaconServer` with
+`GitbeaconServerOptions`. Tools and the Git coordination engine retain their
+validation, dirty-work protection, journaled recovery and explicit authorization
+requirements. See [shared messages](shared-messages.md) and
+[maintenance](maintenance.md).
 
-The Web console, HTTP listener and catalog tools are removed. Select repositories
-with explicit `cwd` arguments. Existing saved catalog files are left untouched;
-Git repositories, messages and receipts are not deleted.
-
-Dirty-work protection, native Git locking, publication recovery, unread retention,
-receipt validation, path relevance and safe GC remain core contracts. MCP does
-not provide exactly-once model processing or guarantee wake-up of idle models.
+Historical evidence and changelog entries keep their original names and source
+fingerprints. They are not compatibility claims for this checkout.

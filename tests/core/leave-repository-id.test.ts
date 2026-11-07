@@ -11,15 +11,15 @@ import { mcpIdentity, newSessionToken } from "../../src/core/mcp-mailbox.ts";
 import { connectMcp } from "../mcp/helpers.ts";
 
 async function fixture(t: TestContext) {
-  const directory = await mkdtemp(join(tmpdir(), "git-relay-leave-id-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-leave-id-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const previous = process.env.WORKTREE_SYNC_STATE_DIR;
-  process.env.WORKTREE_SYNC_STATE_DIR = join(directory, "state");
+  const previous = process.env.GITBEACON_STATE_DIR;
+  process.env.GITBEACON_STATE_DIR = join(directory, "state");
   t.after(() => {
-    if (previous === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-    else process.env.WORKTREE_SYNC_STATE_DIR = previous;
+    if (previous === undefined) delete process.env.GITBEACON_STATE_DIR;
+    else process.env.GITBEACON_STATE_DIR = previous;
   });
-  const state = process.env.WORKTREE_SYNC_STATE_DIR,
+  const state = process.env.GITBEACON_STATE_DIR,
     repos = join(state, "repos"),
     root = join(directory, "missing");
   const ref = "refs/heads/main",
@@ -38,7 +38,7 @@ async function fixture(t: TestContext) {
     await writeFile(join(target, "repo.json"), JSON.stringify({ id, common, identity, identitySource: "marker" }));
     await writeFile(
       join(target, "sessions", `${key}.json`),
-      JSON.stringify({ ...actor, key, root, ref, createdAt: now, lastSeen: now, migrated: true }),
+      JSON.stringify({ ...actor, key, root, ref, createdAt: now, lastSeen: now }),
     );
     return { id, target };
   }
@@ -111,7 +111,7 @@ test(
       other = join(f.directory, "outside");
     await mkdir(join(other, "sessions"), { recursive: true });
     await symlink(other, join(f.repos, "f".repeat(64)));
-    await assert.rejects(leaveSession({ cwd: f.root, ...f.actor, ref: f.ref }), /Invalid GitRelay state directory/);
+    await assert.rejects(leaveSession({ cwd: f.root, ...f.actor, ref: f.ref }), /Invalid gitbeacon state directory/);
     assert.ok((await leaveSession({ cwd: f.root, ...f.actor, ref: f.ref, repositoryId: a.id }))?.closedAt);
   },
 );
@@ -141,7 +141,7 @@ test("explicit selection validates the selected state and subscription", async (
   await writeFile(join(a.target, "identity-ready.json"), JSON.stringify({ id: "f".repeat(64) }));
   await assert.rejects(
     leaveSession({ cwd: f.root, ...f.actor, ref: f.ref, repositoryId: a.id }),
-    /Incomplete GitRelay state initialization/,
+    /Incomplete gitbeacon state initialization/,
   );
   await writeFile(join(a.target, "identity-ready.json"), JSON.stringify({ id: a.id }));
   await writeFile(path, JSON.stringify({ ...JSON.parse(original), session: "different" }));
@@ -243,7 +243,6 @@ test(
       ref: f.ref,
       createdAt: now,
       lastSeen: now,
-      migrated: true,
     });
     await writeFile(path, value);
     for (const repositoryId of [undefined, a.id]) {
@@ -271,10 +270,7 @@ test(
       key = sessionKey({ root: cwd }, f.actor, f.ref);
     const now = new Date().toISOString(),
       path = join(a.target, "sessions", `${key}.json`);
-    await writeFile(
-      path,
-      JSON.stringify({ ...f.actor, key, root: cwd, ref: f.ref, createdAt: now, lastSeen: now, migrated: true }),
-    );
+    await writeFile(path, JSON.stringify({ ...f.actor, key, root: cwd, ref: f.ref, createdAt: now, lastSeen: now }));
     assert.ok((await leaveSession({ cwd, ...f.actor, ref: f.ref, repositoryId: a.id }))?.closedAt);
     assert.equal((await lstat(alias)).isSymbolicLink(), true);
   },
@@ -289,7 +285,7 @@ test("missing-ancestor inspection stops at the filesystem root", async (t) => {
     import assert from 'node:assert/strict';
     import { syncBuiltinESMExports } from 'node:module';
     import { dirname, join, parse } from 'node:path';
-    const root = parse(process.cwd()).root, parent = join(root, '__gitrelay_nonexistent_root_probe__'), cwd = join(parent, 'missing');
+    const root = parse(process.cwd()).root, parent = join(root, '__gitbeacon_nonexistent_root_probe__'), cwd = join(parent, 'missing');
     const originalStat = fs.promises.stat, originalLstat = fs.promises.lstat;
     let rootChecks = 0;
     fs.promises.stat = async (path, ...args) => {

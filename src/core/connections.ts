@@ -51,15 +51,16 @@ export async function onlineSessions(repo: Repository): Promise<string[]> {
 /** Push is transport delivery, never implicit acknowledgement or proof of a model turn. */
 export function connectionDelivery(server: McpServer, signal: AbortSignal, diagnostic: (error: unknown) => void) {
   const connection = randomBytes(32).toString("hex");
-  const bindings = new Map<string, { repo: Repository; key: string }>();
+  const bindings = new Map<string, { repo: Repository; key: string; modern: boolean }>();
   const locations = new Map<string, Repository>();
   const sent = new Set<string>();
+  const subscriptions = new Set<string>();
   server.registerResource(
     "inbox",
-    new ResourceTemplate("git-relay://inbox/{key}", {
+    new ResourceTemplate("gitbeacon://inbox/{key}", {
       list: async () => ({
         resources: [...bindings.keys()].map((key) => ({
-          uri: `git-relay://inbox/${key}`,
+          uri: `gitbeacon://inbox/${key}`,
           name: `inbox-${key}`,
           mimeType: "application/json",
         })),
@@ -79,7 +80,7 @@ export function connectionDelivery(server: McpServer, signal: AbortSignal, diagn
       for (const event of await eventsIn(binding.repo, key, signal)) {
         if (
           event.kind === "message" &&
-          event.sender.adapter === "git-relay" &&
+          event.sender.adapter === "gitbeacon" &&
           event.recipients.includes(key) &&
           !(await readReceipt(binding.repo, key, event.id))
         )
@@ -97,6 +98,22 @@ export function connectionDelivery(server: McpServer, signal: AbortSignal, diagn
       };
     },
   );
+  server.server.registerCapabilities({ resources: { subscribe: true } });
+  const requireBinding = (uri: string) => {
+    if (![...bindings.keys()].some((key) => uri === `gitbeacon://inbox/${key}`))
+      throw new Error("Inbox is not bound to this connection.");
+  };
+  server.server.setRequestHandler("resources/subscribe", async (request) => {
+    requireBinding(request.params.uri);
+    subscriptions.add(request.params.uri);
+    sent.clear();
+    return {};
+  });
+  server.server.setRequestHandler("resources/unsubscribe", async (request) => {
+    requireBinding(request.params.uri);
+    subscriptions.delete(request.params.uri);
+    return {};
+  });
   let timer: NodeJS.Timeout | undefined;
   let running: Promise<void> | undefined;
   async function pump() {
@@ -121,7 +138,7 @@ export function connectionDelivery(server: McpServer, signal: AbortSignal, diagn
         for (const event of await eventsIn(repo, key, signal)) {
           if (
             event.kind !== "message" ||
-            event.sender.adapter !== "git-relay" ||
+            event.sender.adapter !== "gitbeacon" ||
             !event.recipients.includes(key) ||
             (await readReceipt(repo, key, event.id))
           )
@@ -130,19 +147,9 @@ export function connectionDelivery(server: McpServer, signal: AbortSignal, diagn
           pending.add(id);
           if (sent.has(id) || count >= 8) continue;
           signal.throwIfAborted();
-          await server.server.sendLoggingMessage({
-            level: "warning",
-            logger: "git-relay",
-            data: {
-              type: "git-relay/inbox",
-              sessionKey: key,
-              cwd: session.root,
-              ref: session.ref,
-              event,
-              acceptanceRequired: true,
-            },
-          });
-          await server.server.sendResourceUpdated({ uri: `git-relay://inbox/${key}` });
+          const uri = `gitbeacon://inbox/${key}`;
+          if (!bindings.get(key)?.modern && !subscriptions.has(uri)) continue;
+          await server.server.sendResourceUpdated({ uri });
           sent.add(id);
           count++;
         }
@@ -166,13 +173,17 @@ export function connectionDelivery(server: McpServer, signal: AbortSignal, diagn
     timer.unref();
   }
   return {
-    bind(repo: Repository, key: string) {
-      bindings.set(key, { repo, key });
+    async bind(repo: Repository, key: string, modern: boolean) {
+      const existed = bindings.has(key);
+      bindings.set(key, { repo, key, modern });
       locations.set(repo.id, repo);
       schedule();
+      if (!existed) await server.server.sendResourceListChanged();
     },
-    unbind(key: string) {
-      bindings.delete(key);
+    async unbind(key: string) {
+      const existed = bindings.delete(key);
+      subscriptions.delete(`gitbeacon://inbox/${key}`);
+      if (existed) await server.server.sendResourceListChanged();
     },
     async close() {
       clearTimeout(timer);

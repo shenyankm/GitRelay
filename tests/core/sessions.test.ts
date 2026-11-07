@@ -26,7 +26,7 @@ test("session scans preserve all batches, reject invalid records and refresh aft
       ref,
       createdAt: at,
       lastSeen: at,
-      migrated: true,
+
       ...(index % 2 ? { closedAt: at } : {}),
     };
   });

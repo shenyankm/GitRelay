@@ -109,7 +109,7 @@ async function assertNoSyncLocks(f: SyncFixture) {
   for (const name of ["index.lock", "HEAD.lock", "locked"])
     await assert.rejects(lstat(join(f.gitDir, name)), { code: "ENOENT" });
   assert.deepEqual(
-    (await readdir(f.gitDir)).filter((name) => name.startsWith("git-relay-sync-")),
+    (await readdir(f.gitDir)).filter((name) => name.startsWith("gitbeacon-sync-")),
     [],
   );
 }
@@ -262,7 +262,7 @@ test("index publication failure retains both indexes and leaves the branch uncha
   let injected = false;
   fs.promises.rename = (async (source: any, target: any) => {
     if (
-      String(source).startsWith(join(f.gitDir, "git-relay-sync-")) &&
+      String(source).startsWith(join(f.gitDir, "gitbeacon-sync-")) &&
       String(source).endsWith("/index") &&
       String(target) === join(f.gitDir, "index")
     ) {

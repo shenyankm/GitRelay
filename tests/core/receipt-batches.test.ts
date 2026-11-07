@@ -14,7 +14,7 @@ const ref = "refs/heads/main",
   previous = "a".repeat(40),
   commit = "b".repeat(40);
 async function fixture(t: TestContext) {
-  const directory = await mkdtemp(join(tmpdir(), "gitrelay-receipt-batches-"));
+  const directory = await mkdtemp(join(tmpdir(), "gitbeacon-receipt-batches-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   for (const name of ["sessions", "events", "trash", "refs", "receipts"]) await mkdir(join(directory, name));
   const repo: Repository = {
@@ -35,7 +35,7 @@ async function fixture(t: TestContext) {
     await mkdir(join(directory, "receipts", key));
     await writeFile(
       join(directory, "sessions", `${key}.json`),
-      JSON.stringify({ ...identity, root: directory, key, ref, createdAt: at, lastSeen: at, migrated: true }),
+      JSON.stringify({ ...identity, root: directory, key, ref, createdAt: at, lastSeen: at }),
     );
     await writeFile(
       join(directory, "receipts", key, `${id}.json`),
@@ -62,88 +62,62 @@ async function fixture(t: TestContext) {
   };
 }
 
-test("GC groups proof files by event and preserves unrelated names", async (t) => {
-  const f = await fixture(t),
-    directory = join(f.repo.directory, "receipts", f.recipients[0]);
-  await writeFile(join(f.repo.directory, "events", `${f.event.id}.json`), JSON.stringify(f.event));
-  const proofs = Array.from({ length: 33 }, (_, i) => `${f.event.id}.${hash(i)}.pi-proof`);
-  const orphan = `${hash("other-event")}.${hash("proof")}.pi-proof`;
-  for (const name of [...proofs, orphan, "notes.txt"])
-    await writeFile(join(directory, name), "preserve unrelated proof");
-  assert.deepEqual((await collectRepository(f.repo, { apply: true, retentionDays: 0 })).removed, [f.event.id]);
-  for (const name of proofs) await assert.rejects(access(join(directory, name)), { code: "ENOENT" });
-  for (const name of [orphan, "notes.txt"])
-    assert.equal(await readFile(join(directory, name), "utf8"), "preserve unrelated proof");
-});
-
-for (const kind of ["receipt", "proof"])
-  test(
-    `GC drains ${kind} deletion peers before releasing its lock and can resume the trash journal`,
-    { timeout: 10_000 },
-    async (t) => {
-      const f = await fixture(t),
-        trash = join(f.repo.directory, "trash", `${f.event.id}.json`),
-        content = JSON.stringify(f.event);
-      await writeFile(join(f.repo.directory, "events", `${f.event.id}.json`), content);
-      const paths =
-        kind === "receipt"
-          ? [f.receipt(0), f.receipt(1), f.receipt(2)]
-          : [0, 1, 2].map((index) =>
-              join(
-                f.repo.directory,
-                "receipts",
-                f.recipients[0],
-                `${f.event.id}.${String(index).padStart(64, "0")}.pi-proof`,
-              ),
-            );
-      if (kind === "proof") for (const path of paths) await writeFile(path, "proof");
-      const gate = Promise.withResolvers<void>(),
-        started = Promise.withResolvers<void>(),
-        original = fs.promises.rm;
-      const patch = t.mock.method(fs.promises, "rm", async (...args: Parameters<typeof original>) => {
-        if (args[0] === paths[0]) throw new Error("first deletion failure");
-        if (args[0] === paths[2]) throw new Error("later deletion failure");
-        if (args[0] === paths[1]) {
-          started.resolve();
-          await gate.promise;
-        }
-        return original(...args);
-      });
-      syncBuiltinESMExports();
-      let settled = false,
-        pending: ReturnType<typeof collectRepository> | undefined;
-      try {
-        pending = collectRepository(f.repo, { apply: true, retentionDays: 0 });
-        pending.then(
-          () => {
-            settled = true;
-          },
-          () => {
-            settled = true;
-          },
-        );
-        await started.promise;
-        await new Promise((resolve) => setImmediate(resolve));
-        assert.equal(settled, false);
-        await assert.rejects(
-          withLock(f.lock, async () => {}),
-          /busy/i,
-        );
-        assert.equal(await readFile(trash, "utf8"), content);
-        gate.resolve();
-        await assert.rejects(pending, /first deletion failure/);
-        assert.equal(await readFile(trash, "utf8"), content);
-        await assert.rejects(access(paths[1]), { code: "ENOENT" });
-      } finally {
-        gate.resolve();
-        await pending?.catch(() => {});
-        patch.mock.restore();
-        syncBuiltinESMExports();
+test(
+  "GC drains receipt deletion peers before releasing its lock and can resume the trash journal",
+  { timeout: 10_000 },
+  async (t) => {
+    const f = await fixture(t),
+      trash = join(f.repo.directory, "trash", `${f.event.id}.json`),
+      content = JSON.stringify(f.event);
+    await writeFile(join(f.repo.directory, "events", `${f.event.id}.json`), content);
+    const paths = [f.receipt(0), f.receipt(1), f.receipt(2)];
+    const gate = Promise.withResolvers<void>(),
+      started = Promise.withResolvers<void>(),
+      original = fs.promises.rm;
+    const patch = t.mock.method(fs.promises, "rm", async (...args: Parameters<typeof original>) => {
+      if (args[0] === paths[0]) throw new Error("first deletion failure");
+      if (args[0] === paths[2]) throw new Error("later deletion failure");
+      if (args[0] === paths[1]) {
+        started.resolve();
+        await gate.promise;
       }
-      assert.deepEqual((await collectRepository(f.repo, { apply: true, retentionDays: 0 })).removed, [f.event.id]);
-      await assert.rejects(access(trash), { code: "ENOENT" });
-    },
-  );
+      return original(...args);
+    });
+    syncBuiltinESMExports();
+    let settled = false,
+      pending: ReturnType<typeof collectRepository> | undefined;
+    try {
+      pending = collectRepository(f.repo, { apply: true, retentionDays: 0 });
+      pending.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+      await started.promise;
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.equal(settled, false);
+      await assert.rejects(
+        withLock(f.lock, async () => {}),
+        /busy/i,
+      );
+      assert.equal(await readFile(trash, "utf8"), content);
+      gate.resolve();
+      await assert.rejects(pending, /first deletion failure/);
+      assert.equal(await readFile(trash, "utf8"), content);
+      await assert.rejects(access(paths[1]), { code: "ENOENT" });
+    } finally {
+      gate.resolve();
+      await pending?.catch(() => {});
+      patch.mock.restore();
+      syncBuiltinESMExports();
+    }
+    assert.deepEqual((await collectRepository(f.repo, { apply: true, retentionDays: 0 })).removed, [f.event.id]);
+    await assert.rejects(access(trash), { code: "ENOENT" });
+  },
+);
 
 test(
   "trash recovery drains receipt peers and preserves a missing-first decision over corrupt later data",
@@ -199,18 +173,15 @@ test(
   },
 );
 
-for (const mode of ["missing", "legacy", "corrupt"])
+for (const mode of ["missing", "subscription", "corrupt"])
   test(`GC drains recipient peers and preserves the first ${mode} decision`, { timeout: 10_000 }, async (t) => {
     const f = await fixture(t),
       path = join(f.repo.directory, "events", `${f.event.id}.json`),
       content = JSON.stringify(f.event);
     await writeFile(path, content);
     if (mode === "missing") await rm(f.receipt(1));
-    else if (mode === "legacy") {
-      const sessionPath = join(f.repo.directory, "sessions", `${f.recipients[1]}.json`),
-        session = JSON.parse(await readFile(sessionPath, "utf8"));
-      session.migrated = false;
-      await writeFile(sessionPath, JSON.stringify(session));
+    else if (mode === "subscription") {
+      await rm(join(f.repo.directory, "sessions", `${f.recipients[1]}.json`));
     } else await writeFile(f.receipt(1), "{broken");
     if (mode !== "corrupt") await writeFile(f.receipt(2), "{later-corrupt");
     const gate = Promise.withResolvers<void>(),
@@ -247,7 +218,9 @@ for (const mode of ["missing", "legacy", "corrupt"])
       if (mode === "corrupt") await assert.rejects(pending, SyntaxError);
       else {
         const report = await pending;
-        assert.deepEqual(report.kept, [{ id: f.event.id, reason: mode === "missing" ? "unconfirmed" : "migration" }]);
+        assert.deepEqual(report.kept, [
+          { id: f.event.id, reason: mode === "missing" ? "unconfirmed" : "subscription" },
+        ]);
         assert.deepEqual(report.removed, []);
       }
       assert.equal(await readFile(path, "utf8"), content);
@@ -260,14 +233,13 @@ for (const mode of ["missing", "legacy", "corrupt"])
     }
   });
 
-test("GC caches legacy migration state only within a call and still validates every receipt", async (t) => {
+test("GC caches subscription checks only within a call and still validates every receipt", async (t) => {
   const f = await fixture(t),
     key = f.recipients[0],
     ids = ["1".padStart(64, "0"), "2".padStart(64, "0")];
   const sessionPath = join(f.repo.directory, "sessions", `${key}.json`),
     session = JSON.parse(await readFile(sessionPath, "utf8"));
-  session.migrated = false;
-  await writeFile(sessionPath, JSON.stringify(session));
+  await rm(sessionPath);
   const receipt = (id: string) => join(f.repo.directory, "receipts", key, `${id}.json`);
   const acknowledgement = (id: string) => JSON.stringify({ eventId: id, status: "delivered", at: f.event.createdAt });
   for (const id of ids) {
@@ -296,7 +268,7 @@ test("GC caches legacy migration state only within a call and still validates ev
     const report = await collectRepository(f.repo, { apply: true, retentionDays: 0 });
     assert.deepEqual(
       report.kept,
-      ids.map((id) => ({ id, reason: "migration" })),
+      ids.map((id) => ({ id, reason: "subscription" })),
     );
     assert.deepEqual(report.removed, []);
     assert.equal(reads, 1);
@@ -305,7 +277,6 @@ test("GC caches legacy migration state only within a call and still validates ev
     await assert.rejects(collectRepository(f.repo, { apply: true, retentionDays: 0 }), SyntaxError);
     assert.equal(reads, 1);
     for (const id of ids) await access(join(f.repo.directory, "events", `${id}.json`));
-    session.migrated = true;
     await writeFile(sessionPath, JSON.stringify(session));
     await writeFile(receipt(ids[1]), acknowledgement(ids[1]));
     reads = 0;

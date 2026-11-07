@@ -1,6 +1,6 @@
 # MCP acceptance
 
-GitRelay 0.2 replaces the hook/CLI integration with a local stdio MCP server.
+gitbeacon 0.2 replaces the hook/CLI integration with a local stdio MCP server.
 
 ## Required checks
 
@@ -19,7 +19,10 @@ MCP acceptance covers discovery and input validation, read-only observation,
 independent private session handles, receive without acknowledgement,
 disconnect/reconnect, explicit/idempotent acceptance, stale/damaged batch
 rejection, partial-write retry, monitor ownership and repository isolation.
-Protocol discovery checks reject the removed Web surface.
+Protocol discovery checks reject removed Web and legacy migration tools. Resource
+regressions cover 2026 listen filters, 2025 subscribe/unsubscribe, connection-bound
+access, resource-list changes and the absence of business logging notifications.
+Namespace checks preserve old data without importing its identities or inbox.
 Safety regressions cover bounded/refilling tool-call budgets, concurrent-call
 limits, diagnostic sanitization and same-connection protocol-version retry.
 Existing Git/GC/storage race and corruption regressions remain required.
@@ -83,6 +86,9 @@ See [fix acceptance](evidence/2026-11-07-hidden-fixes/README.md).
 
 ## Evidence currency
 
+The gitbeacon MCP-only refactor is an incompatible namespace/protocol-surface
+change. Earlier GitRelay model, logging-notification and package results are
+historical evidence, not a rerun against this checkout.
 Use `npm run check` for the current checkout's test inventory; dated test totals
 are not a current pass count. The coordination and hidden-fix evidence predates
 the source-only change and includes now-retired package checks. Those results

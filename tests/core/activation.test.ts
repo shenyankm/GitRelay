@@ -4,7 +4,6 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { sessionActivation } from "../../src/core/activation.ts";
 import { sessionKey } from "../../src/core/mailbox.ts";
-import { hash } from "../../src/core/store.ts";
 import { fixture, git } from "../helpers.ts";
 
 test("failed pending enables preserve successful or later activation choices", async (t) => {
@@ -63,20 +62,14 @@ test("failed pending enables preserve successful or later activation choices", a
   );
 });
 
-test("activation defaults off without creating state and is isolated by session, instance, worktree and ref", async (t) => {
+test("activation defaults off without creating state and is isolated by session, worktree and ref", async (t) => {
   const f = await fixture(t),
     options = { cwd: f.b, ref: "refs/heads/main", adapter: "mcp", session: "receiver" };
   assert.equal(await sessionActivation(options), false);
   await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
   await sessionActivation(options, true);
   assert.equal(await sessionActivation(options), true);
-  for (const different of [
-    { session: "other" },
-    { instance: hash("new-instance") },
-    { cwd: f.c },
-    { adapter: "cli" },
-    { ref: "refs/heads/other" },
-  ])
+  for (const different of [{ session: "other" }, { cwd: f.c }, { adapter: "cli" }, { ref: "refs/heads/other" }])
     assert.equal(await sessionActivation({ ...options, ...different }), false);
   await sessionActivation(options, false);
   assert.equal(await sessionActivation(options), false);
@@ -97,10 +90,10 @@ test("activation is shared within one worktree, not a nested repository", async 
   await sessionActivation({ ...options, cwd: sub }, true);
   assert.equal(await sessionActivation(options), true);
   assert.equal(await sessionActivation({ ...options, cwd: f.c }), false);
-  const cliInstance = { ...options, adapter: "cli", instance: hash("native-instance") };
-  await sessionActivation({ ...cliInstance, cwd: sub }, true);
-  assert.equal(await sessionActivation(cliInstance), true);
-  assert.equal(await sessionActivation({ ...cliInstance, instance: hash("other-instance") }), false);
+  const participant = { ...options, session: "another-participant" };
+  await sessionActivation({ ...participant, cwd: sub }, true);
+  assert.equal(await sessionActivation(participant), true);
+  assert.equal(await sessionActivation({ ...participant, session: "other-participant" }), false);
 });
 
 test("legacy subdirectory activation never overrides a newer worktree choice", async (t) => {
@@ -189,12 +182,12 @@ test("invalid activation state and managed symlinks fail closed", { skip: proces
   const key = sessionKey({ root: f.b }, options, options.ref);
   const path = join(directory, `${key}.json`);
   await writeFile(path, JSON.stringify({ key, enabled: "true" }));
-  await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
+  await assert.rejects(sessionActivation(options), /Invalid gitbeacon activation/);
   await writeFile(
     path,
     JSON.stringify({ key, enabled: false, prepared: [{ token: "a", repositoryId: "a".repeat(64) }] }),
   );
-  await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
+  await assert.rejects(sessionActivation(options), /Invalid gitbeacon activation/);
   await writeFile(
     path,
     JSON.stringify({
@@ -205,7 +198,7 @@ test("invalid activation state and managed symlinks fail closed", { skip: proces
       prepared: [{ token: "a", repositoryId: "a".repeat(64), subscriptionKey: "../outside" }],
     }),
   );
-  await assert.rejects(sessionActivation(options), /Invalid GitRelay activation/);
+  await assert.rejects(sessionActivation(options), /Invalid gitbeacon activation/);
   const other = { ...options, session: "symlink" };
   await symlink(path, join(directory, `${sessionKey({ root: f.b }, other, other.ref)}.json`));
   await assert.rejects(sessionActivation(other), /not a regular file/);
@@ -232,6 +225,6 @@ test(
         prepared: [{ token: "a", repositoryId: "a".repeat(64) }],
       }),
     );
-    await assert.rejects(sessionActivation(options), /Invalid GitRelay state directory/);
+    await assert.rejects(sessionActivation(options), /Invalid gitbeacon state directory/);
   },
 );

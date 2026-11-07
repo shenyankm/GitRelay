@@ -15,6 +15,8 @@ const exec = promisify(execFile);
 test("the source project stays private without npm distribution entry points or lifecycle builds", async () => {
   const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
   const lock = JSON.parse(await readFile(join(root, "package-lock.json"), "utf8"));
+  assert.equal(pkg.name, "gitbeacon");
+  assert.match(pkg.description, /MCP server/);
   assert.equal(pkg.private, true);
   for (const field of ["bin", "files", "exports", "types", "publishConfig"])
     assert.equal(Object.hasOwn(pkg, field), false, field);
@@ -25,6 +27,8 @@ test("the source project stays private without npm distribution entry points or 
   assert.equal(Object.hasOwn(lock.packages[""], "bin"), false);
   assert.equal(Object.hasOwn(pkg.scripts, "prepare"), false);
   assert.equal(Object.hasOwn(pkg.scripts, "check:release"), false);
+  for (const obsolete of ["src/core/identity-migration.ts", "src/adapters", "src/cli.ts"])
+    await assert.rejects(access(join(root, obsolete)), { code: "ENOENT" });
   assert.doesNotMatch(
     `${pkg.scripts.check}\n${pkg.scripts.test}`,
     /npm\s+(?:pack|publish)|check-release|package\.integration/,
@@ -43,7 +47,7 @@ test("the built source entry serves stdio from a worktree with spaces without a 
   assert.equal((await call("branch_status")).worktree.branch, "source-runtime");
   assert.equal(stderr(), "");
   const { stdout: help } = await exec(process.execPath, [entry, "--help"], { cwd: f.root });
-  assert.match(help, /GitRelay MCP server/);
+  assert.match(help, /gitbeacon MCP server/);
   assert.match(help, /Usage: node .*dist\/mcp\/main\.js/);
   const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
   const { stdout: version } = await exec(process.execPath, [entry, "--version"], { cwd: f.root });

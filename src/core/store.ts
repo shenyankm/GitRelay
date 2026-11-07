@@ -14,13 +14,13 @@ export const isCommit = (value: unknown): value is string =>
   typeof value === "string" && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
 
 export function stateDirectory(): string {
-  const override = process.env.WORKTREE_SYNC_STATE_DIR;
+  const override = process.env.GITBEACON_STATE_DIR;
   if (override) {
-    if (!isAbsolute(override)) throw new Error("WORKTREE_SYNC_STATE_DIR must be an absolute path.");
+    if (!isAbsolute(override)) throw new Error("GITBEACON_STATE_DIR must be an absolute path.");
     return override;
   }
   const xdg = process.env.XDG_STATE_HOME;
-  return join(xdg && isAbsolute(xdg) ? xdg : join(homedir(), ".local", "state"), "worktree-agent-sync");
+  return join(xdg && isAbsolute(xdg) ? xdg : join(homedir(), ".local", "state"), "gitbeacon");
 }
 
 /** Check managed directory names without following a final symlink. */
@@ -30,14 +30,14 @@ export async function checkStateDirectory(path: string, optional = false): Promi
     throw error;
   });
   if (item && !item.isDirectory())
-    throw new Error(`Invalid GitRelay state directory: ${path}; preserve it for inspection.`);
+    throw new Error(`Invalid gitbeacon state directory: ${path}; preserve it for inspection.`);
 }
 
 /** The user-selected root and its ancestors may be symlinks; managed children may not. */
 export async function checkManagedRoot(): Promise<void> {
   const root = stateDirectory();
   const results = await Promise.allSettled(
-    ["repos", "identity-locks", "identity-choices", "identity-history", "identity-migration-claims"].map((name) =>
+    ["repos", "identity-locks", "identity-choices", "identity-history"].map((name) =>
       checkStateDirectory(join(root, name), true),
     ),
   );
@@ -186,7 +186,7 @@ export async function writeJson(path: string, value: unknown, beforeCommit?: () 
 }
 
 export class BusyError extends Error {}
-export const GC_LOCK_TOKEN = "git-relay-gc-v1";
+export const GC_LOCK_TOKEN = "gitbeacon-gc-v1";
 
 async function openOwnedLock(path: string, token?: string) {
   const temporary = `${path}.${randomUUID()}.owner`;
@@ -266,7 +266,7 @@ async function recoverDeadLock(path: string, signal?: AbortSignal, waitMs = 1000
           (entry.ticket === null || entry.ticket! < ticket || (entry.ticket === ticket && entry.id < id)),
       );
       if (!waiting) break;
-      if (performance.now() >= deadline) throw new BusyError(`GitRelay lock recovery is busy: ${path}`);
+      if (performance.now() >= deadline) throw new BusyError(`gitbeacon lock recovery is busy: ${path}`);
       await delay(10, undefined, { signal });
     }
     const info = await lstat(path).catch((error: NodeJS.ErrnoException) => {
@@ -274,7 +274,7 @@ async function recoverDeadLock(path: string, signal?: AbortSignal, waitMs = 1000
       throw error;
     });
     if (!info) return;
-    if (!info.isFile()) throw new Error(`Invalid git-relay lock (not a regular file): ${path}`);
+    if (!info.isFile()) throw new Error(`Invalid gitbeacon lock (not a regular file): ${path}`);
     const owner = (await readJson(path, true)) as { pid?: number } | undefined;
     if (!Number.isInteger(owner?.pid) || owner!.pid! <= 0)
       throw new Error(`Cannot verify lock owner: ${path}; preserve state.`);
@@ -327,7 +327,7 @@ export async function withLock<T>(
         if (failure.code === "ENOENT") return undefined;
         throw failure;
       });
-      if (info && !info.isFile()) throw new Error(`Invalid git-relay lock (not a regular file): ${path}`);
+      if (info && !info.isFile()) throw new Error(`Invalid gitbeacon lock (not a regular file): ${path}`);
       const owner = info
         ? ((await readJson(path).catch(() => undefined)) as { pid?: number; token?: string } | undefined)
         : undefined;
@@ -348,7 +348,7 @@ export async function withLock<T>(
           latest.mtimeMs === info.mtimeMs &&
           latest.ctimeMs === info.ctimeMs
         )
-          throw new Error(`Cannot read git-relay lock owner: ${path}. Retry later; do not remove a live lock.`);
+          throw new Error(`Cannot read gitbeacon lock owner: ${path}. Retry later; do not remove a live lock.`);
         continue;
       }
       if (owner && Number.isInteger(owner.pid) && owner.pid! > 0) {
@@ -375,7 +375,7 @@ export async function withLock<T>(
               continue;
             }
             throw new Error(
-              `Stale git-relay lock: ${path}. Recheck the current owner before manual recovery; never remove a live lock.`,
+              `Stale gitbeacon lock: ${path}. Recheck the current owner before manual recovery; never remove a live lock.`,
             );
           }
         }
@@ -388,7 +388,7 @@ export async function withLock<T>(
           });
           options.signal?.throwIfAborted();
           if (latest && info && latest.dev === info.dev && latest.ino === info.ino && latest.mtimeMs === info.mtimeMs) {
-            throw new BusyError(`GitRelay is busy: ${path}`);
+            throw new BusyError(`gitbeacon is busy: ${path}`);
           }
         }
       }
@@ -396,10 +396,10 @@ export async function withLock<T>(
       // Age alone says nothing about a long-running daemon's health.
       if (options.waitMs && performance.now() >= deadline) {
         throw new Error(
-          `GitRelay lock remains busy: ${path} (PID ${owner?.pid ?? "unknown"}). Retry later; do not remove a live lock.`,
+          `gitbeacon lock remains busy: ${path} (PID ${owner?.pid ?? "unknown"}). Retry later; do not remove a live lock.`,
         );
       }
-      if (!options.waitMs) throw new BusyError(`GitRelay is busy: ${path}`);
+      if (!options.waitMs) throw new BusyError(`gitbeacon is busy: ${path}`);
       await delay(Math.min(10 + Math.random() * 30, Math.max(1, deadline - performance.now())), undefined, {
         signal: options.signal,
       });

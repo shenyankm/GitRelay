@@ -48,7 +48,7 @@ test(
     );
     const initialized = JSON.parse((await lines.next()).value!);
     assert.equal(initialized.id, 1);
-    assert.equal(initialized.result.serverInfo.name, "git-relay");
+    assert.equal(initialized.result.serverInfo.name, "gitbeacon");
     child.stdin.write(JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }) + "\n");
     child.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }) + "\n");
     const listed = JSON.parse((await lines.next()).value!);
@@ -59,7 +59,7 @@ test(
     assert.equal(signal, null);
     assert.equal(stderr, "");
     await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
-    await assert.rejects(access(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+    await assert.rejects(access(join(f.main, ".git", ".gitbeacon-id")), { code: "ENOENT" });
   },
 );
 

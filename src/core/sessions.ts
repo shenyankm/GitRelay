@@ -25,7 +25,6 @@ import {
   writeJson,
 } from "./store.ts";
 import {
-  assertMigrationReady,
   checkRepositoryDirectories,
   repository,
   writeRepositoryMetadata,
@@ -90,7 +89,7 @@ async function leavingRepository(options: LeaveOptions, protectPrior = false): P
     try {
       if (protectPrior && (await hasPriorSubscription(options, await watchRoot(options.cwd, options.signal))))
         throw new Error(
-          "Another GitRelay subscription exists at this worktree path; restore its repository and retry.",
+          "Another gitbeacon subscription exists at this worktree path; restore its repository and retry.",
         );
       return await repository(options.cwd, options.signal, !protectPrior);
     } catch (cause) {
@@ -155,16 +154,14 @@ async function leavingRepository(options: LeaveOptions, protectPrior = false): P
         (session.root !== candidate.root ||
           session.ref !== options.ref ||
           session.adapter !== options.adapter ||
-          session.session !== options.session ||
-          session.instance !== options.instance)
+          session.session !== options.session)
       )
         throw new Error(`Invalid session: ${candidate.key}`);
       if (session) {
         const ready = (await readJson(join(directory, "identity-ready.json"))) as { id?: string } | undefined;
         const owner = (await readJson(join(directory, "identity-owner.json"))) as { id?: string } | undefined;
         if (ready?.id !== id || owner?.id !== id)
-          throw new Error(`Incomplete GitRelay state initialization: ${directory}; prior state was preserved.`);
-        await assertMigrationReady(repo);
+          throw new Error(`Incomplete gitbeacon state initialization: ${directory}; prior state was preserved.`);
         matches.push({ ...repo, root: candidate.root });
       }
     }
@@ -179,7 +176,7 @@ async function leavingRepository(options: LeaveOptions, protectPrior = false): P
 function snapshotIdentity(options: Identity): Identity {
   const adapter = options.adapter;
   validateIdentity({ adapter, session: "snapshot" });
-  const identity = { adapter, session: options.session, instance: options.instance };
+  const identity = { adapter, session: options.session };
   validateIdentity(identity);
   return identity;
 }
@@ -201,11 +198,11 @@ export async function leaveSession(
   options = { ...identity, repositoryId, cwd, signal, ref };
   const repo = await leavingRepository(options, protectPrior);
   if (expectedRepositoryId && repo.id !== expectedRepositoryId)
-    throw new Error("GitRelay repository identity changed during opt-out; preserve the subscription and retry.");
+    throw new Error("gitbeacon repository identity changed during opt-out; preserve the subscription and retry.");
   if (expectedRoot && relative(expectedRoot, repo.root) !== "")
     throw new Error("Git worktree root changed during opt-out; preserve the subscription and retry.");
   if (protectPrior && (await hasPriorSubscription(options, repo.root)))
-    throw new Error("Another GitRelay subscription exists at this worktree path; restore its repository and retry.");
+    throw new Error("Another gitbeacon subscription exists at this worktree path; restore its repository and retry.");
   let key = sessionKey(repo, options, options.ref);
   if (protectPrior) {
     const physical = await realpath(repo.root).catch((error) => {
@@ -221,7 +218,7 @@ export async function leaveSession(
       if (session && !session.closedAt) matches.push(candidate);
     }
     if (matches.length > 1)
-      throw new Error("Multiple GitRelay subscriptions match this worktree; preserve them for inspection.");
+      throw new Error("Multiple gitbeacon subscriptions match this worktree; preserve them for inspection.");
     if (matches.length === 1) key = matches[0];
   }
   return withLock(
@@ -305,17 +302,17 @@ export async function preflightLeaveSession(options: LeaveOptions): Promise<{ ro
     return {};
   }
   if (await hasPriorSubscription(options, root))
-    throw new Error("Another GitRelay subscription exists at this worktree path; restore its repository and retry.");
+    throw new Error("Another gitbeacon subscription exists at this worktree path; restore its repository and retry.");
   if (!(await hasPriorSubscription(options, root, true))) return { root };
   const repo = await withRepositoryIdentity(options.cwd, options.signal, async (value) => value, false);
   if (!(await hasPriorSubscription(options, root, true, repo.id)))
     throw new Error(
-      "A GitRelay subscription exists under a different repository identity; preserve it for inspection.",
+      "A gitbeacon subscription exists under a different repository identity; preserve it for inspection.",
     );
   return { root, repositoryId: repo.id };
 }
 
-/** Native opt-out remains a no-op outside a repository without prior state. */
+/** Leaving outside a repository without prior subscription state is a no-op. */
 export async function leaveSessionIfRepository(
   options: LeaveOptions,
   preflight?: { root?: string; repositoryId?: string },
@@ -326,7 +323,7 @@ export async function leaveSessionIfRepository(
       if (preflight) {
         const current = await preflightLeaveSession(options);
         if (!current.root || relative(checked.root, current.root) !== "" || current.repositoryId)
-          throw new Error("GitRelay subscription changed during opt-out; preserve it and retry.");
+          throw new Error("gitbeacon subscription changed during opt-out; preserve it and retry.");
       }
       return;
     }

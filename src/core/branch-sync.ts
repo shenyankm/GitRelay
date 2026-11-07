@@ -64,7 +64,7 @@ async function withPreparedHead(
   run: (healthy: () => void) => Promise<void>,
 ): Promise<void> {
   signal?.throwIfAborted();
-  const child = spawn("git", ["-C", cwd, ...args, "update-ref", "-m", "git-relay: fast-forward", "--stdin"], {
+  const child = spawn("git", ["-C", cwd, ...args, "update-ref", "-m", "gitbeacon: fast-forward", "--stdin"], {
     detached: true,
     stdio: ["pipe", "pipe", "pipe"],
     env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1", GIT_ALLOW_PROTOCOL: "" },
@@ -228,7 +228,7 @@ export async function syncBranch(cwd: string, branch: string, signal?: AbortSign
     if (gitDir !== common) {
       worktreeLockPath = join(gitDir, "locked");
       worktreeLock = await open(worktreeLockPath, "wx", 0o600);
-      await worktreeLock.writeFile("git-relay: synchronization in progress\n");
+      await worktreeLock.writeFile("gitbeacon: synchronization in progress\n");
     }
     indexLockPath = `${index}.lock`;
     indexLock = await open(indexLockPath, "wx", 0o600);
@@ -300,7 +300,7 @@ export async function syncBranch(cwd: string, branch: string, signal?: AbortSign
         throw error;
       });
     if (!isCommit(oldUpstream)) throw new Error("Invalid upstream object ID.");
-    const shadow = await mkdtemp(join(gitDir, "git-relay-sync-"));
+    const shadow = await mkdtemp(join(gitDir, "gitbeacon-sync-"));
     staging = shadow;
     const privateIndex = join(shadow, "index"),
       journal = join(shadow, "recovery.json");
@@ -346,7 +346,7 @@ export async function syncBranch(cwd: string, branch: string, signal?: AbortSign
         "update-ref",
         "--no-deref",
         "-m",
-        "git-relay: fetch configured upstream",
+        "gitbeacon: fetch configured upstream",
         upstream,
         fetched,
         oldUpstream,

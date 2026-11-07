@@ -35,8 +35,8 @@ test(
     await trackRepository(f.b);
     const first = await connectMcp(t, f.b);
     const second = await connectMcp(t, f.a);
-    await first.call("join_session");
-    await second.call("join_session");
+    const firstJoin = await first.call("join_session");
+    const secondJoin = await second.call("join_session");
     await eventually(
       () => first.call("coordination_status"),
       (status) => !!status.report,
@@ -56,8 +56,11 @@ test(
     );
     const survivor = owner === first.transport.pid ? second : first;
     const notifications: unknown[] = [];
-    survivor.client.setNotificationHandler("notifications/message", (message) => {
-      notifications.push(message);
+    survivor.client.setNotificationHandler("notifications/resources/updated", async (message) => {
+      notifications.push(await survivor.client.readResource({ uri: message.params.uri }));
+    });
+    await survivor.client.listen({
+      resourceSubscriptions: [survivor === first ? firstJoin.inboxUri : secondJoin.inboxUri],
     });
     process.kill(owner, "SIGKILL");
     const commit = await f.commit(f.a, "shared.txt", "peer conflict after crash\n");

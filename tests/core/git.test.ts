@@ -11,7 +11,7 @@ function git(cwd: string, ...args: string[]) {
 }
 
 async function fixture(t: { after(fn: () => Promise<void>): void }) {
-  const root = await mkdtemp(join(tmpdir(), "git-relay-worktree-"));
+  const root = await mkdtemp(join(tmpdir(), "gitbeacon-worktree-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const repo = join(root, "repo");
   await mkdir(repo);

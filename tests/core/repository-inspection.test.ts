@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { inspectRepository, repository } from "../../src/core/repository.ts";
@@ -12,12 +12,12 @@ test("repository inspection preserves missing identity and state without creatin
   assert.equal(empty.id, null);
   assert.equal(empty.repository, undefined);
   const identity = "a".repeat(64);
-  await writeFile(join(empty.common, ".git-relay-id"), `${identity}\n`);
+  await writeFile(join(empty.common, ".gitbeacon-id"), `${identity}\n`);
   const observed = await inspectRepository(f.b);
   assert.equal(observed.id, hash([empty.common, identity]));
   assert.equal(observed.repository, undefined);
   await assert.rejects(access(stateDirectory()), { code: "ENOENT" });
-  assert.equal(await readFile(join(empty.common, ".git-relay-id"), "utf8"), `${identity}\n`);
+  assert.equal(await readFile(join(empty.common, ".gitbeacon-id"), "utf8"), `${identity}\n`);
 });
 
 test("repository inspection reads initialized state without recreating identity locks", async (t) => {
@@ -38,21 +38,14 @@ test("repository inspection reads initialized state without recreating identity 
   await assert.rejects(access(ready), { code: "ENOENT" });
 });
 
-test("repository inspection rejects damaged ownership and migration without rewriting state", async (t) => {
+test("repository inspection rejects damaged ownership without rewriting state", async (t) => {
   const f = await fixture(t);
   const initialized = await repository(f.b);
   const owner = join(initialized.directory, "identity-owner.json");
   const original = await readFile(owner, "utf8");
   const damaged = JSON.stringify({ id: "b".repeat(64) });
   await writeFile(owner, damaged);
-  await assert.rejects(inspectRepository(f.b), /Incomplete GitRelay state initialization/);
+  await assert.rejects(inspectRepository(f.b), /Incomplete gitbeacon state initialization/);
   assert.equal(await readFile(owner, "utf8"), damaged);
   await writeFile(owner, original);
-  const claims = join(stateDirectory(), "identity-migration-claims");
-  await mkdir(claims);
-  const claim = join(claims, `${hash(initialized.common)}.json`);
-  const pending = JSON.stringify({ common: initialized.common, newId: initialized.id });
-  await writeFile(claim, pending);
-  await assert.rejects(inspectRepository(f.b), /migration is incomplete/);
-  assert.equal(await readFile(claim, "utf8"), pending);
 });

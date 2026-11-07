@@ -1,7 +1,7 @@
 # Maintenance and recovery
 
-State belongs to one OS user and is shared through `WORKTREE_SYNC_STATE_DIR` or the
-existing XDG/default path. Keep repository identity markers, events, receipts,
+State belongs to one OS user and is shared through `GITBEACON_STATE_DIR` or the
+XDG/default `gitbeacon` path. Keep repository identity markers, events, receipts,
 activation state and owned lock/journal files together. Never delete them to
 force a successful operation.
 
@@ -29,7 +29,7 @@ Recovery contenders publish unique, never-reused bakery tickets under
 ticket afterward. A crashed recovery participant's unique ticket can itself be
 removed after its PID is verifiably dead; no age-based stealing or permanent
 second recovery mutex is used. Lock ordering and event/receipt recovery journals
-are unchanged. Generic legacy lock calls retain their explicit-recovery default.
+are unchanged. Generic lock calls retain their explicit-recovery default.
 
 Live PIDs, permission-denied/ambiguous owners, corrupt records and old ownerless
 locks remain protected and need inspection. PID reuse can conservatively prevent
@@ -98,18 +98,17 @@ transport/application acceptance, not evidence of model adaptation.
 ## Repository identity
 
 `repository_status` and `list_sessions` observe without initialization. Mutating
-operations verify current identity and migration readiness. Replacing an identity
+operations verify the current identity and initialization state. Replacing an identity
 does not silently connect to prior state.
 
 Use `choose_fresh_repository` only after deciding to start separate state.
-Use `migrate_repository` to finish the existing explicit legacy copy protocol.
 Use `recover_repository` to archive a verified empty incomplete initialization.
 Nonempty, damaged or unowned directories are retained for manual inspection.
 
 For a removed worktree, `leave_session` accepts its repositoryId when needed.
-`retire_session` can explicitly close a listed old subscription, preserving unread
-state. Inspect old data before retirement; a new MCP identity does not inherit
-an old native client's inbox.
+Close your own subscription with `leave_session` and its private token.
+Old plugin/CLI stores are outside this runtime; no migration or native proof
+recovery is provided. See [breaking upgrades](migration.md).
 
 ## Interrupted operations
 

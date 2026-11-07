@@ -128,8 +128,8 @@ test("send-first legacy sessions retain the pre-publication migration baseline",
   };
   const repo = await repository(f.b);
   const key = sessionKey(repo, b, ref);
-  await mkdir(join(repo.common, "worktree-agent-sync"));
-  await writeJson(join(repo.common, "worktree-agent-sync", `${key}.json`), { root: f.b, ref, commit: f.initial });
+  await mkdir(join(repo.common, "gitbeacon"));
+  await writeJson(join(repo.common, "gitbeacon", `${key}.json`), { root: f.b, ref, commit: f.initial });
   // Model an older producer: current send intentionally does not subscribe.
   await registerSession(repo, b, ref);
   const first = await f.commit(f.main, "shared.txt", "first\n");
@@ -173,7 +173,6 @@ test("retry after event publication includes new subscribers without replaying e
   assert.equal(delivered.filter((n) => n.kind === "upstream").length, 1);
   assert.equal(delivered[0].event.id, event.id);
   assert.deepEqual(await consumeMailbox(c), []);
-  assert.deepEqual(await consumeMailbox({ ...b, upstreamOnly: true }), []);
   assert.deepEqual(await readReceipt(repo, key, event.id), receipt);
 });
 
@@ -349,7 +348,7 @@ test("recreating an unrelated repository at the same path keeps old messages iso
   await rm(join(f.main, ".git"), { recursive: true });
   git(f.main, "init", "-b", "main");
   await f.commit(f.main, "shared.txt", "replacement repository\n");
-  await assert.rejects(consumeMailbox(receiver), /Earlier GitRelay state exists/);
+  await assert.rejects(consumeMailbox(receiver), /Earlier gitbeacon state exists/);
   assert.deepEqual(await readFile(oldEvent), original, "refusal must preserve unread old state");
   await chooseFreshRepository(f.main);
   const replacement = await repository(f.main);

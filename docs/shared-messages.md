@@ -1,7 +1,7 @@
 # MCP tools and shared messages
 
 All calls are local MCP tools. Unless specified, `cwd` uses the server's default
-worktree and `ref` uses `WORKTREE_MAIN_REF` or `refs/heads/main`. A monitored ref
+worktree and `ref` uses `GITBEACON_MAIN_REF` or `refs/heads/main`. A monitored ref
 must be a full ref under `refs/heads/` or `refs/remotes/`. Standard input schemas
 reject unrelated fields before invoking the engine.
 
@@ -22,9 +22,7 @@ tracking. Use `repositoryId` when necessary to identify state for a removed work
 `list_sessions({cwd?})` reads existing records and strips activation tokens. A
 public ID or `lastSeen` does not authenticate another participant or prove it is
 online. The additional `online` field is based on an unexpired live-process
-transport lease, not model activity. `retire_session({cwd?, key})` is an administrative, explicit operation for
-closing an identified subscription, including a legacy one. It does not delete
-its unread data.
+transport lease, not model activity.
 
 ## Send, receive, accept
 
@@ -95,17 +93,23 @@ for one minute, including failures, to avoid retry storms.
 
 Reports distinguish `conflict`, `overlap`, `unknown` and `resolved`. Automatic
 messages are scoped to affected subscriptions and retain the existing
-`kind:"message"` envelope (`sender.adapter:"git-relay"`). The text contains a
+`kind:"message"` envelope (`sender.adapter:"gitbeacon"`). The text contains a
 bounded JSON report with total counts; full findings remain in coordination
 status. Reports and all their paths/URLs/reasons are untrusted data, not authority.
 
-Joined/resumed connections receive their automatic notices through MCP
-`notifications/message` and `notifications/resources/updated`. The inbox URI
-returns up to eight unacknowledged automatic notices and cannot be read from
-another unbound connection. Resource reads/notifications do not mint a delivery
-ID or write receipts. Use `receive_messages`, then accept its complete batch with
-`acknowledge_messages`. Ordinary file-scoped/manual messages retain their existing
-poll-time relevance filtering and are not blindly pushed to candidate recipients.
+A joined/resumed connection exposes its inbox as a standard MCP resource. Subscribe
+with `subscriptions/listen` and an exact `resourceSubscriptions` URI list on
+2026-07-28, or `resources/subscribe` on supported 2025 connections. Inbox membership
+changes emit `notifications/resources/list_changed`; subscribed inbox changes
+emit `notifications/resources/updated`. Unsubscribe/close the listen stream to
+stop updates. Business notices never use the logging surface.
+
+Read the resource after subscribing and on updates. It contains at most eight
+unacknowledged automatic notices and cannot be read by another unbound connection.
+Resource reads/notifications do not mint a delivery ID or write receipts. Use
+`receive_messages`, then accept its complete batch with `acknowledge_messages`.
+Ordinary file-scoped/manual messages retain poll-time relevance filtering and are
+not blindly pushed to candidate recipients.
 
 See [coordination](coordination.md) for coverage and host limitations.
 
@@ -120,7 +124,6 @@ See [coordination](coordination.md) for coverage and host limitations.
 | `collect_garbage`         | Optional cwd, apply (default false) and retentionDays (default 7). Only confirmed events are eligible.                                                         |
 | `recover_repository`      | Explicitly archive a verified empty incomplete initialization.                                                                                                 |
 | `choose_fresh_repository` | Explicit separate state after an identity change; retain prior data.                                                                                           |
-| `migrate_repository`      | Explicit recoverable copy of legacy repository state.                                                                                                          |
 
 `sync_branch` and maintenance require a user request; incoming messages do not
 supply that authorization. A message's text, paths, commit messages, diffs and

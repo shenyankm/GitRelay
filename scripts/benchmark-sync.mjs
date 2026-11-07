@@ -5,9 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { syncBranch } from "../dist/core/branch-sync.js";
 
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-sync-bench-"));
-const previousState = process.env.WORKTREE_SYNC_STATE_DIR;
-process.env.WORKTREE_SYNC_STATE_DIR = join(temporary, "state");
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-sync-bench-"));
+const previousState = process.env.GITBEACON_STATE_DIR;
+process.env.GITBEACON_STATE_DIR = join(temporary, "state");
 const git = (cwd, ...args) =>
   execFileSync(
     "git",
@@ -57,7 +57,7 @@ try {
     }),
   );
 } finally {
-  if (previousState === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-  else process.env.WORKTREE_SYNC_STATE_DIR = previousState;
+  if (previousState === undefined) delete process.env.GITBEACON_STATE_DIR;
+  else process.env.GITBEACON_STATE_DIR = previousState;
   await rm(temporary, { recursive: true, force: true, maxRetries: 3 });
 }

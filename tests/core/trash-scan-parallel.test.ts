@@ -24,7 +24,7 @@ const deferred = () => {
 };
 
 async function fixture(t: TestContext) {
-  const base = await mkdtemp(join(tmpdir(), "gitrelay-trash-scan-"));
+  const base = await mkdtemp(join(tmpdir(), "gitbeacon-trash-scan-"));
   t.after(() => (process.env.GITRELAY_KEEP_TEST_FIXTURES ? undefined : rm(base, { recursive: true, force: true })));
   const root = join(base, "repo"),
     template = join(base, "template"),

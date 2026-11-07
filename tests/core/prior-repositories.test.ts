@@ -12,12 +12,12 @@ test(
   "prior-state discovery drains bounded probes and preserves the first error before unlock",
   { timeout: 10_000 },
   async (t) => {
-    const root = await mkdtemp(join(tmpdir(), "gitrelay-prior-batches-")),
-      previous = process.env.WORKTREE_SYNC_STATE_DIR;
-    process.env.WORKTREE_SYNC_STATE_DIR = root;
+    const root = await mkdtemp(join(tmpdir(), "gitbeacon-prior-batches-")),
+      previous = process.env.GITBEACON_STATE_DIR;
+    process.env.GITBEACON_STATE_DIR = root;
     t.after(async () => {
-      if (previous === undefined) delete process.env.WORKTREE_SYNC_STATE_DIR;
-      else process.env.WORKTREE_SYNC_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.GITBEACON_STATE_DIR;
+      else process.env.GITBEACON_STATE_DIR = previous;
       await rm(root, { recursive: true, force: true });
     });
     const repo: Repository = {
@@ -30,7 +30,7 @@ test(
     };
     const history = join(root, "identity-history", hash(root)),
       repos = join(root, "repos"),
-      first = join(repos, hash(root)),
+      first = join(repos, "1".padStart(64, "0")),
       lock = join(root, "identity.lock");
     await mkdir(history, { recursive: true });
     await mkdir(repos);
@@ -54,7 +54,7 @@ test(
       peak = Math.max(peak, active);
       try {
         if (path === first) throw Object.assign(new Error("first prior denied"), { code: "EACCES" });
-        if (path === join(repos, ids[0])) {
+        if (path === join(repos, ids[1])) {
           started.resolve();
           await gate.promise;
         }

@@ -14,8 +14,8 @@
 and 24, with dependency installation and `npm run check`; it does not publish a
 package. Configuration is not a hosted pass result.
 
-The server uses the official TypeScript SDK's stdio entry with legacy-client
-compatibility. Transport notifications/resources are implemented, but automatic
+The official TypeScript SDK serves standard 2025 and 2026 MCP clients over stdio;
+this is protocol support, not an old client-plugin compatibility layer. Transport notifications/resources are implemented, but automatic
 context injection, idle-model wake-up and desktop GUI behavior are not established.
-No Codex lifecycle hooks remain. See [acceptance](acceptance.md) and the
+No native-client lifecycle hooks, plugin installer or old-state migration remain. See [acceptance](acceptance.md) and the
 [dated evidence index](evidence/README.md) for measured scope and source snapshots.

@@ -260,7 +260,7 @@ function notification(source: string, conflicts: Conflict[], errors: string[]) {
     reason: diagnosticMessage(issue.reason),
   }));
   const report = {
-    type: "git-relay/coordination",
+    type: "gitbeacon/coordination",
     source,
     status: conflicts.some((issue) => issue.level === "conflict")
       ? "conflict"

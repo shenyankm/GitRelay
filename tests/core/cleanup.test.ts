@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { collectGarbage } from "../../src/core/cleanup.ts";
@@ -315,7 +315,7 @@ test("recovery handles a reset to the original head and rejects ambiguous pendin
   assert.equal((await readRef(repo, ref))?.commit, f.initial);
 });
 
-test("GC revalidates migration metadata on every run and still checks each receipt", async (t) => {
+test("GC revalidates subscription metadata on every run and still checks each receipt", async (t) => {
   const f = await fixture(t);
   const b = receiver(f.b, "B");
   await consumeMailbox(b);
@@ -327,10 +327,10 @@ test("GC revalidates migration metadata on every run and still checks each recei
   const path = join(repo.directory, "sessions", `${key}.json`);
   const session = (await readJson(path)) as object;
   assert.equal((await collectGarbage(f.b, { retentionDays: 0 })).eligible.length, 2);
-  await writeJson(path, { ...session, migrated: false });
-  const unmigrated = await collectGarbage(f.b, { apply: true, retentionDays: 0 });
-  assert.equal(unmigrated.kept.length, 2);
-  assert.ok(unmigrated.kept.every(({ reason }) => reason === "migration"));
+  await rm(path);
+  const unregistered = await collectGarbage(f.b, { apply: true, retentionDays: 0 });
+  assert.equal(unregistered.kept.length, 2);
+  assert.ok(unregistered.kept.every(({ reason }) => reason === "subscription"));
   await writeJson(path, { key });
   await assert.rejects(collectGarbage(f.b, { apply: true, retentionDays: 0 }), /Invalid session/);
   await rm(path);
@@ -400,16 +400,12 @@ test("GC skips a busy consumer instead of deleting a cached event or deadlocking
   const event = await sendMessage({ cwd: f.a, adapter: "cc", session: "A", text: "confirmed" });
   await consumeMailbox(b);
   const repo = await repository(f.b);
-  const proof = join(repo.directory, "receipts", event.recipients[0], `${event.id}.${"a".repeat(64)}.pi-proof`);
-  await writeFile(proof, "preserve while busy");
   await withLock(join(repo.directory, "sessions", `${event.recipients[0]}.lock`), async () => {
     const report = await collectGarbage(f.b, { apply: true, retentionDays: 0 });
     assert.ok(report.kept.some((item) => item.id === event.id && item.reason === "busy"));
     assert.equal((await eventsIn(repo)).length, 1);
-    assert.equal(await readFile(proof, "utf8"), "preserve while busy");
   });
   assert.deepEqual((await collectGarbage(f.b, { apply: true, retentionDays: 0 })).removed, [event.id]);
-  await assert.rejects(readFile(proof), { code: "ENOENT" });
 });
 
 test("GC resumes its committed trash journal after a partial deletion", async (t) => {
@@ -447,32 +443,4 @@ test("GC fails closed on malformed receipts and honors cancellation", async (t) 
   await assert.rejects(collectGarbage(f.b, { apply: true, retentionDays: 0 }), /Invalid receipt/);
   await assert.rejects(collectGarbage(f.b, { apply: true, retentionDays: 0, signal: AbortSignal.abort() }), /abort/i);
   assert.equal((await eventsIn(repo)).length, 1);
-});
-
-test("migrated legacy events do not resurrect after cleanup, and unmigrated old sessions are protected", async (t) => {
-  const f = await fixture(t);
-  const b = receiver(f.b, "legacy");
-  const repo = await repository(f.b);
-  const key = sessionKey(repo, b, ref);
-  await mkdir(join(repo.common, "worktree-agent-sync"));
-  await writeJson(join(repo.common, "worktree-agent-sync", `${key}.json`), { root: f.b, ref, commit: f.initial });
-  await writeFile(join(f.b, "shared.txt"), "local\n");
-  await f.commit(f.main, "shared.txt", "upstream\n");
-  await consumeMailbox(b);
-  const migration = (await eventsIn(repo))[0];
-  const event = await sendMessage({ cwd: f.a, adapter: "cc", session: "A", text: "legacy participant" });
-  await consumeMailbox(b);
-  const sessionPath = join(repo.directory, "sessions", `${key}.json`);
-  const session = JSON.parse(await readFile(sessionPath, "utf8"));
-  await writeJson(sessionPath, { ...session, migrated: undefined });
-  assert.ok(
-    (await collectGarbage(f.b, { apply: true, retentionDays: 0 })).kept.some((item) => item.reason === "migration"),
-  );
-  await consumeMailbox(b);
-  assert.deepEqual(
-    new Set((await collectGarbage(f.b, { apply: true, retentionDays: 0 })).removed),
-    new Set([event.id, migration.id]),
-  );
-  await consumeMailbox(b);
-  assert.equal((await eventsIn(repo)).length, 0);
 });

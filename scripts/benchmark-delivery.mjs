@@ -7,8 +7,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-mcp-benchmark-"));
-const env = { ...process.env, WORKTREE_SYNC_STATE_DIR: join(temporary, "state") };
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-mcp-benchmark-"));
+const env = { ...process.env, GITBEACON_STATE_DIR: join(temporary, "state") };
 const entry = fileURLToPath(new URL("../dist/mcp/main.js", import.meta.url));
 const clients = [];
 const git = (cwd, ...args) =>
@@ -28,7 +28,7 @@ const git = (cwd, ...args) =>
     { env, encoding: "utf8" },
   ).trim();
 async function connect(cwd) {
-  const client = new Client({ name: "gitrelay-benchmark", version: "1.0.0" });
+  const client = new Client({ name: "gitbeacon-benchmark", version: "1.0.0" });
   clients.push(client);
   await client.connect(new StdioClientTransport({ command: process.execPath, args: [entry, "--cwd", cwd], cwd, env }));
   return async (name, args = {}) => {

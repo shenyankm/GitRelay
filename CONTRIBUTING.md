@@ -7,7 +7,7 @@ npm ci --ignore-scripts
 npm run check
 ```
 
-GitRelay is a local stdio MCP service. Keep stdout protocol-only. Reuse the core
+gitbeacon is a local stdio MCP service. Keep stdout protocol-only. Reuse the core
 identity, publication, delivery and GC machinery; do not implement another state
 store or client-specific hook adapter. Validate inputs and preserve lock ordering,
 unread events and recovery journals.
@@ -17,7 +17,7 @@ that receiving does not acknowledge and that explicit acceptance survives retry.
 For lifecycle changes, verify EOF/cancellation cleanup and shared monitor
 failover. Test the built source entry from an unrelated working directory and a
 worktree path containing spaces. Keep the project private; npm is for dependency
-management and local tasks, not GitRelay package publication.
+management and local tasks, not gitbeacon package publication.
 
 When commands, tools or lifecycle behavior change, update the English and Chinese
 READMEs and the affected guides in the [documentation index](docs/README.md).

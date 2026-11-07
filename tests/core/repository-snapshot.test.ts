@@ -40,7 +40,7 @@ test("repository snapshot observes new, dirty and detached repositories without 
   assert.equal(snapshot.retainedEvents, 0);
   assert.equal(git(f.b, "status", "--porcelain"), before);
   await assert.rejects(access(join(f.root, "state")), { code: "ENOENT" });
-  await assert.rejects(access(join(f.main, ".git", ".git-relay-id")), { code: "ENOENT" });
+  await assert.rejects(access(join(f.main, ".git", ".gitbeacon-id")), { code: "ENOENT" });
   git(f.b, "checkout", "--detach");
   const detached = await repositorySnapshot(f.b);
   assert.ok("error" in detached.status);

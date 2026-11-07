@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathMatcher, worktreeFiles } from "../dist/core/changes.js";
 
-const temporary = await mkdtemp(join(tmpdir(), "git-relay-worktree-bench-"));
+const temporary = await mkdtemp(join(tmpdir(), "gitbeacon-worktree-bench-"));
 const git = (cwd, ...args) =>
   execFileSync(
     "git",

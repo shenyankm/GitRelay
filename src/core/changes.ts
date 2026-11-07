@@ -501,16 +501,3 @@ export function formatChange(change: Change): string {
     }),
   ].join("\n");
 }
-
-export function readCursor(value: unknown, root: string, ref: string): Cursor | undefined {
-  if (!value || typeof value !== "object") return;
-  const data = value as Partial<Cursor>;
-  if (
-    data.root === root &&
-    data.ref === ref &&
-    typeof data.commit === "string" &&
-    /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(data.commit)
-  ) {
-    return { root, ref, commit: data.commit };
-  }
-}
